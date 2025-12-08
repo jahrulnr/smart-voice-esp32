@@ -1,10 +1,9 @@
 #include "boot_manager.h"
-#include "boot_manager.h"
 #include "config.h"
 #include "audio/microphone.h"
 #include "audio/speaker.h"
 #include "voice/pico_tts.h"
-#include "voice/voice_recognizer.h"
+#include "voice/voice_command_handler.h"
 #include "network/wifi_manager.h"
 #include "network/ftp_server.h"
 #include "network/web_server.h"
@@ -18,14 +17,13 @@
 extern Microphone mic;
 extern Speaker speaker;
 extern PicoTTS tts;
-extern VoiceRecognizer voiceRecognizer;
+extern VoiceCommandHandler voiceCommandHandler;
 extern FtpServer ftpServer;
 extern WifiManager wifiManager;
 extern WebServerService webServerService;
 extern Services::GPTService gptService;
 extern DisplayManager displayManager;
 extern VoiceDisplayCoordinator voiceDisplayCoordinator;
-extern CommandProcessor commandProcessor;
 
 BootManager& BootManager::getInstance() {
     static BootManager instance;
@@ -143,23 +141,15 @@ bool BootManager::init() {
             .commandCount = sizeof(commands) / sizeof(commands[0])
         };
 
-        if (!voiceRecognizer.init(&mic, voiceConfig)) {
-            return {false, "VoiceRecognizer", "Failed to initialize voice recognizer", true};
+        if (!voiceCommandHandler.init(&mic, &gptService, &displayManager, voiceConfig)) {
+            return {false, "VoiceCommandHandler", "Failed to initialize voice command handler", true};
         }
-        Logger::info("BOOT", "Voice recognizer initialized with %d commands", voiceConfig.commandCount);
-        return {true, "VoiceRecognizer", "", true};
-    }, "VoiceRecognizer", true);
+        Logger::info("BOOT", "Voice command handler initialized with %d commands", voiceConfig.commandCount);
+        return {true, "VoiceCommandHandler", "", true};
+    }, "VoiceCommandHandler", true);
 
     registerComponent(BootPhase::SERVICE_INIT, []() -> InitResult {
-        if (!commandProcessor.init(&gptService, &displayManager)) {
-            return {false, "CommandProcessor", "Failed to initialize command processor", true};
-        }
-        Logger::info("BOOT", "Command processor initialized");
-        return {true, "CommandProcessor", "", true};
-    }, "CommandProcessor", true);
-
-    registerComponent(BootPhase::SERVICE_INIT, []() -> InitResult {
-        if (!voiceDisplayCoordinator.init(&voiceRecognizer, &displayManager, &commandProcessor)) {
+        if (!voiceDisplayCoordinator.init(&voiceCommandHandler, &displayManager)) {
             return {false, "VoiceDisplayCoordinator", "Failed to initialize coordinator", true};
         }
         if (!voiceDisplayCoordinator.start()) {
@@ -188,7 +178,7 @@ bool BootManager::init() {
 
     // Register APPLICATION_START phase components
     registerComponent(BootPhase::APPLICATION_START, []() -> InitResult {
-        if (!voiceRecognizer.startListening()) {
+        if (!voiceCommandHandler.startListening()) {
             return {false, "VoiceListening", "Failed to start voice listening", true};
         }
         Logger::info("BOOT", "Voice listening started");

@@ -7,9 +7,8 @@
 
 #pragma once
 
-#include "voice/voice_recognizer.h"
+#include "voice/voice_command_handler.h"
 #include "ui/display.h"
-#include "command_processor.h"
 
 class VoiceDisplayCoordinator {
 public:
@@ -17,13 +16,12 @@ public:
     ~VoiceDisplayCoordinator();
 
     /**
-     * Initialize the coordinator with voice recognizer, display manager, and command processor
-     * @param voiceRecognizer Pointer to the voice recognizer instance
+     * Initialize the coordinator with voice command handler and display manager
+     * @param voiceCommandHandler Pointer to the voice command handler instance
      * @param displayManager Pointer to the display manager instance
-     * @param commandProcessor Pointer to the command processor instance
      * @return true if initialization successful
      */
-    bool init(VoiceRecognizer* voiceRecognizer, DisplayManager* displayManager, CommandProcessor* commandProcessor);
+    bool init(VoiceCommandHandler* voiceCommandHandler, DisplayManager* displayManager);
 
     /**
      * Start coordinating voice events with display updates
@@ -32,9 +30,8 @@ public:
     bool start();
 
 private:
-    VoiceRecognizer* _voiceRecognizer;
+    VoiceCommandHandler* _voiceCommandHandler;
     DisplayManager* _displayManager;
-    CommandProcessor* _commandProcessor;
     bool _initialized;
 
     /**

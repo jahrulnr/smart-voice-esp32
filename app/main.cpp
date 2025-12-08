@@ -12,21 +12,19 @@
 #include "audio/microphone.h"
 #include "audio/speaker.h"
 #include "voice/pico_tts.h"
-#include "voice/voice_recognizer.h"
-#include "ui/display.h"
+#include "voice/voice_command_handler.h"
 
 // Global instances
 Microphone mic;
 Speaker speaker;
 PicoTTS tts;
-VoiceRecognizer voiceRecognizer;
+VoiceCommandHandler voiceCommandHandler;
 FtpServer ftpServer(LittleFS);
 WifiManager wifiManager;
 WebServerService webServerService;
 Services::GPTService gptService;
 DisplayManager displayManager;
 VoiceDisplayCoordinator voiceDisplayCoordinator;
-CommandProcessor commandProcessor;
 BootManager& bootManager = BootManager::getInstance();
 
 void setup() {

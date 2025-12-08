@@ -6,9 +6,8 @@
 #include "infrastructure/logger.h"
 
 VoiceDisplayCoordinator::VoiceDisplayCoordinator()
-    : _voiceRecognizer(nullptr)
+    : _voiceCommandHandler(nullptr)
     , _displayManager(nullptr)
-    , _commandProcessor(nullptr)
     , _initialized(false) {
 }
 
@@ -16,20 +15,19 @@ VoiceDisplayCoordinator::~VoiceDisplayCoordinator() {
     // Clean up if needed
 }
 
-bool VoiceDisplayCoordinator::init(VoiceRecognizer* voiceRecognizer, DisplayManager* displayManager, CommandProcessor* commandProcessor) {
+bool VoiceDisplayCoordinator::init(VoiceCommandHandler* voiceCommandHandler, DisplayManager* displayManager) {
     if (_initialized) {
         Logger::warn("VOICE_COORD", "VoiceDisplayCoordinator already initialized");
         return true;
     }
 
-    if (!voiceRecognizer || !displayManager || !commandProcessor) {
-        Logger::error("VOICE_COORD", "Invalid voice recognizer, display manager, or command processor");
+    if (!voiceCommandHandler || !displayManager) {
+        Logger::error("VOICE_COORD", "Invalid voice command handler or display manager");
         return false;
     }
 
-    _voiceRecognizer = voiceRecognizer;
+    _voiceCommandHandler = voiceCommandHandler;
     _displayManager = displayManager;
-    _commandProcessor = commandProcessor;
     _initialized = true;
 
     Logger::info("VOICE_COORD", "VoiceDisplayCoordinator initialized");
@@ -43,7 +41,7 @@ bool VoiceDisplayCoordinator::start() {
     }
 
     // Set up the event callback using a lambda that captures this instance
-    _voiceRecognizer->setEventCallback([this](VoiceEvent event, int commandId, int phraseId) {
+    _voiceCommandHandler->setEventCallback([this](VoiceEvent event, int commandId, int phraseId) {
         this->handleVoiceEvent(event, commandId, phraseId);
     });
 
@@ -59,14 +57,10 @@ void VoiceDisplayCoordinator::handleVoiceEvent(VoiceEvent event, int commandId, 
             break;
 
         case VOICE_COMMAND_DETECTED:
-            Logger::info("VOICE_COORD", "Command detected (id=%d, phrase=%d) - processing command",
+            Logger::info("VOICE_COORD", "Command detected (id=%d, phrase=%d) - command processing handled internally",
                         commandId, phraseId);
             _displayManager->setState(DisplayState::PROCESSING);
-
-            // Process the actual command
-            if (_commandProcessor) {
-                _commandProcessor->processCommand(commandId, phraseId);
-            }
+            // Command processing is now handled internally by VoiceCommandHandler
             break;
 
         case VOICE_TIMEOUT:
