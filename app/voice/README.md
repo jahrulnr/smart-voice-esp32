@@ -90,14 +90,24 @@ void setEventCallback(VoiceEventCallback callback); // Set event handler
 
 **Usage Example**:
 ```cpp
-#include "voice/voice_recognizer.h"
+#include "voice/voice_command_handler.h"
 #include "audio/microphone.h"
+#include "application/gpt_service.h"
+#include "ui/display.h"
 
 Microphone microphone;
-VoiceRecognizer recognizer;
+Services::GPTService gptService;
+DisplayManager displayManager;
+VoiceCommandHandler handler;
 
-// Initialize microphone first
+// Initialize components first
 microphone.init();
+gptService.init();
+displayManager.init();
+
+// Initialize handler
+VoiceConfig config = {}; // Use defaults
+if (!handler.init(&microphone, &gptService, &displayManager, config)) {
 
 // Configure voice recognition
 VoiceConfig config = {
@@ -150,14 +160,14 @@ recognizer.startListening();
 
 ### Current Flow
 ```
-Microphone → VoiceRecognizer → Command Detection
+Microphone → VoiceCommandHandler → Command Processing → Pico TTS → Speaker
                               ↓
-                        Pico TTS Response → Speaker
+                        UI Updates & GPT Integration
 ```
 
 ### Complete Flow
 ```
-Microphone → VoiceRecognizer → Command Parser → GPT Service → Pico TTS → Speaker
+Microphone → VoiceCommandHandler → Command Parser → GPT Service → Pico TTS → Speaker
                                       ↓
                                 Display Updates
 ```

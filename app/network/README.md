@@ -86,7 +86,7 @@ wifiManager.handle();
 - DNS server for captive portal
 - WebServer instance creation and management
 
-**Application Layer** (`app/services/`):
+**Application Layer** (`app/application/`):
 - Web interface and user interaction
 - FTP file transfer service
 - GPT AI integration

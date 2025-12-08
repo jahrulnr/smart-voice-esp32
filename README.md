@@ -15,33 +15,38 @@ A comprehensive voice-controlled assistant for ESP32-S3, featuring speech recogn
 
 ## 🏗️ Architecture
 
-### Feature-Based Structure
+### Clean Architecture by Responsibility
 ```
 app/
-├── audio/          # Microphone and speaker I/O
-├── voice/          # Speech recognition and TTS
-├── ui/            # OLED display management
-├── network/       # Network infrastructure (WiFi, DNS)
-├── services/      # Application services (Web UI, FTP, GPT)
-├── models/        # ML model loading
-└── tasks/         # FreeRTOS task management
+├── infrastructure/  # System-level concerns (BootManager, Logger, TaskScheduler)
+├── application/     # Business logic (GPTService, VoiceDisplayCoordinator)
+├── network/         # Communication infrastructure (WiFiManager, FtpServer, WebServer)
+├── audio/           # Audio I/O (Microphone, Speaker)
+├── voice/           # Speech recognition and TTS (VoiceCommandHandler, PicoTTS)
+├── ui/              # Display management (DisplayManager, Drawers)
+└── models/          # ML model loading
 ```
 
 ### Architectural Layers
 
-**Network Layer** (`app/network/`):
-- Low-level network connectivity and protocols
-- WiFi hardware management, hotspot creation, DNS server
-- Transport layer concerns (TCP/IP, WiFi connectivity)
+**Infrastructure Layer** (`app/infrastructure/`):
+- System-level concerns and cross-cutting utilities
+- Boot management, logging, task scheduling
+- Hardware abstraction and system services
 
-**Services Layer** (`app/services/`):
-- Application-level functionality using network infrastructure
-- Web interfaces, file transfer, AI integration
-- Business logic and user-facing features
+**Application Layer** (`app/application/`):
+- Business logic and domain-specific functionality
+- GPT integration, voice-display coordination
+- Command processing and AI interactions
+
+**Network Layer** (`app/network/`):
+- Communication infrastructure and protocols
+- WiFi management, FTP server, web server
+- Remote access and data transfer
 
 ### Data Flow
 ```
-Microphone → Speech Recognition → Command Processing → TTS → Speaker
+Microphone → VoiceCommandHandler → Command Processing → TTS → Speaker
                                       ↓
                                 UI Updates & Network I/O
 ```
@@ -57,18 +62,18 @@ Microphone → Speech Recognition → Command Processing → TTS → Speaker
 ### Pin Configuration
 ```cpp
 // Microphone (INMP441)
-#define I2S_MIC_SD_PIN   GPIO_NUM_32  // DOUT
-#define I2S_MIC_SCK_PIN  GPIO_NUM_2   // BCLK
-#define I2S_MIC_WS_PIN   GPIO_NUM_33  // WS/LRCLK
+#define I2S_MIC_SD_PIN   GPIO_NUM_12  // DOUT
+#define I2S_MIC_SCK_PIN  GPIO_NUM_14  // BCLK
+#define I2S_MIC_WS_PIN   GPIO_NUM_13  // WS/LRCLK
 
 // Speaker (MAX98357A)
-#define I2S_SPEAKER_DOUT_PIN GPIO_NUM_20  // DIN
-#define I2S_SPEAKER_BCLK_PIN GPIO_NUM_26  // BCLK
-#define I2S_SPEAKER_LRC_PIN  GPIO_NUM_27  // WS/LRCLK
+#define I2S_SPEAKER_DOUT_PIN GPIO_NUM_11  // DIN
+#define I2S_SPEAKER_BCLK_PIN GPIO_NUM_10  // BCLK
+#define I2S_SPEAKER_LRC_PIN  GPIO_NUM_9   // WS/LRCLK
 
 // Display (SSD1306, optional)
-#define OLED_SDA GPIO_NUM_21
-#define OLED_SCL GPIO_NUM_22
+#define DISPLAY_SDA_PIN GPIO_NUM_21
+#define DISPLAY_SCL_PIN GPIO_NUM_22
 ```
 
 ## 🚀 Quick Start
@@ -80,8 +85,8 @@ Microphone → Speech Recognition → Command Processing → TTS → Speaker
 
 ### 1. Clone and Setup
 ```bash
-git clone https://github.com/jahrulnr/esp32-microphone.git
-cd esp32-microphone
+git clone https://github.com/jahrulnr/smart-voice-esp32.git
+cd smart-voice-esp32
 ```
 
 ### 2. Install Dependencies
@@ -118,8 +123,8 @@ pio device monitor
 ## 📋 Usage
 
 ### Voice Commands
-- **Wake Word**: "Hi ESP" (built into ESP-SR model)
-- **Commands**: Custom voice commands (extendable)
+- **Wake Word**: ESP-SR built-in wake word detection
+- **Commands**: "hello", "time", "weather", "music", "stop", "help"
 
 ### Web Interface
 - **WiFi Management**: `http://esp32-ip/` - Add/remove networks
@@ -183,16 +188,17 @@ void TaskScheduler::startTasks() {
 Key PlatformIO build flags in `platformio.ini`:
 ```ini
 build_flags =
-    -DCONFIG_SR_VADN_VADNET1_MEDIUM  # Voice activity detection
-    -DCONFIG_SR_NSN_NSNET2          # Noise suppression
-    -DCONFIG_FLASH_COCO_DETECT_YOLO11N_320_S8_V3  # Object detection
+    -DCONFIG_SR_VADN_VADNET1_MEDIUM=1  # Voice activity detection
+    -DCONFIG_SR_NSN_NSNET2=1           # Noise suppression
+    -DCORE_DEBUG_LEVEL=3               # Arduino core debug level
+    -DLOG_LOCAL_LEVEL=5                # ESP-IDF log level
 ```
 
 ### Model Management
 ESP-SR models are pre-flashed. For updates:
 ```bash
 # Flash speech recognition models
-esptool.py --baud 2000000 write_flash 0x47D000 model/srmodels.bin
+esptool.py --baud 2000000 write_flash 0x3B0000 model/en-US_lh0_sg.bin
 ```
 
 ## 🐛 Troubleshooting
