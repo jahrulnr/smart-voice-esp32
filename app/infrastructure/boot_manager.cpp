@@ -44,7 +44,7 @@ bool BootManager::init() {
     setCpuFrequencyMhz(240);
 
     // Disable external memory allocation to prevent heap fragmentation
-    heap_caps_malloc_extmem_enable(0);
+    heap_caps_malloc_extmem_enable(128);
 
     // Configure Task Watchdog Timer to prevent system hangs
     // Timeout: 120 seconds (2 minutes), no panic on timeout
