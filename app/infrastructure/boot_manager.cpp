@@ -12,6 +12,7 @@
 #include "ui/display.h"
 #include "application/voice_display_coordinator.h"
 #include "infrastructure/task_scheduler.h"
+#include <esp_task_wdt.h>
 
 // Global instances (forward declarations - actual instances in main.cpp)
 extern Microphone mic;
@@ -38,6 +39,21 @@ bool BootManager::init() {
     }
 
     Logger::info("BOOT", "Initializing boot manager...");
+
+    // Set CPU frequency to 240MHz for optimal performance
+    setCpuFrequencyMhz(240);
+
+    // Disable external memory allocation to prevent heap fragmentation
+    heap_caps_malloc_extmem_enable(0);
+
+    // Configure Task Watchdog Timer to prevent system hangs
+    // Timeout: 120 seconds (2 minutes), no panic on timeout
+    esp_err_t esp_task_wdt_reconfigure(const esp_task_wdt_config_t *config);
+    esp_task_wdt_config_t config = {
+        .timeout_ms = 120 * 1000,  // 120 seconds
+        .trigger_panic = false,     // Don't panic, just reset
+    };
+    esp_task_wdt_reconfigure(&config);
 
     // Register PRE_INIT phase components
     registerComponent(BootPhase::PRE_INIT, []() -> InitResult {

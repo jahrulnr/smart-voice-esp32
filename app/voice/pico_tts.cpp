@@ -28,7 +28,7 @@ bool PicoTTS::init(Speaker* speaker) {
     Logger::info("TTS", "Initializing PicoTTS...");
 
     // Initialize picoTTS with callbacks
-    if (!picotts_init(1, outputCallback, -1)) {  // Priority 1, no core affinity
+    if (!picotts_init(10, outputCallback, 0)) {  // Priority 1, no core affinity
         Logger::error("TTS", "Failed to initialize PicoTTS engine");
         return false;
     }
@@ -54,7 +54,7 @@ bool PicoTTS::speak(const char* text) {
     }
 
     Logger::info("TTS", "Speaking: %s", text);
-    picotts_add(text, strlen(text));
+    picotts_add(text, strlen(text)+1);
     return true;
 }
 
@@ -71,9 +71,9 @@ void PicoTTS::shutdown() {
 void PicoTTS::outputCallback(int16_t* samples, unsigned count) {
     // This callback is called from picoTTS task with generated samples
     // For simplicity, write directly to speaker (blocking is ok in callback)
-    if (speakerInstance) {
-        size_t written;
-        speakerInstance->writeSamples(samples, count, &written);
+    size_t written;
+    if (speakerInstance && !speakerInstance->writeSamples(samples, count, &written)) {
+        Logger::error("TTS", "PicoTTS engine failed to write samples");
     }
 }
 
@@ -82,5 +82,5 @@ void PicoTTS::errorCallback() {
 }
 
 void PicoTTS::idleCallback() {
-    Logger::debug("TTS", "PicoTTS engine is idle");
+    Logger::info("TTS", "PicoTTS engine is idle");
 }

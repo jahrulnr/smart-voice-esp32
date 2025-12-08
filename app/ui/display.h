@@ -110,13 +110,6 @@ private:
     // Drawers
     DisplayDrawer* _drawers[7];
 
-    // Helper methods
-    void drawProgressBar(int x, int y, int width, int height, int percent) const;
-    void drawScrollingText(int x, int y, int width, const String& text) const;
-    void drawStatusIcons() const;
-    void drawHeader(const String& title) const;
-    void drawFooter() const;
-
     // State timeout handling
     bool shouldReturnToMain() const;
     void resetStateTimer();

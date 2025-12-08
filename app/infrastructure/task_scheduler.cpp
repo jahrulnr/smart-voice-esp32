@@ -136,6 +136,11 @@ void TaskScheduler::mainTask(void* parameter) {
             int gptStatus = gptService.isInitialized() ? 1 : 0;
             displayManager.onEvent(EventData(EventType::STATUS_UPDATE, "", static_cast<int>(StatusType::GPT_SERVICE), &gptStatus));
 
+            // WiFi status update
+            int wifiStatus = wifiManager.isConnected() ? 1 : 0;
+            String ipAddress = wifiManager.getIPAddress();
+            displayManager.onEvent(EventData(EventType::STATUS_UPDATE, ipAddress, static_cast<int>(StatusType::WIFI), &wifiStatus));
+
             lastStatusUpdate = millis();
         }
 

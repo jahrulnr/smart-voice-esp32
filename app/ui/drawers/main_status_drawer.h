@@ -12,18 +12,30 @@ public:
         // Status icons
         manager->drawStatusIcons();
 
-        // Main content
+        // Main content - ensure consistent text width to prevent overlap
         display->setCursor(0, 25);
-        display->printf("WiFi: %s", manager->getWifiConnected() ? "Connected" : "Disconnected");
+        if (manager->getWifiConnected()) {
+            display->printf("WiFi: Connected  ");
+        } else {
+            display->printf("WiFi: Disconnected");
+        }
 
         display->setCursor(0, 35);
-        display->printf("Mic: %s", manager->getMicReady() ? "Ready" : "Offline");
+        if (manager->getMicReady()) {
+            display->printf("Mic: Ready       ");
+        } else {
+            display->printf("Mic: Offline     ");
+        }
 
         display->setCursor(0, 45);
-        display->printf("GPT: %s", manager->getGptReady() ? "Ready" : "Not Set");
+        if (manager->getGptReady()) {
+            display->printf("GPT: Ready       ");
+        } else {
+            display->printf("GPT: Not Set     ");
+        }
 
         display->setCursor(0, 55);
-        display->printf("Mem: %d%% Free", 100 - manager->getMemoryPercent());
+        display->printf("Mem: %d%% Free    ", 100 - manager->getMemoryPercent());
 
         manager->drawFooter();
     }
