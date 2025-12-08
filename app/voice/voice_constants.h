@@ -25,12 +25,12 @@ struct VoiceConfig {
 
 // Default voice commands - Generated using ESP-IDF multinet_g2p.py tool
 static VoiceCommand defaultCommands[] = {
-    {0, "hello", "hcLb"},
-    {1, "time", "TiM"},
+    {0, "hello",   "hcLb"},
+    {1, "time",    "TiM"},
     {2, "weather", "Wfjk"},
-    {3, "music", "MYoZgK"},
-    {4, "stop", "STnP"},
-    {5, "help", "hfLP"}
+    {3, "music",   "MYoZgK"},
+    {4, "stop",    "STnP"},
+    {5, "help",    "hfLP"}
 };
 
 // Command responses - matched by command ID
