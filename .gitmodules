@@ -1,0 +1,3 @@
+[submodule "/apps/PlatformIO/Assistences/external/mqtt/web"]
+	path = /apps/PlatformIO/Assistences/external/mqtt/web
+	url = https://github.com/terdia/mqttui
