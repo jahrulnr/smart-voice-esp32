@@ -219,7 +219,7 @@ void VoiceCommandHandler::srEventCallback(void* arg, sr_event_t event, int comma
 
         case SR_EVENT_WAKEWORD_CHANNEL:
             handler->_wakeWordCount++;
-            Logger::info("VOICE_CMD", "Wake word detected (%d total)", handler->_wakeWordCount);
+            Logger::info("VOICE_CMD", "Wake word channel detected (%d total)", handler->_wakeWordCount);
 
             // Switch to command mode
             SR::sr_set_mode(SR_MODE_COMMAND);
@@ -239,9 +239,9 @@ void VoiceCommandHandler::srEventCallback(void* arg, sr_event_t event, int comma
             // Process the command
             handler->processCommand(command_id, phrase_id);
 
-            // Switch back to wake word mode
-            SR::sr_set_mode(SR_MODE_WAKEWORD);
-            handler->_currentMode = SR_MODE_WAKEWORD;
+            // Switch to command mode
+            SR::sr_set_mode(SR_MODE_COMMAND);
+            handler->_currentMode = SR_MODE_COMMAND;
 
             // Notify via callback
             if (handler->_eventCallback) {

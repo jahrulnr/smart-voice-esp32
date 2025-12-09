@@ -36,13 +36,15 @@ void TaskScheduler::startTasks() {
     Logger::info("TASK_SCHED", "Starting application tasks...");
 
     // Create main application task
-    BaseType_t result = xTaskCreate(
+    BaseType_t result = xTaskCreatePinnedToCoreWithCaps(
         mainTask,           // Task function
         "MainAppTask",      // Task name
         4096,               // Stack size (bytes)
         NULL,               // Parameters
-        1,                  // Priority (1 = low, higher numbers = higher priority)
-        &mainTaskHandle     // Task handle
+        3,                  // Priority (1 = low, higher numbers = higher priority)
+        &mainTaskHandle,    // Task handle
+        1,
+        MALLOC_CAP_SPIRAM
     );
 
     if (result != pdPASS) {
