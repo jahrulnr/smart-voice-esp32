@@ -6,6 +6,7 @@ Logger::LogLevel Logger::currentLevel = Logger::INFO;  // Default to INFO level
 
 void Logger::init() {
     Serial.begin(115200);
+    Serial.setTimeout(100);
     Serial.println("Logger initialized");
 }
 

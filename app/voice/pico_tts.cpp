@@ -79,8 +79,14 @@ void PicoTTS::outputCallback(int16_t* samples, unsigned count) {
 
 void PicoTTS::errorCallback() {
     Logger::error("TTS", "PicoTTS engine encountered an error");
+    if (speakerInstance) {
+        speakerInstance->clear();
+    }
 }
 
 void PicoTTS::idleCallback() {
     Logger::info("TTS", "PicoTTS engine is idle");
+    if (speakerInstance) {
+        speakerInstance->clear();
+    }
 }

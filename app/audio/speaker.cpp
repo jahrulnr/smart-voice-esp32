@@ -79,5 +79,17 @@ int Speaker::playTone(uint32_t frequency, uint32_t duration, float amplitude) {
         return -1;
     }
 
-    return speaker->playTone(frequency, duration, amplitude);
+    bool result = speaker->playTone(frequency, duration, amplitude);
+    speaker->clear();
+    
+    return result;
+}
+
+esp_err_t Speaker::clear() {
+    if (!speaker) {
+        Logger::error("SPK", "Speaker not initialized");
+        return ESP_FAIL;
+    }
+
+    return speaker->clear();
 }

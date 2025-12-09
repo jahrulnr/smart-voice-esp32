@@ -49,6 +49,13 @@ public:
      */
     int playTone(uint32_t frequency, uint32_t duration, float amplitude = 0.5f);
 
+    /**
+     * Clear Speaker buffer
+     * 
+     * @return ESP_OK if successful, error code otherwise
+     */
+    esp_err_t clear();
+
 private:
     I2SSpeaker* speaker;
 };
