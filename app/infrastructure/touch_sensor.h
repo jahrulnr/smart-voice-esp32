@@ -61,18 +61,20 @@ private:
     static void touchTask(void* parameter);
     static bool isTouched();
     static void detectGesture();
+    static void handleTap(unsigned long currentTime);
+    static void processTaps();
+    static void resetState();
 
     static TaskHandle_t taskHandle;
     static std::vector<std::function<void()>> callbacks;
-    static unsigned long touchStartTime;
-    static bool isTouching;
-    static unsigned long lastDebounceTime;
     static bool initialized;
+
+    // State variables for gesture detection
+    static bool wasTouched;
+    static unsigned long touchStartTime;
     static int tapCount;
     static unsigned long lastTapTime;
-    static bool stableTouchState;
-    static unsigned long lastTouchStateChange;
-    static bool lastAnalogState;
+    static bool waitingForMultiTap;
 };
 
 #endif // TOUCH_SENSOR_H

@@ -59,6 +59,6 @@
 #define TOUCH_DEBOUNCE_MS 20          // Debounce delay to avoid false triggers - fast
 #define TOUCH_ACTIVE_LOW true         // true if LOW voltage = pressed, false if HIGH = pressed
 #define TOUCH_ANALOG_THRESHOLD_PRESSED 500  // ADC value below this = pressed (approx 0.4V) - reduced for firmer press
-#define TOUCH_ANALOG_THRESHOLD_RELEASED 2000 // ADC value above this = released (approx 1.6V) - increased for clear release
+#define TOUCH_ANALOG_THRESHOLD_RELEASED 2000 // ADC value above this = released (no pull-up resistor)
 
 #endif // CONFIG_H
