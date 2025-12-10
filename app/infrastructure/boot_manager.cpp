@@ -220,19 +220,6 @@ bool BootManager::init() {
         })) {
             Logger::warn("BOOT", "Failed to set triple tap callback");
         }
-        if (!TouchSensor::setCallback(TouchSensor::HOLD_TAP, []() {
-            Logger::info("TOUCH", "Hold tap: Stopping voice and TTS");
-            voiceCommandHandler.stopListening();
-            speaker.stop();
-        })) {
-            Logger::warn("BOOT", "Failed to set hold tap callback");
-        }
-        if (!TouchSensor::setCallback(TouchSensor::LONG_TAP, []() {
-            Logger::info("TOUCH", "Long tap: Entering config mode");
-            displayManager.setState(DisplayState::CONFIG);
-        })) {
-            Logger::warn("BOOT", "Failed to set long tap callback");
-        }
         Logger::info("BOOT", "Touch sensor callbacks set");
         return {true, "TouchCallbacks", "", false};
     }, "TouchCallbacks", false);

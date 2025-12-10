@@ -134,13 +134,13 @@ bool VoiceCommandHandler::startListening() {
     }
 
     // Set mode to wake word detection
-    esp_err_t ret = SR::sr_set_mode(SR_MODE_WAKEWORD);
+    esp_err_t ret = SR::sr_set_mode(SR_MODE_COMMAND);
     if (ret != ESP_OK) {
         Logger::error("VOICE_CMD", "Failed to set wake word mode: %s", esp_err_to_name(ret));
         return false;
     }
 
-    _currentMode = SR_MODE_WAKEWORD;
+    _currentMode = SR_MODE_COMMAND;
     _listening = true;
 
     Logger::info("VOICE_CMD", "Started listening for wake word");

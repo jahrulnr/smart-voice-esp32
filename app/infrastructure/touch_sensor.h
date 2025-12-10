@@ -19,8 +19,6 @@ public:
         ONE_TAP,
         DOUBLE_TAP,
         TRIPLE_TAP,
-        HOLD_TAP,
-        LONG_TAP,
         GESTURE_COUNT // For array sizing
     };
 

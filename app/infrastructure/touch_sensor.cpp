@@ -120,16 +120,6 @@ void TouchSensor::detectGesture() {
         if (duration <= TOUCH_ONE_TAP_MAX_MS) {
             // It's a tap - add to multi-tap sequence
             handleTap(currentTime);
-        } else if (duration >= TOUCH_LONG_MIN_MS) {
-            // Long press
-            Logger::info("TOUCH", "Long tap detected (%lu ms)", duration);
-            if (callbacks[LONG_TAP]) callbacks[LONG_TAP]();
-            resetState();
-        } else if (duration >= TOUCH_HOLD_MIN_MS) {
-            // Hold press
-            Logger::info("TOUCH", "Hold tap detected (%lu ms)", duration);
-            if (callbacks[HOLD_TAP]) callbacks[HOLD_TAP]();
-            resetState();
         }
     }
 }
