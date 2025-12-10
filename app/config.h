@@ -49,4 +49,14 @@
 // GPT Service Configuration
 #define GPT_API_KEY ""                // OpenAI API key (set via web interface)
 
+// Touch Sensor Configuration
+#define TOUCH_SENSOR_PIN GPIO_NUM_46  // Touch sensor pin
+#define TOUCH_THRESHOLD 50            // Touch detection threshold (lower values = touched)
+#define TOUCH_POLL_INTERVAL_MS 50     // Polling interval for touch sensor
+#define TOUCH_ONE_TAP_MAX_MS 500      // Max duration for one tap (ms)
+#define TOUCH_HOLD_MIN_MS 1000        // Min duration for hold tap (ms)
+#define TOUCH_LONG_MIN_MS 3000        // Min duration for long tap (ms)
+#define TOUCH_DOUBLE_TRIPLE_WINDOW_MS 500  // Time window for double/triple tap detection (ms)
+#define TOUCH_DEBOUNCE_MS 100         // Debounce delay to avoid false triggers
+
 #endif // CONFIG_H

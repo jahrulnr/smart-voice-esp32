@@ -11,6 +11,7 @@
 #include "ui/display.h"
 #include "application/voice_display_coordinator.h"
 #include "infrastructure/task_scheduler.h"
+#include "infrastructure/touch_sensor.h"
 #include <esp_task_wdt.h>
 
 // Global instances (forward declarations - actual instances in main.cpp)
@@ -106,6 +107,13 @@ bool BootManager::init() {
         return {true, "TTS", "", true};
     }, "TTS", true);
 
+    registerComponent(BootPhase::HARDWARE_INIT, []() -> InitResult {
+        if (!TouchSensor::init()) {
+            return {false, "TouchSensor", "Failed to initialize touch sensor", false};
+        }
+        return {true, "TouchSensor", "", false};
+    }, "TouchSensor", false);
+
     // Register NETWORK_INIT phase components
     registerComponent(BootPhase::NETWORK_INIT, []() -> InitResult {
         if (!wifiManager.init()) {
@@ -190,6 +198,44 @@ bool BootManager::init() {
         Logger::info("BOOT", "All tasks started");
         return {true, "TaskScheduler", "", true};
     }, "TaskScheduler", true);
+
+    registerComponent(BootPhase::APPLICATION_START, []() -> InitResult {
+        // Set touch sensor callbacks
+        if (!TouchSensor::setCallback(TouchSensor::ONE_TAP, []() {
+            Logger::info("TOUCH", "One tap: Starting voice listening");
+            voiceCommandHandler.startListening();
+        })) {
+            Logger::warn("BOOT", "Failed to set one tap callback");
+        }
+        if (!TouchSensor::setCallback(TouchSensor::DOUBLE_TAP, []() {
+            Logger::info("TOUCH", "Double tap: Toggling silent mode");
+            // TODO: Implement silent mode toggle
+        })) {
+            Logger::warn("BOOT", "Failed to set double tap callback");
+        }
+        if (!TouchSensor::setCallback(TouchSensor::TRIPLE_TAP, []() {
+            Logger::info("TOUCH", "Triple tap: Entering advanced config");
+            displayManager.setState(DisplayState::CONFIG);
+            // TODO: Implement advanced config mode
+        })) {
+            Logger::warn("BOOT", "Failed to set triple tap callback");
+        }
+        if (!TouchSensor::setCallback(TouchSensor::HOLD_TAP, []() {
+            Logger::info("TOUCH", "Hold tap: Stopping voice and TTS");
+            voiceCommandHandler.stopListening();
+            speaker.stop();
+        })) {
+            Logger::warn("BOOT", "Failed to set hold tap callback");
+        }
+        if (!TouchSensor::setCallback(TouchSensor::LONG_TAP, []() {
+            Logger::info("TOUCH", "Long tap: Entering config mode");
+            displayManager.setState(DisplayState::CONFIG);
+        })) {
+            Logger::warn("BOOT", "Failed to set long tap callback");
+        }
+        Logger::info("BOOT", "Touch sensor callbacks set");
+        return {true, "TouchCallbacks", "", false};
+    }, "TouchCallbacks", false);
 
     initialized = true;
     Logger::info("BOOT", "Boot manager initialized with %d components", components.size());
