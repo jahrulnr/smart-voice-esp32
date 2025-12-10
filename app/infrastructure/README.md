@@ -250,3 +250,75 @@ void sensorTask(void* parameter) {
     }
 }
 ```
+
+### Touch Sensor (`touch_sensor.h/.cpp`)
+**Purpose**: Capacitive touch gesture detection and processing for user interaction.
+
+**Key Features**:
+- **Gesture Detection**: One tap, double tap, triple tap, hold tap, long tap
+- **Debouncing**: Prevents false triggers with configurable debounce delay
+- **Multi-Tap Window**: Time-based detection for rapid tap sequences
+- **Timeout Protection**: Prevents stuck states with hold timeouts
+- **Event Callbacks**: Configurable callbacks for each gesture type
+
+**Supported Gestures**:
+- **ONE_TAP**: Quick tap (< 500ms) - triggers single action
+- **DOUBLE_TAP**: Two quick taps within 500ms window
+- **TRIPLE_TAP**: Three quick taps within 500ms window
+- **HOLD_TAP**: Hold 1-3 seconds
+- **LONG_TAP**: Hold > 3 seconds
+
+**API Methods**:
+```cpp
+// Lifecycle
+static bool init();                    // Initialize touch sensor
+static void deinit();                  // Clean shutdown
+
+// Configuration
+static bool setCallback(Gesture gesture, std::function<void()> callback);
+
+// Debug/Testing
+static int getTouchValue();            // Raw sensor value
+static bool isCurrentlyTouching();     // Current touch state
+```
+
+**Usage Example**:
+```cpp
+#include "infrastructure/touch_sensor.h"
+
+// Initialize in boot
+TouchSensor::init();
+
+// Set gesture callbacks
+TouchSensor::setCallback(TouchSensor::ONE_TAP, []() {
+    voiceCommandHandler.startListening();
+});
+
+TouchSensor::setCallback(TouchSensor::DOUBLE_TAP, []() {
+    // Toggle silent mode
+});
+```
+
+**Configuration** (in `config.h`):
+```cpp
+#define TOUCH_SENSOR_PIN GPIO_NUM_46
+#define TOUCH_THRESHOLD 50
+#define TOUCH_POLL_INTERVAL_MS 50
+#define TOUCH_ONE_TAP_MAX_MS 500
+#define TOUCH_DOUBLE_TRIPLE_WINDOW_MS 500
+#define TOUCH_HOLD_MIN_MS 1000
+#define TOUCH_LONG_MIN_MS 3000
+#define TOUCH_DEBOUNCE_MS 100
+```
+
+**Gesture Detection Logic**:
+- **Polling**: 50ms intervals for responsive detection
+- **State Machine**: Tracks touch start/end with debouncing
+- **Tap Counting**: Accumulates taps within time window
+- **Timeout Handling**: Resets state on prolonged touch or inactivity
+
+**Integration**:
+- **Boot Phase**: Initialized in HARDWARE_INIT
+- **Callbacks**: Set in APPLICATION_START phase
+- **Threading**: Runs in dedicated FreeRTOS task
+- **Logging**: Debug/info messages for gesture events
