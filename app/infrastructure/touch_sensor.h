@@ -6,9 +6,9 @@
 #include <vector>
 
 /**
- * TouchSensor class for capacitive touch gesture detection on ESP32
+ * TouchSensor class for button/digital input gesture detection on ESP32
  * 
- * Supports gestures: ONE_TAP, HOLD_TAP, LONG_TAP
+ * Supports gestures: ONE_TAP, DOUBLE_TAP, TRIPLE_TAP, HOLD_TAP, LONG_TAP
  * Uses polling with debouncing and duration thresholds
  * 
  * Agile-friendly: Modular, configurable, testable, extensible
@@ -70,6 +70,9 @@ private:
     static bool initialized;
     static int tapCount;
     static unsigned long lastTapTime;
+    static bool stableTouchState;
+    static unsigned long lastTouchStateChange;
+    static bool lastAnalogState;
 };
 
 #endif // TOUCH_SENSOR_H

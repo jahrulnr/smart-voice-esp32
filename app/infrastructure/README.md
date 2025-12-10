@@ -252,10 +252,11 @@ void sensorTask(void* parameter) {
 ```
 
 ### Touch Sensor (`touch_sensor.h/.cpp`)
-**Purpose**: Capacitive touch gesture detection and processing for user interaction.
+**Purpose**: Button/analog input gesture detection and processing for user interaction.
 
 **Key Features**:
 - **Gesture Detection**: One tap, double tap, triple tap, hold tap, long tap
+- **Analog Input**: Uses ADC read with configurable voltage thresholds and hysteresis
 - **Debouncing**: Prevents false triggers with configurable debounce delay
 - **Multi-Tap Window**: Time-based detection for rapid tap sequences
 - **Timeout Protection**: Prevents stuck states with hold timeouts
@@ -278,7 +279,7 @@ static void deinit();                  // Clean shutdown
 static bool setCallback(Gesture gesture, std::function<void()> callback);
 
 // Debug/Testing
-static int getTouchValue();            // Raw sensor value
+static int getTouchValue();            // Raw ADC value (0-4095)
 static bool isCurrentlyTouching();     // Current touch state
 ```
 
@@ -301,18 +302,21 @@ TouchSensor::setCallback(TouchSensor::DOUBLE_TAP, []() {
 
 **Configuration** (in `config.h`):
 ```cpp
-#define TOUCH_SENSOR_PIN GPIO_NUM_46
-#define TOUCH_THRESHOLD 50
-#define TOUCH_POLL_INTERVAL_MS 50
-#define TOUCH_ONE_TAP_MAX_MS 500
-#define TOUCH_DOUBLE_TRIPLE_WINDOW_MS 500
-#define TOUCH_HOLD_MIN_MS 1000
-#define TOUCH_LONG_MIN_MS 3000
-#define TOUCH_DEBOUNCE_MS 100
+#define TOUCH_SENSOR_PIN GPIO_NUM_4   // ADC1_CH3 pin
+#define TOUCH_ACTIVE_LOW true         // true if LOW voltage = pressed
+#define TOUCH_POLL_INTERVAL_MS 20     // Polling interval for touch sensor - very fast
+#define TOUCH_ONE_TAP_MAX_MS 500      // Max duration for one tap (ms)
+#define TOUCH_HOLD_MIN_MS 1000        // Min duration for hold tap (ms)
+#define TOUCH_LONG_MIN_MS 2000        // Min duration for long tap (ms)
+#define TOUCH_DOUBLE_TRIPLE_WINDOW_MS 500  // Time window for double/triple tap detection (ms)
+#define TOUCH_DEBOUNCE_MS 20          // Debounce delay to avoid false triggers - fast
+#define TOUCH_ANALOG_THRESHOLD_PRESSED 1000  // ADC value below this = pressed (approx 0.8V)
+#define TOUCH_ANALOG_THRESHOLD_RELEASED 1500 // ADC value above this = released (approx 1.2V)
 ```
 
 **Gesture Detection Logic**:
-- **Polling**: 50ms intervals for responsive detection
+- **Polling**: 20ms intervals for responsive detection
+- **Hysteresis**: Different thresholds for press (1000) and release (1500) to prevent noise
 - **State Machine**: Tracks touch start/end with debouncing
 - **Tap Counting**: Accumulates taps within time window
 - **Timeout Handling**: Resets state on prolonged touch or inactivity

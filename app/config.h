@@ -49,14 +49,16 @@
 // GPT Service Configuration
 #define GPT_API_KEY ""                // OpenAI API key (set via web interface)
 
-// Touch Sensor Configuration
-#define TOUCH_SENSOR_PIN GPIO_NUM_46  // Touch sensor pin
-#define TOUCH_THRESHOLD 50            // Touch detection threshold (lower values = touched)
-#define TOUCH_POLL_INTERVAL_MS 50     // Polling interval for touch sensor
-#define TOUCH_ONE_TAP_MAX_MS 500      // Max duration for one tap (ms)
-#define TOUCH_HOLD_MIN_MS 1000        // Min duration for hold tap (ms)
-#define TOUCH_LONG_MIN_MS 3000        // Min duration for long tap (ms)
-#define TOUCH_DOUBLE_TRIPLE_WINDOW_MS 500  // Time window for double/triple tap detection (ms)
-#define TOUCH_DEBOUNCE_MS 100         // Debounce delay to avoid false triggers
+// Touch Sensor Configuration (using analog input on ADC1 pin)
+#define TOUCH_SENSOR_PIN GPIO_NUM_4  // Analog input pin for touch/button (ADC1_CH3)
+#define TOUCH_POLL_INTERVAL_MS 20     // Polling interval for touch sensor - very fast
+#define TOUCH_ONE_TAP_MAX_MS 2000     // Max duration for one tap (ms) - increased for sensor response time
+#define TOUCH_HOLD_MIN_MS 2500        // Min duration for hold tap (ms)
+#define TOUCH_LONG_MIN_MS 5000        // Min duration for long tap (ms)
+#define TOUCH_DOUBLE_TRIPLE_WINDOW_MS 800  // Time window for double/triple tap detection (ms) - increased
+#define TOUCH_DEBOUNCE_MS 20          // Debounce delay to avoid false triggers - fast
+#define TOUCH_ACTIVE_LOW true         // true if LOW voltage = pressed, false if HIGH = pressed
+#define TOUCH_ANALOG_THRESHOLD_PRESSED 500  // ADC value below this = pressed (approx 0.4V) - reduced for firmer press
+#define TOUCH_ANALOG_THRESHOLD_RELEASED 2000 // ADC value above this = released (approx 1.6V) - increased for clear release
 
 #endif // CONFIG_H
