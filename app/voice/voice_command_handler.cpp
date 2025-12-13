@@ -129,18 +129,23 @@ bool VoiceCommandHandler::startListening() {
     }
 
     if (_listening) {
-        Logger::warn("VOICE_CMD", "Already listening");
+        // Set mode to wake word detection
+        esp_err_t ret = SR::sr_set_mode(SR_MODE_COMMAND);
+        if (ret != ESP_OK) {
+            Logger::error("VOICE_CMD", "Failed to set command mode: %s", esp_err_to_name(ret));
+            return false;
+        }
         return true;
     }
 
     // Set mode to wake word detection
-    esp_err_t ret = SR::sr_set_mode(SR_MODE_COMMAND);
+    esp_err_t ret = SR::sr_set_mode(SR_MODE_WAKEWORD);
     if (ret != ESP_OK) {
         Logger::error("VOICE_CMD", "Failed to set wake word mode: %s", esp_err_to_name(ret));
         return false;
     }
 
-    _currentMode = SR_MODE_COMMAND;
+    _currentMode = SR_MODE_WAKEWORD;
     _listening = true;
 
     Logger::info("VOICE_CMD", "Started listening for wake word");
