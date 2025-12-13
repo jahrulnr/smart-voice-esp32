@@ -15,9 +15,9 @@
 #define MIC_CHANNELS I2S_SLOT_MODE_MONO     // Mono channel
 
 // I2S Speaker Pins (for audio output, e.g., MAX98357A)
-#define I2S_SPEAKER_DOUT_PIN GPIO_NUM_11  // I2S data output pin (DIN)
-#define I2S_SPEAKER_BCLK_PIN GPIO_NUM_10  // I2S bit clock pin (BCLK)
-#define I2S_SPEAKER_LRC_PIN GPIO_NUM_9    // I2S word select pin (WS/LRCLK)
+#define I2S_SPEAKER_DOUT_PIN GPIO_NUM_7   // I2S data output pin (DIN)
+#define I2S_SPEAKER_BCLK_PIN GPIO_NUM_6   // I2S bit clock pin (BCLK)
+#define I2S_SPEAKER_LRC_PIN GPIO_NUM_5    // I2S word select pin (WS/LRCLK)
 #define I2S_SPEAKER_PORT I2S_NUM_1        // I2S port number (separate from mic)
 
 // Speaker Audio Configuration
