@@ -76,16 +76,15 @@ void TaskScheduler::mainTask(void* parameter) {
     Logger::info("MAIN_TASK", "Main application task started");
 
     // Play a test tone on startup
-    Logger::info("MAIN_TASK", "Playing test tone...");
     speaker.playTone(440, 500, 0.3f);  // A4 note, 500ms, 30% volume
-    displayManager.onEvent(EventData(EventType::STATE_CHANGE, "Test tone", static_cast<int>(DisplayState::SPEAKING)));
     vTaskDelay(pdMS_TO_TICKS(1000));  // Wait 1 second
 
     // Speak a test message
-    Logger::info("MAIN_TASK", "Speaking test message...");
     displayManager.onEvent(EventData(EventType::STATE_CHANGE, "Welcome message", static_cast<int>(DisplayState::SPEAKING)));
     tts.speak("Hello, ESP32 voice assistant is ready.");
-    vTaskDelay(pdMS_TO_TICKS(5000));  // Wait for speech to complete
+
+    // Handle WiFi tasks
+    wifiManager.handle();
 
     // Demo GPT functionality if API key is configured
     if (gptService.isInitialized()) {

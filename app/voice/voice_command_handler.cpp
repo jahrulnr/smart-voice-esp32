@@ -8,6 +8,7 @@
 
 #include "voice_command_handler.h"
 #include "infrastructure/logger.h"
+#include "infrastructure/time_manager.h"
 #include "voice/pico_tts.h"
 
 // External dependencies
@@ -197,7 +198,13 @@ void VoiceCommandHandler::processCommand(int commandId, int phraseId) {
     // Process command
     if (commandId >= 0 && commandId < 6) {
         Logger::info("VOICE_CMD", "Handling %s command", commandNames[commandId]);
-        tts.speak(commandResponses[commandId]);
+        if (commandId == 1) { // time
+            String currentTime = TimeManager::getInstance().getCurrentTime();
+            String message = "The current time is " + currentTime;
+            tts.speak(message.c_str());
+        } else {
+            tts.speak(commandResponses[commandId]);
+        }
     } else {
         Logger::warn("VOICE_CMD", "Unknown command ID: %d", commandId);
         tts.speak("Sorry, I don't understand that command.");

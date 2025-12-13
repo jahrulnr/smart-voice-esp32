@@ -28,7 +28,7 @@ bool PicoTTS::init(Speaker* speaker) {
     Logger::info("TTS", "Initializing PicoTTS...");
 
     // Initialize picoTTS with callbacks
-    if (!picotts_init(configMAX_PRIORITIES -2, outputCallback, 0)) {
+    if (!picotts_init(10, outputCallback, 0)) {
         Logger::error("TTS", "Failed to initialize PicoTTS engine");
         return false;
     }

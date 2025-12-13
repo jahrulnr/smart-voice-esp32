@@ -4,6 +4,7 @@
 #include "infrastructure/logger.h"
 #include "infrastructure/boot_manager.h"
 #include "infrastructure/task_scheduler.h"
+#include "infrastructure/time_manager.h"
 #include "network/wifi_manager.h"
 #include "network/ftp_server.h"
 #include "network/web_server.h"
@@ -26,6 +27,7 @@ Services::GPTService gptService;
 DisplayManager displayManager;
 VoiceDisplayCoordinator voiceDisplayCoordinator;
 BootManager& bootManager = BootManager::getInstance();
+TimeManager& timeManager = TimeManager::getInstance();
 
 void setup() {
     // Initialize boot manager and execute boot sequence

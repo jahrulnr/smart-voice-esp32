@@ -124,8 +124,8 @@ String GPTService::buildJsonPayload(const String& userPrompt, const std::vector<
     DynamicJsonDocument doc(capacity);
 
     doc["model"] = _model;
-    doc["max_tokens"] = _maxTokens;
-    doc["temperature"] = _temperature;
+    doc["max_completion_tokens"] = _maxTokens;
+    // doc["temperature"] = _temperature;
 
     JsonArray messages = doc.createNestedArray("messages");
 
@@ -214,6 +214,10 @@ String GPTService::extractResponse(const String& jsonResponse) {
 
     String content = choice["message"]["content"];
     content.trim(); // Remove any leading/trailing whitespace
+    if (content.length() == 0) {
+        Logger::error("GPT", "Empty content in response. response: %s", jsonResponse.c_str());
+        return "";
+    };
 
     return content;
 }

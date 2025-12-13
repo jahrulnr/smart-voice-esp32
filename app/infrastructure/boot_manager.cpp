@@ -12,7 +12,9 @@
 #include "application/voice_display_coordinator.h"
 #include "infrastructure/task_scheduler.h"
 #include "infrastructure/touch_sensor.h"
+#include "infrastructure/time_manager.h"
 #include <esp_task_wdt.h>
+
 
 // Global instances (forward declarations - actual instances in main.cpp)
 extern Microphone mic;
@@ -25,6 +27,7 @@ extern WebServerService webServerService;
 extern Services::GPTService gptService;
 extern DisplayManager displayManager;
 extern VoiceDisplayCoordinator voiceDisplayCoordinator;
+extern TimeManager& timeManager;
 
 BootManager& BootManager::getInstance() {
     static BootManager instance;
@@ -43,7 +46,7 @@ bool BootManager::init() {
     setCpuFrequencyMhz(240);
 
     // Disable external memory allocation to prevent heap fragmentation
-    heap_caps_malloc_extmem_enable(128);
+    heap_caps_malloc_extmem_enable(0);
 
     // Configure Task Watchdog Timer to prevent system hangs
     // Timeout: 120 seconds (2 minutes), no panic on timeout
@@ -136,6 +139,18 @@ bool BootManager::init() {
         Logger::info("BOOT", "WiFi initialized");
         return {true, "WiFi", "", true};
     }, "WiFi", true);
+
+    registerComponent(BootPhase::NETWORK_INIT, []() -> InitResult {
+        if (!timeManager.init()) {
+            return {false, "TimeManager", "Failed to initialize time manager", false};
+        }
+        if (!timeManager.syncTime()) {
+            Logger::warn("BOOT", "Time sync failed - continuing without NTP");
+            return {true, "TimeManager", "Time sync failed but manager initialized", false};
+        }
+        Logger::info("BOOT", "Time manager initialized and synced");
+        return {true, "TimeManager", "", false};
+    }, "TimeManager", false);
 
     registerComponent(BootPhase::NETWORK_INIT, []() -> InitResult {
         if (!webServerService.init(wifiManager.getWebServer(), &gptService)) {
