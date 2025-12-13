@@ -1,75 +1,56 @@
 #include "touch_sensor.h"
+#include <Arduino.h>
 #include "config.h"
-#include "logger.h"
 
+// Touch detection threshold (lower values indicate touch)
+const int TOUCH_THRESHOLD = TOUCH_ANALOG_THRESHOLD_PRESSED;
+
+// Timing constants for gesture detection (in milliseconds)
+const unsigned long MULTI_TAP_WINDOW_MS = TOUCH_DOUBLE_TRIPLE_WINDOW_MS;   // Window to detect multi-taps
+const unsigned long HOLD_DURATION_MS = 1000;     // Duration for hold gesture (not implemented in enum)
+
+// Static member initialization
 TaskHandle_t TouchSensor::taskHandle = nullptr;
-std::vector<std::function<void()>> TouchSensor::callbacks(GESTURE_COUNT, nullptr);
+std::vector<std::function<void()>> TouchSensor::callbacks(TouchSensor::GESTURE_COUNT);
 bool TouchSensor::initialized = false;
-
-// State variables for gesture detection
 bool TouchSensor::wasTouched = false;
-unsigned long TouchSensor::touchStartTime = 0;
 int TouchSensor::tapCount = 0;
 unsigned long TouchSensor::lastTapTime = 0;
 bool TouchSensor::waitingForMultiTap = false;
 
 bool TouchSensor::init() {
-    if (initialized) {
-        Logger::warn("TOUCH", "Touch sensor already initialized");
-        return true;
-    }
+    if (initialized) return true;
 
-    Logger::info("TOUCH", "Initializing analog touch sensor on pin %d", TOUCH_SENSOR_PIN);
-
-    // Configure pin as analog input
+    // Initialize touch pin (analog input)
     pinMode(TOUCH_SENSOR_PIN, INPUT);
 
-    // Initialize callbacks vector
-    callbacks.resize(GESTURE_COUNT, nullptr);
+    // Resize callbacks vector to match gesture count
+    callbacks.resize(GESTURE_COUNT);
 
-    // Reset state
-    resetState();
-
-    // Create task
-    BaseType_t result = xTaskCreatePinnedToCore(touchTask, "TouchTask", 4096, nullptr, 10, &taskHandle, 0);
-    if (result != pdPASS) {
-        Logger::error("TOUCH", "Failed to create touch task");
-        return false;
-    }
+    // Create FreeRTOS task for touch polling
+    xTaskCreatePinnedToCoreWithCaps(touchTask, "TouchTask", 4096, nullptr, 10, &taskHandle, 0, MALLOC_CAP_SPIRAM);
 
     initialized = true;
-    Logger::info("TOUCH", "Analog touch sensor initialized successfully");
+    ESP_LOGI("TouchSensor", "Touch sensor initialized");
     return true;
 }
 
 void TouchSensor::deinit() {
     if (!initialized) return;
 
+    // Delete the task
     if (taskHandle != nullptr) {
         vTaskDelete(taskHandle);
         taskHandle = nullptr;
     }
 
-    callbacks.clear();
     initialized = false;
-    Logger::info("TOUCH", "Touch sensor deinitialized");
-}
-
-void TouchSensor::resetState() {
-    wasTouched = false;
-    touchStartTime = 0;
-    tapCount = 0;
-    lastTapTime = 0;
-    waitingForMultiTap = false;
+    ESP_LOGI("TouchSensor", "Touch sensor deinitialized");
 }
 
 bool TouchSensor::setCallback(Gesture gesture, std::function<void()> callback) {
-    if (gesture >= GESTURE_COUNT || gesture < 0) {
-        Logger::error("TOUCH", "Invalid gesture: %d", gesture);
-        return false;
-    }
+    if (gesture >= GESTURE_COUNT) return false;
     callbacks[gesture] = callback;
-    Logger::info("TOUCH", "Callback set for gesture %d", gesture);
     return true;
 }
 
@@ -78,80 +59,69 @@ int TouchSensor::getTouchValue() {
 }
 
 bool TouchSensor::isCurrentlyTouching() {
-    return isTouched();
+    return analogRead(TOUCH_SENSOR_PIN) < TOUCH_THRESHOLD;
 }
 
 void TouchSensor::touchTask(void* parameter) {
     while (true) {
         detectGesture();
-        vTaskDelay(pdMS_TO_TICKS(TOUCH_POLL_INTERVAL_MS));
+        vTaskDelay(pdMS_TO_TICKS(TOUCH_POLL_INTERVAL_MS));  // Poll every configured interval
     }
 }
 
 bool TouchSensor::isTouched() {
-    int value = analogRead(TOUCH_SENSOR_PIN);
-    return (value < TOUCH_ANALOG_THRESHOLD_PRESSED);
+    return analogRead(TOUCH_SENSOR_PIN) < TOUCH_THRESHOLD;
 }
 
 void TouchSensor::detectGesture() {
-    unsigned long currentTime = millis();
     bool currentlyTouched = isTouched();
-
-    // Check for multi-tap timeout
-    if (waitingForMultiTap && (currentTime - lastTapTime) > TOUCH_DOUBLE_TRIPLE_WINDOW_MS) {
-        // Timeout expired, process the accumulated taps
-        processTaps();
-        waitingForMultiTap = false;
-    }
+    unsigned long currentTime = millis();
 
     if (currentlyTouched && !wasTouched) {
         // Touch started
-        touchStartTime = currentTime;
-        Logger::debug("TOUCH", "Button pressed");
         wasTouched = true;
-
     } else if (!currentlyTouched && wasTouched) {
         // Touch ended
-        unsigned long duration = currentTime - touchStartTime;
-        Logger::debug("TOUCH", "Touch duration: %lu ms", duration);
+				handleTap(currentTime);
         wasTouched = false;
+    }
 
-        // Process the touch based on duration
-        if (duration <= TOUCH_ONE_TAP_MAX_MS) {
-            // It's a tap - add to multi-tap sequence
-            handleTap(currentTime);
-        }
+    // Check for multi-tap timeout
+    if (waitingForMultiTap && (currentTime - lastTapTime > MULTI_TAP_WINDOW_MS)) {
+        processTaps();
     }
 }
 
 void TouchSensor::handleTap(unsigned long currentTime) {
-    if (!waitingForMultiTap) {
-        // First tap in sequence
-        tapCount = 1;
-        lastTapTime = currentTime;
-        waitingForMultiTap = true;
-    } else {
-        // Additional tap in sequence
-        if ((currentTime - lastTapTime) <= TOUCH_DOUBLE_TRIPLE_WINDOW_MS) {
-            tapCount++;
-            lastTapTime = currentTime;
-        } else {
-            // Too late, start new sequence
-            tapCount = 1;
-            lastTapTime = currentTime;
-        }
-    }
+    tapCount++;
+    lastTapTime = currentTime;
+    waitingForMultiTap = true;
 }
 
 void TouchSensor::processTaps() {
+    Gesture gesture;
     if (tapCount == 1) {
-        Logger::info("TOUCH", "One tap detected");
-        if (callbacks[ONE_TAP]) callbacks[ONE_TAP]();
+        gesture = ONE_TAP;
     } else if (tapCount == 2) {
-        Logger::info("TOUCH", "Double tap detected");
-        if (callbacks[DOUBLE_TAP]) callbacks[DOUBLE_TAP]();
-    } else if (tapCount >= 3) {
-        Logger::info("TOUCH", "Triple tap detected");
-        if (callbacks[TRIPLE_TAP]) callbacks[TRIPLE_TAP]();
+        gesture = DOUBLE_TAP;
+    } else if (tapCount == 3) {
+        gesture = TRIPLE_TAP;
+    } else {
+        // Ignore taps beyond triple
+        resetState();
+        return;
     }
+
+    // Call the callback if set
+    if (callbacks[gesture]) {
+        callbacks[gesture]();
+    }
+
+    resetState();
+}
+
+void TouchSensor::resetState() {
+    tapCount = 0;
+    waitingForMultiTap = false;
+    lastTapTime = 0;
 }

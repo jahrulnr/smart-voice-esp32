@@ -13,6 +13,7 @@
 
 // Display states for the voice assistant
 enum class DisplayState {
+    BOOT_SPLASH,
     MAIN_STATUS,
     LISTENING,
     PROCESSING,

@@ -20,6 +20,10 @@ PlatformIO-based ESP32-S3 voice assistant using Arduino framework. Integrates sp
 - **Monitor/Debug**: `pio device monitor` (115200 baud, ESP exception filters). Use `ESP_LOGx` macros (e.g., `ESP_LOGI("TAG", "message")`)
 - **Testing**: Manual validation via serial/UI; no automated tests yet
 
+## Permissions
+- **Build Operations**: Allowed to run `pio run` to build the firmware
+- **Upload Operations**: NOT allowed to flash/upload firmware to the ESP32 device
+
 ## Conventions & Patterns
 - **Language**: C++17, exceptions disabled (`-fno-exceptions`), `std::function` for callbacks
 - **File Organization**: .h/.cpp pairs in same folder; include guards in .h

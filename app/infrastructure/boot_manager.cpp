@@ -71,6 +71,19 @@ bool BootManager::init() {
     }, "Display", false);
 
     registerComponent(BootPhase::PRE_INIT, []() -> InitResult {
+        // Show boot splash for 3 seconds
+        unsigned long splashStart = millis();
+        while (millis() - splashStart < 3000) {
+            displayManager.update();
+            vTaskDelay(pdMS_TO_TICKS(50)); // Small delay to prevent busy loop
+        }
+        // Transition to main status after splash
+        displayManager.setState(DisplayState::MAIN_STATUS);
+        Logger::info("BOOT", "Boot splash completed");
+        return {true, "BootSplash", "", false};
+    }, "BootSplash", false);
+
+    registerComponent(BootPhase::PRE_INIT, []() -> InitResult {
         TaskScheduler::init();
         Logger::info("BOOT", "Task scheduler initialized");
         return {true, "TaskScheduler", "", true};

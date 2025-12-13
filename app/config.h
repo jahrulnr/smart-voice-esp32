@@ -52,11 +52,7 @@
 // Touch Sensor Configuration (using analog input on ADC1 pin)
 #define TOUCH_SENSOR_PIN GPIO_NUM_4  // Analog input pin for touch/button (ADC1_CH3)
 #define TOUCH_POLL_INTERVAL_MS 20     // Polling interval for touch sensor - very fast
-#define TOUCH_ONE_TAP_MAX_MS 2000     // Max duration for one tap (ms) - increased for sensor response time
-#define TOUCH_DOUBLE_TRIPLE_WINDOW_MS 800  // Time window for double/triple tap detection (ms) - increased
-#define TOUCH_DEBOUNCE_MS 20          // Debounce delay to avoid false triggers - fast
-#define TOUCH_ACTIVE_LOW true         // true if LOW voltage = pressed, false if HIGH = pressed
+#define TOUCH_DOUBLE_TRIPLE_WINDOW_MS 600  // Time window for double/triple tap detection (ms) - increased for slower taps
 #define TOUCH_ANALOG_THRESHOLD_PRESSED 500  // ADC value below this = pressed (approx 0.4V) - reduced for firmer press
-#define TOUCH_ANALOG_THRESHOLD_RELEASED 2000 // ADC value above this = released (no pull-up resistor)
 
 #endif // CONFIG_H

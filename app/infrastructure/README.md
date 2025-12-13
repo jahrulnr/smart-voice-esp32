@@ -303,15 +303,11 @@ TouchSensor::setCallback(TouchSensor::DOUBLE_TAP, []() {
 **Configuration** (in `config.h`):
 ```cpp
 #define TOUCH_SENSOR_PIN GPIO_NUM_4   // ADC1_CH3 pin
-#define TOUCH_ACTIVE_LOW true         // true if LOW voltage = pressed
 #define TOUCH_POLL_INTERVAL_MS 20     // Polling interval for touch sensor - very fast
-#define TOUCH_ONE_TAP_MAX_MS 500      // Max duration for one tap (ms)
 #define TOUCH_HOLD_MIN_MS 1000        // Min duration for hold tap (ms)
 #define TOUCH_LONG_MIN_MS 2000        // Min duration for long tap (ms)
 #define TOUCH_DOUBLE_TRIPLE_WINDOW_MS 500  // Time window for double/triple tap detection (ms)
-#define TOUCH_DEBOUNCE_MS 20          // Debounce delay to avoid false triggers - fast
 #define TOUCH_ANALOG_THRESHOLD_PRESSED 1000  // ADC value below this = pressed (approx 0.8V)
-#define TOUCH_ANALOG_THRESHOLD_RELEASED 1500 // ADC value above this = released (approx 1.2V)
 ```
 
 **Gesture Detection Logic**:

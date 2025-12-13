@@ -4,6 +4,7 @@
 #include "config.h"       // For display pin definitions
 
 // Include drawer headers
+#include "drawers/boot_splash_drawer.h"
 #include "drawers/main_status_drawer.h"
 #include "drawers/listening_drawer.h"
 #include "drawers/processing_drawer.h"
@@ -14,7 +15,7 @@
 
 DisplayManager::DisplayManager()
     : _display(nullptr)
-    , _currentState(DisplayState::MAIN_STATUS)
+    , _currentState(DisplayState::BOOT_SPLASH)  // Start with boot splash
     , _lastUpdateTime(0)
     , _stateStartTime(0)
     , _scrollPosition(0)
@@ -29,13 +30,14 @@ DisplayManager::DisplayManager()
     , _gptReady(false)
 {
     // Initialize drawers
-    _drawers[0] = new MainStatusDrawer();
-    _drawers[1] = new ListeningDrawer();
-    _drawers[2] = new ProcessingDrawer();
-    _drawers[3] = new SpeakingDrawer();
-    _drawers[4] = new GPResponseDrawer();
-    _drawers[5] = new ErrorDrawer();
-    _drawers[6] = new ConfigDrawer();
+    _drawers[0] = new BootSplashDrawer();
+    _drawers[1] = new MainStatusDrawer();
+    _drawers[2] = new ListeningDrawer();
+    _drawers[3] = new ProcessingDrawer();
+    _drawers[4] = new SpeakingDrawer();
+    _drawers[5] = new GPResponseDrawer();
+    _drawers[6] = new ErrorDrawer();
+    _drawers[7] = new ConfigDrawer();
 }
 
 DisplayManager::~DisplayManager() {

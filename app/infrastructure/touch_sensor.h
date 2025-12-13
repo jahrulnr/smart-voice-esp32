@@ -69,10 +69,10 @@ private:
 
     // State variables for gesture detection
     static bool wasTouched;
-    static unsigned long touchStartTime;
     static int tapCount;
     static unsigned long lastTapTime;
     static bool waitingForMultiTap;
+    static unsigned long lastDebounceTime;
 };
 
 #endif // TOUCH_SENSOR_H
