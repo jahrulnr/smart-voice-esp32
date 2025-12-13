@@ -135,6 +135,8 @@ bool VoiceCommandHandler::startListening() {
             Logger::error("VOICE_CMD", "Failed to set command mode: %s", esp_err_to_name(ret));
             return false;
         }
+        
+        _currentMode = SR_MODE_COMMAND;
         return true;
     }
 
