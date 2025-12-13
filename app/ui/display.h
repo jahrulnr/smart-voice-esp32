@@ -68,17 +68,26 @@ public:
     void onEvent(const EventData& event);
 
     // Getters for drawer access
-    bool getWifiConnected() const { return _wifiConnected; }
-    const String& getIpAddress() const { return _ipAddress; }
-    bool getMicReady() const { return _micReady; }
-    bool getSpeakerReady() const { return _speakerReady; }
-    bool getGptReady() const { return _gptReady; }
-    int getMemoryPercent() const { return _memoryPercent; }
-    int getVoiceActivityLevel() const { return _voiceActivityLevel; }
-    int getProgressPercent() const { return _progressPercent; }
-    const String& getCurrentText() const { return _currentText; }
-    bool getScrollableText() const { return _scrollableText; }
-    const String& getCurrentMessage() const { return _currentMessage; }
+    inline bool getWifiConnected() const { return _wifiConnected; }
+    inline const String& getIpAddress() const { return _ipAddress; }
+    inline bool getMicReady() const { return _micReady; }
+    inline bool getSpeakerReady() const { return _speakerReady; }
+    inline bool getGptReady() const { return _gptReady; }
+    inline int getMemoryPercent() const { return _memoryPercent; }
+    inline int getVoiceActivityLevel() const { return _voiceActivityLevel; }
+    inline int getProgressPercent() const { return _progressPercent; }
+    inline const String& getCurrentText() const { return _currentText; }
+    inline bool getScrollableText() const { return _scrollableText; }
+    inline const String& getCurrentMessage() const { return _currentMessage; }
+
+    // Weather getters
+    inline const String& getWeatherDescription() const { return _weatherDescription; }
+    inline int getTemperature() const { return _temperature; }
+    inline int getHumidity() const { return _humidity; }
+    inline const String& getWeatherLocation() const { return _weatherLocation; }
+
+    // Time getter
+    inline const String& getCurrentTime() const { return _currentTime; }
 
     // Public helper methods for drawers
     void drawProgressBar(int x, int y, int width, int height, int percent);
@@ -86,6 +95,7 @@ public:
     void drawStatusIcons();
     void drawHeader(const String& title);
     void drawFooter();
+    inline U8G2_SSD1306_128X64_NONAME_F_HW_I2C* getDisplay() const { return _display; }
 
 private:
     U8G2_SSD1306_128X64_NONAME_F_HW_I2C* _display;
@@ -107,6 +117,15 @@ private:
     bool _micReady;
     bool _speakerReady;
     bool _gptReady;
+
+    // Weather data
+    String _weatherDescription;
+    int _temperature;
+    int _humidity;
+    String _weatherLocation;
+
+    // Time data
+    String _currentTime;
 
     // Drawers
     DisplayDrawer* _drawers[7];

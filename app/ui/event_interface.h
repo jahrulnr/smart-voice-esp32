@@ -14,7 +14,8 @@ enum class EventType {
     STATUS_UPDATE,
     VOICE_ACTIVITY,
     NETWORK_STATUS,
-    MEMORY_WARNING
+    MEMORY_WARNING,
+    WEATHER_UPDATE
 };
 
 /**

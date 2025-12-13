@@ -3,6 +3,7 @@
 #include "network/wifi_manager.h"
 #include "network/web_server.h"
 #include "application/gpt_service.h"
+#include "application/weather_service.h"
 #include "audio/microphone.h"
 #include "audio/speaker.h"
 #include "voice/pico_tts.h"
@@ -17,6 +18,7 @@ extern FtpServer ftpServer;
 extern WifiManager wifiManager;
 extern WebServerService webServerService;
 extern Services::GPTService gptService;
+extern Services::WeatherService weatherService;
 extern DisplayManager displayManager;
 
 // Static member initialization
@@ -41,7 +43,7 @@ void TaskScheduler::startTasks() {
         "MainAppTask",      // Task name
         4096,               // Stack size (bytes)
         NULL,               // Parameters
-        3,                  // Priority (1 = low, higher numbers = higher priority)
+        15,                  // Priority (1 = low, higher numbers = higher priority)
         &mainTaskHandle,    // Task handle
         1,
         MALLOC_CAP_SPIRAM
@@ -79,26 +81,12 @@ void TaskScheduler::mainTask(void* parameter) {
     speaker.playTone(440, 500, 0.3f);  // A4 note, 500ms, 30% volume
     vTaskDelay(pdMS_TO_TICKS(1000));  // Wait 1 second
 
-    // Speak a test message
+    // Speak startup message
     displayManager.onEvent(EventData(EventType::STATE_CHANGE, "Welcome message", static_cast<int>(DisplayState::SPEAKING)));
     tts.speak("Hello, ESP32 voice assistant is ready.");
 
     // Handle WiFi tasks
     wifiManager.handle();
-
-    // Demo GPT functionality if API key is configured
-    if (gptService.isInitialized()) {
-        Logger::info("MAIN_TASK", "Testing GPT service...");
-        displayManager.onEvent(EventData(EventType::STATE_CHANGE, "Testing GPT", static_cast<int>(DisplayState::PROCESSING)));
-        gptService.sendPrompt("Say hello and introduce yourself as an ESP32 voice assistant in one short sentence.",
-            [](const String& response) {
-                Logger::info("GPT", "Response: %s", response.c_str());
-                // Note: displayManager is not accessible in this lambda
-                // We'll need to handle GPT responses differently
-                tts.speak(response.c_str());
-            });
-        vTaskDelay(pdMS_TO_TICKS(10000));  // Wait for GPT response and TTS
-    }
 
     while (true) {
         // Update display
@@ -143,6 +131,22 @@ void TaskScheduler::mainTask(void* parameter) {
             displayManager.onEvent(EventData(EventType::STATUS_UPDATE, ipAddress, static_cast<int>(StatusType::WIFI), &wifiStatus));
 
             lastStatusUpdate = millis();
+        }
+
+        // Periodic weather updates (every 5 minutes)
+        static unsigned long lastWeatherUpdate = 0;
+        if (millis() - lastWeatherUpdate > 300000) {
+            Logger::info("MAIN_TASK", "Fetching weather update...");
+            weatherService.getCurrentWeather([](const Services::WeatherService::WeatherData& data, bool success) {
+                if (success) {
+                    // Send weather update event
+                    displayManager.onEvent(EventData(EventType::WEATHER_UPDATE, "", 0, (void*)&data));
+                    Logger::info("MAIN_TASK", "Weather updated: %s, %d°C", data.description.c_str(), data.temperature);
+                } else {
+                    Logger::warn("MAIN_TASK", "Weather update failed");
+                }
+            });
+            lastWeatherUpdate = millis();
         }
 
         // TODO: Add voice command recognition here

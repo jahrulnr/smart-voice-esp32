@@ -2,6 +2,7 @@
 #include <esp_heap_caps.h>
 #include <driver/gpio.h>  // For GPIO_NUM_xx definitions
 #include "config.h"       // For display pin definitions
+#include "application/weather_service.h"
 
 // Include drawer headers
 #include "drawers/boot_splash_drawer.h"
@@ -28,6 +29,8 @@ DisplayManager::DisplayManager()
     , _micReady(false)
     , _speakerReady(false)
     , _gptReady(false)
+    , _temperature(0)
+    , _humidity(0)
 {
     // Initialize drawers
     _drawers[0] = new BootSplashDrawer();
@@ -73,6 +76,8 @@ bool DisplayManager::init() {
     }
 
     // Configure display
+    _display->setBitmapMode(1);
+    _display->setFontMode(1);
     _display->setFont(u8g2_font_6x10_tf);  // Small readable font
     _display->setContrast(128);           // Medium brightness
     _display->clearBuffer();
@@ -201,6 +206,17 @@ void DisplayManager::onEvent(const EventData& event) {
             _memoryPercent = event.value;
             size_t freeBytes = (event.data != nullptr) ? *(size_t*)event.data : 0;
             Logger::warn("DISPLAY", "Memory warning: %d%% used, %zu bytes free", event.value, freeBytes);
+            break;
+        }
+        case EventType::WEATHER_UPDATE: {
+            // Weather data passed as pointer to WeatherData struct
+            if (event.data != nullptr) {
+                auto* weatherData = static_cast<Services::WeatherService::WeatherData*>(event.data);
+                _weatherDescription = weatherData->description;
+                _temperature = weatherData->temperature;
+                _humidity = weatherData->humidity;
+                _weatherLocation = weatherData->location;
+            }
             break;
         }
     }

@@ -213,6 +213,8 @@ void VoiceCommandHandler::processCommand(int commandId, int phraseId) {
                                    ", humidity " + String(data.humidity) + " percent" +
                                    ", wind " + String(data.windSpeed) + " kilometers per hour " + data.windDirection;
                     tts.speak(message.c_str());
+                    // Update display with weather data
+                    _displayManager->onEvent(EventData(EventType::WEATHER_UPDATE, "", 0, (void*)&data));
                     _displayManager->onEvent(EventData(EventType::STATE_CHANGE, "Weather retrieved", static_cast<int>(DisplayState::MAIN_STATUS)));
                 } else {
                     tts.speak("Sorry, I couldn't get the weather information right now.");

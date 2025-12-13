@@ -34,7 +34,8 @@ This is a PlatformIO-based ESP32-S3 voice assistant with modular architecture. T
 - **Add Voice Command**: Update `voice_constants.h` with phoneme (use `tools/multinet_g2p.py`)
 - **New UI State**: Add to `DisplayState` enum, create drawer in `ui/drawers/`
 - **Network Feature**: Add to WebServer endpoints, update bootstrap UI in `data/assets/`
-- **Weather Integration**: Use `weatherService.getCurrentWeather()` with callback for BMKG API data
+- **Weather Integration**: Use `weatherService.getCurrentWeather()` with callback for BMKG API data, auto-fetches on boot
+- **Home UI Display**: Main status shows weather icon/temp, current time, IP address with real-time updates
 - **Debug Audio**: Check I2S pin connections, verify 3.3V power to mic
 
 ## Code Style

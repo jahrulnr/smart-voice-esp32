@@ -265,6 +265,20 @@ bool BootManager::init() {
         return {true, "TouchCallbacks", "", false};
     }, "TouchCallbacks", false);
 
+    registerComponent(BootPhase::APPLICATION_START, []() -> InitResult {
+        // Fetch initial weather data after boot
+        Logger::info("BOOT", "Fetching initial weather data...");
+        weatherService.getCurrentWeather([](const Services::WeatherService::WeatherData& data, bool success) {
+            if (success) {
+                displayManager.onEvent(EventData(EventType::WEATHER_UPDATE, "", 0, (void*)&data));
+                Logger::info("BOOT", "Initial weather data loaded: %s, %d°C", data.description.c_str(), data.temperature);
+            } else {
+                Logger::warn("BOOT", "Failed to fetch initial weather data");
+            }
+        }, true); // forceRefresh = true to get fresh data
+        return {true, "InitialWeather", "", false};
+    }, "InitialWeather", false);
+
     initialized = true;
     Logger::info("BOOT", "Boot manager initialized with %d components", components.size());
     return true;
