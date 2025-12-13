@@ -21,10 +21,11 @@ static const size_t NUM_AFFORDABLE_MODELS = sizeof(AFFORDABLE_MODELS) / sizeof(A
 GPTService::GPTService()
     : _model("gpt-5-nano")
     , _systemMessage("You are a helpful voice assistant on an ESP32 device. Keep responses concise and suitable for text-to-speech conversion.")
-    , _maxTokens(150)
+    , _maxTokens(300)
     , _temperature(0.7f)
     , _initialized(false)
     , _contextCache(10) // Keep last 10 messages
+    , _previousResponseId("") // Initialize empty for first conversation
 {
 }
 
@@ -87,7 +88,7 @@ void GPTService::sendPromptWithContext(const String& prompt,
         WiFiClientSecure client;
         client.setInsecure(); // For HTTPS without certificate validation
 
-        http.begin(client, "https://api.openai.com/v1/chat/completions");
+        http.begin(client, "https://api.openai.com/v1/responses");
         http.addHeader("Content-Type", "application/json");
         http.addHeader("Authorization", "Bearer " + service->_apiKey);
         http.setTimeout(30000); // 30 second timeout
@@ -112,46 +113,22 @@ void GPTService::sendPromptWithContext(const String& prompt,
 }
 
 String GPTService::buildJsonPayload(const String& userPrompt, const std::vector<std::pair<String, String>>& contextMessages) {
-    // Get recent conversation history
-    auto recentMessages = _contextCache.getRecentMessages(8); // Last 8 messages to save tokens
-
-    // Calculate required JSON size (conservative estimate)
-    const size_t capacity = JSON_OBJECT_SIZE(5) + // root object
-                           JSON_ARRAY_SIZE(10) +  // messages array (up to 10 messages)
-                           JSON_OBJECT_SIZE(3) * 10 + // each message object
-                           userPrompt.length() * 2 + _systemMessage.length() * 2 + 1024; // string content
-
-    DynamicJsonDocument doc(capacity);
+    JsonDocument doc;
 
     doc["model"] = _model;
-    doc["max_completion_tokens"] = _maxTokens;
-    // doc["temperature"] = _temperature;
+    doc["input"] = userPrompt;
+    doc["instructions"] = _systemMessage;
+    doc["max_output_tokens"] = _maxTokens;
 
-    JsonArray messages = doc.createNestedArray("messages");
+    JsonObject reasoning = doc["reasoning"].to<JsonObject>();
+    reasoning["effort"] = "low";
 
-    // Add system message
-    JsonObject systemMsg = messages.createNestedObject();
-    systemMsg["role"] = "system";
-    systemMsg["content"] = _systemMessage;
-
-    // Add context messages
-    for (const auto& ctx : contextMessages) {
-        JsonObject ctxMsg = messages.createNestedObject();
-        ctxMsg["role"] = ctx.first;
-        ctxMsg["content"] = ctx.second;
+    // Include previous response ID for conversation continuity
+    if (_previousResponseId.length() > 0) {
+        doc["previous_response_id"] = _previousResponseId;
     }
 
-    // Add conversation history (excluding the current user message to avoid duplication)
-    for (const auto& msg : recentMessages) {
-        JsonObject histMsg = messages.createNestedObject();
-        histMsg["role"] = msg.role;
-        histMsg["content"] = msg.content;
-    }
-
-    // Add current user message
-    JsonObject userMsg = messages.createNestedObject();
-    userMsg["role"] = "user";
-    userMsg["content"] = userPrompt;
+    doc["store"] = false;
 
     String jsonString;
     serializeJson(doc, jsonString);
@@ -164,9 +141,9 @@ void GPTService::processResponse(int httpCode, const String& response, const Str
         Logger::debug("GPT", "Response: %s", response.c_str());
 
         // Try to extract error message from JSON
-        DynamicJsonDocument errorDoc(1024);
+        JsonDocument errorDoc;
         if (deserializeJson(errorDoc, response) == DeserializationError::Ok) {
-            if (errorDoc.containsKey("error")) {
+            if (errorDoc["error"].is<JsonObject>()) {
                 String errorMsg = errorDoc["error"]["message"] | "Unknown API error";
                 callback("Error: " + errorMsg);
                 return;
@@ -192,7 +169,7 @@ void GPTService::processResponse(int httpCode, const String& response, const Str
 }
 
 String GPTService::extractResponse(const String& jsonResponse) {
-    DynamicJsonDocument doc(4096); // ESP32 memory limit - keep small
+    JsonDocument doc;
 
     DeserializationError error = deserializeJson(doc, jsonResponse);
     if (error) {
@@ -200,22 +177,42 @@ String GPTService::extractResponse(const String& jsonResponse) {
         return "";
     }
 
-    // Navigate to the response content
-    if (!doc.containsKey("choices") || doc["choices"].size() == 0) {
-        Logger::error("GPT", "No choices in response");
+    // Extract and store response ID for conversation continuity
+    if (doc["id"].is<String>()) {
+        _previousResponseId = doc["id"].as<String>();
+        Logger::debug("GPT", "Stored response ID: %s", _previousResponseId.c_str());
+    }
+
+    // Navigate to the response content (Responses API format)
+    if (!doc["output"].is<JsonArray>() || doc["output"].size() == 0) {
+        Logger::error("GPT", "No output in response. response: %s", doc.as<String>().c_str());
         return "";
     }
 
-    JsonObject choice = doc["choices"][0];
-    if (!choice.containsKey("message") || !choice["message"].containsKey("content")) {
-        Logger::error("GPT", "No content in response");
+    JsonDocument outputItem;
+    for(auto outputI : doc["output"].as<JsonArray>()){
+        if(outputI["type"] == "message") {
+            outputItem.set(outputI);
+            Logger::info("GPT", "Found message in output item. message: %s", outputI.as<String>().c_str());
+            break;
+        }
+    }
+
+    if (!outputItem["content"].is<JsonArray>() || outputItem["content"].size() == 0) {
+        Logger::error("GPT", "No content in output item. response: %s", doc.as<String>().c_str());
         return "";
     }
 
-    String content = choice["message"]["content"];
+    JsonObject contentItem = outputItem["content"][0];
+    if (!contentItem["text"].is<String>()) {
+        Logger::error("GPT", "No text in content item. response: %s", doc.as<String>().c_str());
+        return "";
+    }
+
+    String content = contentItem["text"];
     content.trim(); // Remove any leading/trailing whitespace
     if (content.length() == 0) {
-        Logger::error("GPT", "Empty content in response. response: %s", jsonResponse.c_str());
+        Logger::error("GPT", "Empty content in response. response: %s", doc.as<String>().c_str());
         return "";
     };
 
@@ -224,6 +221,12 @@ String GPTService::extractResponse(const String& jsonResponse) {
 
 std::vector<GPTModel> GPTService::getAvailableModels() {
     return std::vector<GPTModel>(AFFORDABLE_MODELS, AFFORDABLE_MODELS + NUM_AFFORDABLE_MODELS);
+}
+
+void GPTService::resetConversation() {
+    _previousResponseId = "";
+    _contextCache.clear();
+    Logger::info("GPT", "Conversation state reset");
 }
 
 } // namespace Services

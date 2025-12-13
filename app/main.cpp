@@ -10,6 +10,7 @@
 #include "network/web_server.h"
 #include "application/gpt_service.h"
 #include "application/voice_display_coordinator.h"
+#include "application/weather_service.h"
 #include "audio/microphone.h"
 #include "audio/speaker.h"
 #include "voice/pico_tts.h"
@@ -24,6 +25,7 @@ FtpServer ftpServer(LittleFS);
 WifiManager wifiManager;
 WebServerService webServerService;
 Services::GPTService gptService;
+Services::WeatherService weatherService;
 DisplayManager displayManager;
 VoiceDisplayCoordinator voiceDisplayCoordinator;
 BootManager& bootManager = BootManager::getInstance();

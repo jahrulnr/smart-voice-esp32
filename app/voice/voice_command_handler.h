@@ -13,6 +13,7 @@
 #include "csr.h"
 #include <audio/microphone.h>
 #include "../application/gpt_service.h"
+#include "../application/weather_service.h"
 #include "ui/display.h"
 
 #include "voice_constants.h"
@@ -27,7 +28,7 @@ public:
     ~VoiceCommandHandler();
 
     // Lifecycle
-    bool init(Microphone* microphone, Services::GPTService* gptService, DisplayManager* displayManager, const VoiceConfig& config = {});
+    bool init(Microphone* microphone, Services::GPTService* gptService, Services::WeatherService* weatherService, DisplayManager* displayManager, const VoiceConfig& config = {});
     void deinit();
 
     // Control
@@ -49,6 +50,7 @@ private:
     // Member variables
     Microphone* _microphone;
     Services::GPTService* _gptService;
+    Services::WeatherService* _weatherService;
     DisplayManager* _displayManager;
     VoiceConfig _config;
     VoiceEventCallback _eventCallback;

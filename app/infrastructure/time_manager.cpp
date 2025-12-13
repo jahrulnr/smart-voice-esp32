@@ -17,8 +17,8 @@ bool TimeManager::init() {
 
     Logger::info("TIME", "Initializing time manager...");
 
-    // Set timezone to UTC and NTP servers
-    configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+    // Set timezone to Asia/Jakarta (UTC+7, no DST)
+    configTime(25200, 0, "pool.ntp.org", "time.google.com");
 
     initialized = true;
     Logger::info("TIME", "Time manager initialized");
@@ -50,6 +50,6 @@ String TimeManager::getCurrentTime() {
     }
 
     char buffer[64];
-    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S UTC", &timeinfo);
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S WIB", &timeinfo);
     return String(buffer);
 }

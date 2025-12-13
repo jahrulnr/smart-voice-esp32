@@ -30,7 +30,8 @@ static VoiceCommand defaultCommands[] = {
     {2, "weather", "Wfjk"},
     {3, "music",   "MYoZgK"},
     {4, "stop",    "STnP"},
-    {5, "help",    "hfLP"}
+    {5, "help",    "hfLP"},
+    {6, "ask",     "aSK"}
 };
 
 // Command responses - matched by command ID
@@ -40,9 +41,11 @@ static const char* commandResponses[] = {
     "The weather today is sunny with a high of 75 degrees.",                  // 2: weather
     "Playing your favorite music.",                                           // 3: music
     "Stopping all activities.",                                               // 4: stop
-    "I can help with time, weather, music, and more. Just say what you need!" // 5: help
+    "I can help with time, weather, music, and more. Just say what you need!", // 5: help
 };
 
 static const char* commandNames[] = {
     "hello", "time", "weather", "music", "stop", "help"
 };
+
+static const int commandMax = 6;

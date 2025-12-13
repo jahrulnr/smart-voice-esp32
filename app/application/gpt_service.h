@@ -132,6 +132,11 @@ public:
      */
     static std::vector<GPTModel> getAvailableModels();
 
+    /**
+     * Reset conversation state for new conversation
+     */
+    void resetConversation();
+
 private:
     String _apiKey;
     String _model;
@@ -140,6 +145,7 @@ private:
     float _temperature;
     bool _initialized;
     ContextCache _contextCache;
+    String _previousResponseId; // For conversation state
 
     // Process API response
     void processResponse(int httpCode, const String& response, const String& userPrompt, ResponseCallback callback);

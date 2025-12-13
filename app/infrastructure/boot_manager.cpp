@@ -8,6 +8,7 @@
 #include "network/ftp_server.h"
 #include "network/web_server.h"
 #include "application/gpt_service.h"
+#include "application/weather_service.h"
 #include "ui/display.h"
 #include "application/voice_display_coordinator.h"
 #include "infrastructure/task_scheduler.h"
@@ -25,6 +26,7 @@ extern FtpServer ftpServer;
 extern WifiManager wifiManager;
 extern WebServerService webServerService;
 extern Services::GPTService gptService;
+extern Services::WeatherService weatherService;
 extern DisplayManager displayManager;
 extern VoiceDisplayCoordinator voiceDisplayCoordinator;
 extern TimeManager& timeManager;
@@ -177,7 +179,7 @@ bool BootManager::init() {
             .commandCount = sizeof(commands) / sizeof(commands[0])
         };
 
-        if (!voiceCommandHandler.init(&mic, &gptService, &displayManager, voiceConfig)) {
+        if (!voiceCommandHandler.init(&mic, &gptService, &weatherService, &displayManager, voiceConfig)) {
             return {false, "VoiceCommandHandler", "Failed to initialize voice command handler", true};
         }
         Logger::info("BOOT", "Voice command handler initialized with %d commands", voiceConfig.commandCount);
@@ -203,6 +205,17 @@ bool BootManager::init() {
         Logger::info("BOOT", "GPT service initialized");
         return {true, "GPT", "", false};
     }, "GPT", false);
+
+    registerComponent(BootPhase::SERVICE_INIT, []() -> InitResult {
+        Services::WeatherService::WeatherConfig config;
+        config.adm4Code = "31.73.05.1001"; // Default Jakarta Barat location
+        config.cacheExpiryMinutes = 60;
+        if (!weatherService.init(config)) {
+            return {false, "Weather", "Failed to initialize weather service", false};
+        }
+        Logger::info("BOOT", "Weather service initialized");
+        return {true, "Weather", "", false};
+    }, "Weather", false);
 
     registerComponent(BootPhase::SERVICE_INIT, []() -> InitResult {
         if (!ftpServer.begin()) {

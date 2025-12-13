@@ -17,6 +17,7 @@ extern PicoTTS tts;  // Text-to-speech for responses
 VoiceCommandHandler::VoiceCommandHandler()
     : _microphone(nullptr)
     , _gptService(nullptr)
+    , _weatherService(nullptr)
     , _displayManager(nullptr)
     , _initialized(false)
     , _listening(false)
@@ -31,19 +32,20 @@ VoiceCommandHandler::~VoiceCommandHandler() {
     deinit();
 }
 
-bool VoiceCommandHandler::init(Microphone* microphone, Services::GPTService* gptService, DisplayManager* displayManager, const VoiceConfig& config) {
+bool VoiceCommandHandler::init(Microphone* microphone, Services::GPTService* gptService, Services::WeatherService* weatherService, DisplayManager* displayManager, const VoiceConfig& config) {
     if (_initialized) {
         Logger::warn("VOICE_CMD", "VoiceCommandHandler already initialized");
         return true;
     }
 
-    if (!microphone || !gptService || !displayManager) {
-        Logger::error("VOICE_CMD", "Invalid microphone, GPT service, or display manager");
+    if (!microphone || !gptService || !weatherService || !displayManager) {
+        Logger::error("VOICE_CMD", "Invalid microphone, GPT service, weather service, or display manager");
         return false;
     }
 
     _microphone = microphone;
     _gptService = gptService;
+    _weatherService = weatherService;
     _displayManager = displayManager;
     _config = config;
 
@@ -196,12 +198,27 @@ void VoiceCommandHandler::processCommand(int commandId, int phraseId) {
     _displayManager->setState(DisplayState::MAIN_STATUS);
 
     // Process command
-    if (commandId >= 0 && commandId < 6) {
+    if (commandId >= 0 && commandId < commandMax) {
         Logger::info("VOICE_CMD", "Handling %s command", commandNames[commandId]);
         if (commandId == 1) { // time
             String currentTime = TimeManager::getInstance().getCurrentTime();
             String message = "The current time is " + currentTime;
             tts.speak(message.c_str());
+        } else if (commandId == 2) { // weather
+            _displayManager->onEvent(EventData(EventType::STATE_CHANGE, "Fetching weather", static_cast<int>(DisplayState::PROCESSING)));
+            _weatherService->getCurrentWeather([this](const Services::WeatherService::WeatherData& data, bool success) {
+                if (success && data.isValid) {
+                    String message = "Weather in " + data.location + ": " + data.description +
+                                   ", temperature " + String(data.temperature) + " degrees Celsius" +
+                                   ", humidity " + String(data.humidity) + " percent" +
+                                   ", wind " + String(data.windSpeed) + " kilometers per hour " + data.windDirection;
+                    tts.speak(message.c_str());
+                    _displayManager->onEvent(EventData(EventType::STATE_CHANGE, "Weather retrieved", static_cast<int>(DisplayState::MAIN_STATUS)));
+                } else {
+                    tts.speak("Sorry, I couldn't get the weather information right now.");
+                    _displayManager->onEvent(EventData(EventType::STATE_CHANGE, "Weather error", static_cast<int>(DisplayState::ERROR)));
+                }
+            });
         } else {
             tts.speak(commandResponses[commandId]);
         }

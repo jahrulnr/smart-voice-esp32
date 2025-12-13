@@ -1,55 +1,62 @@
-# Copilot Instructions for ESP32 Voice Assistant Project
+# ESP32 Voice Assistant - AI Coding Guidelines
 
 ## Project Overview
-PlatformIO-based ESP32-S3 voice assistant using Arduino framework. Integrates speech recognition (ESP-SR), text-to-speech (Pico TTS), audio I/O, OLED display, WiFi networking (FTP/Web), and GPT integration. Key features: real-time voice commands, remote control, and AI responses.
+This is a PlatformIO-based ESP32-S3 voice assistant with modular architecture. The system integrates speech recognition (ESP-SR), text-to-speech (Pico TTS), AI responses (OpenAI GPT), WiFi management, web interface, and FTP server.
 
 ## Architecture
-- **Clean Architecture by Responsibility**: Organized in `app/` by layers (infrastructure/, application/, network/) with feature folders (audio/, voice/, ui/).
-- **Layer Boundaries**:
-  - `infrastructure/` - System services (BootManager, Logger, TaskScheduler)
-  - `application/` - Business logic (GPTService, VoiceDisplayCoordinator)
-  - `network/` - Communication (WiFiManager, FtpServer, WebServer)
-  - `audio/`, `voice/`, `ui/` - Feature implementations
-- **Service Boundaries**: Unidirectional dependencies (infrastructure → application → features). Features use layers but not vice versa.
-- **Data Flows**: Microphone → VoiceCommandHandler → command processing → TTS → Speaker. UI/network handle user interaction and remote access.
-- **Why This Structure**: Maintainability, separation of concerns, testable components.
+- **Infrastructure Layer** (`app/infrastructure/`): BootManager, Logger, TaskScheduler, TimeManager, TouchSensor - system-level concerns
+- **Application Layer** (`app/application/`): GPTService, VoiceDisplayCoordinator - business logic
+- **Network Layer** (`app/network/`): WifiManager, WebServer, FtpServer - communication
+- **Audio Layer** (`app/audio/`): Microphone, Speaker - I2S audio I/O
+- **Voice Layer** (`app/voice/`): VoiceCommandHandler, PicoTTS, CSR - speech processing
+- **UI Layer** (`app/ui/`): DisplayManager, Drawers - OLED display management
 
-## Key Workflows
-- **Build**: `pio run` (ESP32 flags like `-DCONFIG_SR_VADN_VADNET1_MEDIUM`)
-- **Upload**: `pio run -t upload` (esptool)
-- **Monitor/Debug**: `pio device monitor` (115200 baud, ESP exception filters). Use `ESP_LOGx` macros (e.g., `ESP_LOGI("TAG", "message")`)
-- **Testing**: Manual validation via serial/UI; no automated tests yet
+## Key Patterns
+- **FreeRTOS Tasks**: All logic runs in RTOS tasks, not Arduino loop()
+- **Event-Driven UI**: DisplayManager uses EventData for state updates (e.g., `displayManager.onEvent(EventData(EventType::STATE_CHANGE, "message", static_cast<int>(DisplayState::SPEAKING)))`)
+- **ESP-SR Integration**: Voice recognition uses `SR::sr_setup()` with wake word and command arrays
+- **Async GPT Calls**: API requests run in separate RTOS tasks with callbacks
+- **Context Caching**: GPTService maintains conversation history in `_contextCache`
 
-## Permissions
-- **Build Operations**: Allowed to run `pio run` to build the firmware
-- **Upload Operations**: NOT allowed to flash/upload firmware to the ESP32 device
+## Configuration
+- **Hardware Pins**: Defined in `config.h` (I2S mic/speaker on GPIO 12-14/5-7, I2C display on 21/22)
+- **WiFi**: Multi-network support, auto-roaming up to 5 networks
+- **Audio**: 16kHz mono, 16-bit I2S
+- **GPT**: Uses OpenAI Responses API with conversation context
 
-## Conventions & Patterns
-- **Language**: C++17, exceptions disabled (`-fno-exceptions`), `std::function` for callbacks
-- **File Organization**: .h/.cpp pairs in same folder; include guards in .h
-- **UI Pattern**: Header-only drawer classes in `ui/drawers/` with inline `draw()` method (strategy pattern)
-- **Command Processing**: Unified handling in VoiceCommandHandler with response arrays
-- **Concurrency**: FreeRTOS tasks (e.g., `xTaskCreate` in TaskScheduler); avoid blocking main loop
-- **Dependencies**: Managed in `platformio.ini`; import via `#include <library.h>`
-- **Configuration**: Global in `config.h` (pins, WiFi); build flags in `platformio.ini`
-- **Error Handling**: `ESP_ERROR_CHECK` for ESP-IDF; `ESP_LOGE` for logging
-- **Examples**:
-  - Logging: `#include "infrastructure/logger.h"` → `Logger::info("TAG", "message")`
-  - Tasks: Add in `infrastructure/task_scheduler.cpp` → `TaskScheduler::startTasks()`
-  - Audio: `audio/microphone.h` for I2S input, `audio/speaker.h` for output
-  - TTS: `voice/pico_tts.h` → `tts.speak("text")`
-  - UI: New states as header-only classes in `ui/drawers/` with `draw()` method
-  - Commands: Extend `commandResponses[]` in `voice_constants.h` for new voice commands
+## Dependencies
+- **Pico TTS**: Text-to-speech synthesis
+- **Weather Service**: BMKG API integration for Indonesian weather data
+- **External Services**: MQTT web app (`external/mqtt/`), Whisper STT (`external/whisper/`)
+- **Libraries**: U8g2 (OLED), ArduinoJson, custom ESP32 libs (microphone, speaker, picoTTS)
+
+## Common Tasks
+- **Add Voice Command**: Update `voice_constants.h` with phoneme (use `tools/multinet_g2p.py`)
+- **New UI State**: Add to `DisplayState` enum, create drawer in `ui/drawers/`
+- **Network Feature**: Add to WebServer endpoints, update bootstrap UI in `data/assets/`
+- **Weather Integration**: Use `weatherService.getCurrentWeather()` with callback for BMKG API data
+- **Debug Audio**: Check I2S pin connections, verify 3.3V power to mic
+
+## Code Style
+- **C++17**: With exceptions enabled (`-fexceptions`)
+- **Naming**: PascalCase for classes, camelCase for methods/variables
+- **Logging**: Use `Logger::info/error/warn/debug()` with component tags
+- **Error Handling**: Return bool for init methods, use ESP_OK checks for ESP-IDF calls
+- **Memory**: Use SPIRAM for large allocations (`MALLOC_CAP_SPIRAM`)
+
+## Hardware Testing
+- **Boot Issues**: Check serial output for BootManager failures
+- **Audio Problems**: Verify I2S wiring, test with `speaker.playTone()`
+- **WiFi Setup**: Access hotspot `ESP32-Config` at 192.168.4.1
+- **Voice Recognition**: Ensure quiet environment, clear pronunciation
 
 ## Integration Points
-- **External Libs**: ESP-SR models loaded from `model/` folder
-- **Hardware**: ESP32-S3 pins in `config.h`; I2S for audio
-- **Communication**: FTP in `network/ftp_server.cpp`; Web in `network/web_server.cpp`; WiFi in `network/wifi_manager.cpp`
+- **Web Interface**: Bootstrap UI in `data/assets/`, served by WebServer
+- **FTP Access**: File management at `ftp://esp32-ip/`
+- **Weather API**: BMKG weather data via `weatherService` (Indonesian locations)
+- **External APIs**: GPT via HTTPS, MQTT for IoT messaging
+- **Display Events**: All UI updates through DisplayManager event system
 
-## Implementation Lessons Learned
-- **Refactoring**: Read full context first; use grep_search for all references; build after each change
-- **Edit Precision**: Include 3-5 lines context in replace_string_in_file to avoid breaking syntax
-- **Cleanup**: Search for ALL references to removed code before completion
-- **Build Verification**: Always build after significant changes in embedded dev
-
-Focus on feature folders for new code; reference infrastructure/application/network layers for shared logic. Keep dependencies unidirectional.
+## Professional Conduct
+- Act professionally in all interactions, maintaining a respectful and collaborative tone</content>
+<parameter name="filePath">/apps/PlatformIO/Assistences/.github/copilot-instructions.md
