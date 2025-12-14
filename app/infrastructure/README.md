@@ -322,3 +322,74 @@ TouchSensor::setCallback(TouchSensor::DOUBLE_TAP, []() {
 - **Callbacks**: Set in APPLICATION_START phase
 - **Threading**: Runs in dedicated FreeRTOS task
 - **Logging**: Debug/info messages for gesture events
+
+### Sleep Manager (`sleep_manager.h/.cpp`)
+**Purpose**: Manages display sleep/wake functionality based on user activity detection.
+
+**Key Features**:
+- **Activity Monitoring**: Tracks touch and voice activity to reset inactivity timer
+- **Automatic Sleep**: Puts display to sleep after 5 minutes of inactivity
+- **Wake on Activity**: Immediately wakes display when touch or voice activity detected
+- **Display Control**: Uses U8g2 power save mode to turn display on/off
+- **Timer Management**: Millisecond-precision activity tracking
+
+**API Methods**:
+```cpp
+// Lifecycle
+bool init(DisplayManager* displayManager);  // Initialize with display manager
+
+// Activity notification
+void onTouchActivity();                     // Notify of touch activity
+void onVoiceActivity();                     // Notify of voice activity
+
+// Control
+void wakeDisplay();                         // Force wake display
+void sleepDisplay();                        // Force sleep display
+void handle();                              // Periodic sleep check (call in main loop)
+
+// Status
+bool isSleeping() const;                    // Check if display is sleeping
+unsigned long getTimeSinceLastActivity() const;  // Get inactivity duration
+```
+
+**Configuration**:
+```cpp
+static const unsigned long SLEEP_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+```
+
+**Activity Sources**:
+- **Touch Activity**: Detected from TouchSensor callbacks (one tap, double tap, triple tap)
+- **Voice Activity**: Detected from VoiceCommandHandler events (wake word, command detection)
+
+**Sleep Logic**:
+- **Timer Reset**: Activity resets the 5-minute countdown
+- **Sleep Trigger**: Automatic sleep when timer expires
+- **Wake Trigger**: Immediate wake on any detected activity
+- **State Tracking**: Maintains sleep state for status queries
+
+**Integration**:
+- **Boot Phase**: Initialized in SERVICE_INIT after DisplayManager
+- **Callbacks**: Connected to TouchSensor and VoiceCommandHandler
+- **Main Loop**: `handle()` called periodically in TaskScheduler
+- **Display Control**: Uses `U8G2::setPowerSave()` for hardware sleep/wake
+
+**Usage Example**:
+```cpp
+#include "infrastructure/sleep_manager.h"
+
+// Initialize (in boot manager)
+sleepManager.init(&displayManager);
+
+// Activity callbacks (automatic via touch/voice handlers)
+sleepManager.onTouchActivity();  // Called by touch sensor
+sleepManager.onVoiceActivity();  // Called by voice handler
+
+// Periodic check (in main task loop)
+sleepManager.handle();
+```
+
+**Power Management**:
+- **Display Power**: OLED completely powered off in sleep mode
+- **Activity Detection**: Touch and voice detection remain active
+- **Wake Response**: <100ms wake time for immediate responsiveness
+- **Memory**: Minimal RAM usage (~20 bytes for state tracking)

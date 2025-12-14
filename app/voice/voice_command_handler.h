@@ -8,8 +8,7 @@
 
 #pragma once
 
-#include <Arduino.h>
-#include <functional>
+#include <vector>
 #include "csr.h"
 #include <audio/microphone.h>
 #include "../application/gpt_service.h"
@@ -37,7 +36,14 @@ public:
     bool isListening() const;
 
     // Event callback registration
-    void setEventCallback(VoiceEventCallback callback) { _eventCallback = callback; }
+    void setEventCallback(VoiceEventCallback callback) { 
+        _eventCallbacks.push_back(callback); 
+    }
+    void removeEventCallback(VoiceEventCallback callback) {
+        // Note: This is a simple implementation - in production you'd want better callback management
+        // For now, we'll just clear all callbacks if needed
+        _eventCallbacks.clear();
+    }
 
     // Command processing (called internally by SR events)
     void processCommand(int commandId, int phraseId);
@@ -53,7 +59,7 @@ private:
     Services::WeatherService* _weatherService;
     DisplayManager* _displayManager;
     VoiceConfig _config;
-    VoiceEventCallback _eventCallback;
+    std::vector<VoiceEventCallback> _eventCallbacks;
 
     bool _initialized;
     bool _listening;

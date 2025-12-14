@@ -15,6 +15,7 @@
 #include "infrastructure/task_scheduler.h"
 #include "infrastructure/touch_sensor.h"
 #include "infrastructure/time_manager.h"
+#include "infrastructure/sleep_manager.h"
 #include <esp_task_wdt.h>
 
 
@@ -32,6 +33,7 @@ extern Services::WeatherService weatherService;
 extern DisplayManager displayManager;
 extern VoiceDisplayCoordinator voiceDisplayCoordinator;
 extern TimeManager& timeManager;
+extern SleepManager sleepManager;
 
 BootManager& BootManager::getInstance() {
     static BootManager instance;
@@ -219,6 +221,14 @@ bool BootManager::init() {
         if (!voiceCommandHandler.init(&mic, &gptService, &weatherService, &displayManager, voiceConfig)) {
             return {false, "VoiceCommandHandler", "Failed to initialize voice command handler", true};
         }
+
+        // Set up voice activity callback for sleep manager
+        voiceCommandHandler.setEventCallback([](VoiceEvent event, int commandId, int phraseId) {
+            if (event == VOICE_WAKEWORD_DETECTED || event == VOICE_COMMAND_DETECTED) {
+                sleepManager.onVoiceActivity();
+            }
+        });
+
         Logger::info("BOOT", "Voice command handler initialized with %d commands", voiceConfig.commandCount);
         return {true, "VoiceCommandHandler", "", true};
     }, "VoiceCommandHandler", true);
@@ -262,6 +272,14 @@ bool BootManager::init() {
         return {true, "FTP", "", false};
     }, "FTP", false);
 
+    registerComponent(BootPhase::SERVICE_INIT, []() -> InitResult {
+        if (!sleepManager.init(&displayManager)) {
+            return {false, "SleepManager", "Failed to initialize sleep manager", false};
+        }
+        Logger::info("BOOT", "Sleep manager initialized");
+        return {true, "SleepManager", "", false};
+    }, "SleepManager", false);
+
     // Register APPLICATION_START phase components
     registerComponent(BootPhase::APPLICATION_START, []() -> InitResult {
         if (!voiceCommandHandler.startListening()) {
@@ -281,18 +299,21 @@ bool BootManager::init() {
         // Set touch sensor callbacks
         if (!TouchSensor::setCallback(TouchSensor::ONE_TAP, []() {
             Logger::info("TOUCH", "One tap: Starting voice listening");
+            sleepManager.onTouchActivity();
             voiceCommandHandler.startListening();
         })) {
             Logger::warn("BOOT", "Failed to set one tap callback");
         }
         if (!TouchSensor::setCallback(TouchSensor::DOUBLE_TAP, []() {
             Logger::info("TOUCH", "Double tap: Toggling silent mode");
+            sleepManager.onTouchActivity();
             // TODO: Implement silent mode toggle
         })) {
             Logger::warn("BOOT", "Failed to set double tap callback");
         }
         if (!TouchSensor::setCallback(TouchSensor::TRIPLE_TAP, []() {
             Logger::info("TOUCH", "Triple tap: Entering advanced config");
+            sleepManager.onTouchActivity();
             displayManager.setState(DisplayState::CONFIG);
             // TODO: Implement advanced config mode
         })) {

@@ -156,8 +156,10 @@ bool VoiceCommandHandler::startListening() {
     Logger::info("VOICE_CMD", "Started listening for wake word");
 
     // Notify listeners via callback
-    if (_eventCallback) {
-        _eventCallback(VOICE_WAKEWORD_DETECTED, 0, 0);
+    for (auto& callback : _eventCallbacks) {
+        if (callback) {
+            callback(VOICE_WAKEWORD_DETECTED, 0, 0);
+        }
     }
 
     return true;
@@ -245,8 +247,10 @@ void VoiceCommandHandler::srEventCallback(void* arg, sr_event_t event, int comma
             handler->_currentMode = SR_MODE_COMMAND;
 
             // Notify via callback
-            if (handler->_eventCallback) {
-                handler->_eventCallback(VOICE_WAKEWORD_DETECTED, command_id, phrase_id);
+            for (auto& callback : handler->_eventCallbacks) {
+                if (callback) {
+                    callback(VOICE_WAKEWORD_DETECTED, command_id, phrase_id);
+                }
             }
             break;
 
@@ -259,8 +263,10 @@ void VoiceCommandHandler::srEventCallback(void* arg, sr_event_t event, int comma
             handler->_currentMode = SR_MODE_COMMAND;
 
             // Notify via callback
-            if (handler->_eventCallback) {
-                handler->_eventCallback(VOICE_WAKEWORD_DETECTED, command_id, phrase_id);
+            for (auto& callback : handler->_eventCallbacks) {
+                if (callback) {
+                    callback(VOICE_WAKEWORD_DETECTED, command_id, phrase_id);
+                }
             }
             break;
 
@@ -277,8 +283,10 @@ void VoiceCommandHandler::srEventCallback(void* arg, sr_event_t event, int comma
             handler->_currentMode = SR_MODE_COMMAND;
 
             // Notify via callback
-            if (handler->_eventCallback) {
-                handler->_eventCallback(VOICE_COMMAND_DETECTED, command_id, phrase_id);
+            for (auto& callback : handler->_eventCallbacks) {
+                if (callback) {
+                    callback(VOICE_COMMAND_DETECTED, command_id, phrase_id);
+                }
             }
             break;
 
@@ -291,8 +299,10 @@ void VoiceCommandHandler::srEventCallback(void* arg, sr_event_t event, int comma
             handler->_currentMode = SR_MODE_WAKEWORD;
 
             // Notify via callback
-            if (handler->_eventCallback) {
-                handler->_eventCallback(VOICE_TIMEOUT, -1, -1);
+            for (auto& callback : handler->_eventCallbacks) {
+                if (callback) {
+                    callback(VOICE_TIMEOUT, -1, -1);
+                }
             }
             break;
 

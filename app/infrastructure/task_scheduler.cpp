@@ -10,6 +10,7 @@
 #include "voice/pico_tts.h"
 #include "network/ftp_server.h"
 #include "ui/display.h"
+#include "infrastructure/sleep_manager.h"
 
 // External references
 extern Microphone mic;
@@ -22,6 +23,7 @@ extern MqttClient mqttClient;
 extern Services::GPTService gptService;
 extern Services::WeatherService weatherService;
 extern DisplayManager displayManager;
+extern SleepManager sleepManager;
 
 // Static member initialization
 TaskHandle_t TaskScheduler::mainTaskHandle = nullptr;
@@ -102,6 +104,9 @@ void TaskScheduler::mainTask(void* parameter) {
 
         // Handle MQTT client
         mqttClient.handle();
+
+        // Handle sleep manager
+        sleepManager.handle();
 
         // Handle FTP requests
         ftpServer.handle();

@@ -5,6 +5,7 @@
 #include "infrastructure/boot_manager.h"
 #include "infrastructure/task_scheduler.h"
 #include "infrastructure/time_manager.h"
+#include "infrastructure/sleep_manager.h"
 #include "network/wifi_manager.h"
 #include "network/ftp_server.h"
 #include "network/web_server.h"
@@ -30,6 +31,7 @@ Services::GPTService gptService;
 Services::WeatherService weatherService;
 DisplayManager displayManager;
 VoiceDisplayCoordinator voiceDisplayCoordinator;
+SleepManager sleepManager;
 BootManager& bootManager = BootManager::getInstance();
 TimeManager& timeManager = TimeManager::getInstance();
 
