@@ -78,6 +78,82 @@ if (server) {
 wifiManager.handle();
 ```
 
+### MQTT Client (`mqtt_client.h/.cpp`)
+**Purpose**: MQTT connectivity for remote control and monitoring of the ESP32 voice assistant.
+
+**Key Features**:
+- **MQTT Broker Connection**: Connects to MQTT brokers for publish/subscribe messaging
+- **Automatic Reconnection**: Handles connection drops and reconnects automatically
+- **Command Processing**: Receives text commands via MQTT and processes through GPT service
+- **Status Publishing**: Publishes device status and command responses
+- **FreeRTOS Task**: Runs in dedicated task for non-blocking operation
+- **Callback Integration**: Processes incoming messages with configurable callbacks
+
+**API Methods**:
+```cpp
+// Core lifecycle
+bool init();                          // Initialize MQTT client
+bool connect();                       // Connect to MQTT broker
+void disconnect();                    // Disconnect from broker
+bool isConnected();                   // Check connection status
+
+// Messaging
+bool publish(String topic, String payload);     // Publish message to topic
+bool subscribe(String topic);                   // Subscribe to topic
+bool unsubscribe(String topic);                 // Unsubscribe from topic
+
+// Configuration
+void setMessageCallback(std::function<void(String topic, String payload)> callback);
+String getClientId();                           // Get unique client ID
+
+// Maintenance
+void handle();                                  // Periodic tasks (reconnect, keep-alive)
+```
+
+**Configuration**:
+```cpp
+#define MQTT_SERVER "broker.hivemq.com"
+#define MQTT_PORT 1883
+#define MQTT_CLIENT_ID "esp32-voice-assistant"
+#define MQTT_TOPIC_COMMAND "esp32/command"
+#define MQTT_TOPIC_STATUS "esp32/status"
+#define MQTT_TOPIC_RESPONSE "esp32/response"
+```
+
+**Usage Example**:
+```cpp
+#include "network/mqtt_client.h"
+
+MqttClient mqttClient;
+
+// Initialize MQTT client
+if (!mqttClient.init()) {
+    Logger::error("MQTT", "Failed to initialize MQTT client");
+    return;
+}
+
+// Set message callback for command processing
+mqttClient.setMessageCallback([](String topic, String payload) {
+    if (topic == MQTT_TOPIC_COMMAND) {
+        // Process command through GPT service
+        gptService.sendPrompt(payload, [payload](const String& response) {
+            // Publish response
+            mqttClient.publish(MQTT_TOPIC_RESPONSE, response);
+            // Speak response
+            tts.speak(response.c_str());
+        });
+    }
+});
+
+// Connect to broker
+if (!mqttClient.connect()) {
+    Logger::warn("MQTT", "Connection failed - will retry later");
+}
+
+// Handle periodic tasks
+mqttClient.handle();
+```
+
 ### Network Architecture
 
 **Infrastructure Layer** (This folder):
@@ -100,6 +176,7 @@ wifiManager.handle();
 - `DNSServer.h` - DNS server for captive portal
 - `WebServer.h` - HTTP server infrastructure
 - `Preferences.h` - NVS storage for network credentials
+- `PubSubClient.h` - MQTT client library
 
 **Integration Points**:
 - **WebServerService**: Uses `getWebServer()` to register application routes

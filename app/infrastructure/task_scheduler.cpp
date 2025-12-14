@@ -2,6 +2,7 @@
 #include "infrastructure/logger.h"
 #include "network/wifi_manager.h"
 #include "network/web_server.h"
+#include "network/mqtt_client.h"
 #include "application/gpt_service.h"
 #include "application/weather_service.h"
 #include "audio/microphone.h"
@@ -17,6 +18,7 @@ extern PicoTTS tts;
 extern FtpServer ftpServer;
 extern WifiManager wifiManager;
 extern WebServerService webServerService;
+extern MqttClient mqttClient;
 extern Services::GPTService gptService;
 extern Services::WeatherService weatherService;
 extern DisplayManager displayManager;
@@ -97,6 +99,9 @@ void TaskScheduler::mainTask(void* parameter) {
 
         // Handle web server requests
         webServerService.handle();
+
+        // Handle MQTT client
+        mqttClient.handle();
 
         // Handle FTP requests
         ftpServer.handle();

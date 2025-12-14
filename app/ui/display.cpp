@@ -204,8 +204,6 @@ void DisplayManager::onEvent(const EventData& event) {
         }
         case EventType::MEMORY_WARNING: {
             _memoryPercent = event.value;
-            size_t freeBytes = (event.data != nullptr) ? *(size_t*)event.data : 0;
-            Logger::warn("DISPLAY", "Memory warning: %d%% used, %zu bytes free", event.value, freeBytes);
             break;
         }
         case EventType::WEATHER_UPDATE: {

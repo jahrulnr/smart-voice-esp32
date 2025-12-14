@@ -8,6 +8,7 @@
 #include "network/wifi_manager.h"
 #include "network/ftp_server.h"
 #include "network/web_server.h"
+#include "network/mqtt_client.h"
 #include "application/gpt_service.h"
 #include "application/voice_display_coordinator.h"
 #include "application/weather_service.h"
@@ -24,6 +25,7 @@ VoiceCommandHandler voiceCommandHandler;
 FtpServer ftpServer(LittleFS);
 WifiManager wifiManager;
 WebServerService webServerService;
+MqttClient mqttClient;
 Services::GPTService gptService;
 Services::WeatherService weatherService;
 DisplayManager displayManager;

@@ -55,4 +55,17 @@
 #define TOUCH_DOUBLE_TRIPLE_WINDOW_MS 600  // Time window for double/triple tap detection (ms) - increased for slower taps
 #define TOUCH_ANALOG_THRESHOLD_PRESSED 500  // ADC value below this = pressed (approx 0.4V) - reduced for firmer press
 
+// MQTT Configuration
+#define MQTT_SERVER "broker.hivemq.com"  // Public MQTT broker
+#define MQTT_PORT 1883                  // Standard MQTT port
+#define MQTT_CLIENT_ID "pio-assistant"
+#define MQTT_USERNAME ""                // Leave empty for anonymous connection
+#define MQTT_PASSWORD ""                // Leave empty for anonymous connection
+#define MQTT_KEEP_ALIVE 60              // Keep alive interval in seconds
+#define MQTT_QOS 0                      // Quality of Service (0, 1, or 2)
+#define MQTT_RETAIN false               // Retain messages
+#define MQTT_TOPIC_COMMAND "pioassistant/command"  // Topic for receiving commands
+#define MQTT_TOPIC_STATUS "pioassistant/status"    // Topic for publishing status
+#define MQTT_TOPIC_RESPONSE "pioassistant/response" // Topic for publishing responses
+
 #endif // CONFIG_H

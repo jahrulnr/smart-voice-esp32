@@ -7,6 +7,7 @@
 #include "network/wifi_manager.h"
 #include "network/ftp_server.h"
 #include "network/web_server.h"
+#include "network/mqtt_client.h"
 #include "application/gpt_service.h"
 #include "application/weather_service.h"
 #include "ui/display.h"
@@ -25,6 +26,7 @@ extern VoiceCommandHandler voiceCommandHandler;
 extern FtpServer ftpServer;
 extern WifiManager wifiManager;
 extern WebServerService webServerService;
+extern MqttClient mqttClient;
 extern Services::GPTService gptService;
 extern Services::WeatherService weatherService;
 extern DisplayManager displayManager;
@@ -161,6 +163,41 @@ bool BootManager::init() {
         Logger::info("BOOT", "Web server initialized");
         return {true, "WebServer", "", false};
     }, "WebServer", false);
+
+    registerComponent(BootPhase::NETWORK_INIT, []() -> InitResult {
+        if (!mqttClient.init()) {
+            return {false, "MQTT", "Failed to initialize MQTT client", false};
+        }
+
+        // Set up MQTT message callback
+        mqttClient.setMessageCallback([](String topic, String payload) {
+            Logger::info("MQTT", "Received command: %s", payload.c_str());
+
+            // Process MQTT commands via GPT service
+            if (topic == MQTT_TOPIC_COMMAND) {
+                displayManager.onEvent(EventData(EventType::STATE_CHANGE, "Processing MQTT command", static_cast<int>(DisplayState::PROCESSING)));
+
+                gptService.sendPrompt(payload, [payload](const String& response) {
+                    Logger::info("MQTT", "GPT response for command '%s': %s", payload.c_str(), response.c_str());
+
+                    // Publish response back via MQTT
+                    mqttClient.publish(MQTT_TOPIC_RESPONSE, response);
+
+                    // Also speak the response
+                    tts.speak(response.c_str());
+
+                    displayManager.onEvent(EventData(EventType::STATE_CHANGE, "MQTT command processed", static_cast<int>(DisplayState::MAIN_STATUS)));
+                });
+            }
+        });
+
+        if (!mqttClient.connect()) {
+            Logger::warn("BOOT", "MQTT connection failed - will retry later");
+            return {true, "MQTT", "MQTT initialized but connection failed", false};
+        }
+        Logger::info("BOOT", "MQTT client initialized and connected");
+        return {true, "MQTT", "", false};
+    }, "MQTT", false);
 
     // Register SERVICE_INIT phase components
     registerComponent(BootPhase::SERVICE_INIT, []() -> InitResult {

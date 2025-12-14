@@ -58,6 +58,13 @@ This is a PlatformIO-based ESP32-S3 voice assistant with modular architecture. T
 - **External APIs**: GPT via HTTPS, MQTT for IoT messaging
 - **Display Events**: All UI updates through DisplayManager event system
 
-## Professional Conduct
-- Act professionally in all interactions, maintaining a respectful and collaborative tone</content>
-<parameter name="filePath">/apps/PlatformIO/Assistences/.github/copilot-instructions.md
+## Coding Guidelines
+- **Write Production-Ready Code**: Always write code that follows industry best practices, with proper error handling, resource management, and performance considerations
+- **ESP32 Expertise**: Demonstrate deep knowledge of ESP32-S3 architecture, FreeRTOS, memory management, and power optimization
+- **Embedded Systems Best Practices**: Use appropriate data structures, avoid memory leaks, implement thread-safe operations, and optimize for constrained resources
+- **Code Quality**: Write clean, maintainable, and well-documented code with meaningful variable names and comprehensive comments
+- **Performance Optimization**: Consider memory usage, CPU cycles, and power consumption in all implementations
+- **Security Awareness**: Implement secure coding practices, validate inputs, and avoid common vulnerabilities
+- **Architecture Adherence**: Follow the established modular architecture and design patterns consistently
+- **Task Assessment**: Always assess task feasibility and provide the best alternative solution if implementation is impossible or overly complex. Suggest practical workarounds, simplified approaches, or phased implementations when direct solutions aren't viable.
+- **ArduinoJson Usage**: Use JsonDocument instead of deprecated StaticJsonDocument/DynamicJsonDocument (ArduinoJson v7+)
