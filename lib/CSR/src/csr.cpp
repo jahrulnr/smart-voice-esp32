@@ -375,7 +375,7 @@ esp_err_t sr_setup(
   // Load WakeWord Detection
   // https://docs.espressif.com/projects/esp-sr/en/latest/esp32/audio_front_end/migration_guide.html
   afe_config_t *afe_config = afe_config_init("MRR", models, AFE_TYPE_SR, AFE_MODE_LOW_COST);
-  afe_config->wakenet_model_name = esp_srmodel_filter(SR::models, ESP_WN_PREFIX, "alexa");
+  afe_config->wakenet_model_name = esp_srmodel_filter(SR::models, ESP_WN_PREFIX, "hiesp");
   afe_config->aec_init = false;
   afe_config->se_init = true;
   afe_config->vad_mode = VAD_MODE_4;

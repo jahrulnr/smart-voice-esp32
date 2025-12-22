@@ -1,5 +1,6 @@
 #include "init.h"
 #include "csr.h"
+#include <WiFi.h>
 
 Notification *notification = nullptr;
 Face* faceDisplay = nullptr;
@@ -10,6 +11,7 @@ void setupApp(){
 	Serial.println("[setupApp] initiate global variable");
 
 	Wire.begin(SDA_PIN, SCL_PIN);
+	WiFi.begin("ANDROID AP", "tes12345");
 
 	setupNotification();
 	setupMicrophone();

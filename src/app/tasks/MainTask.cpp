@@ -1,6 +1,7 @@
 #include "app/tasks.h"
 #include <esp_log.h>
 #include <esp32-hal-log.h>
+#include <WiFi.h>
 
 TaskHandle_t mainTaskHandle = nullptr;
 
@@ -10,15 +11,21 @@ void mainTask(void *param) {
   TickType_t lastWakeTime = xTaskGetTickCount();
   TickType_t updateFrequency = pdMS_TO_TICKS(61);
 	size_t updateDelay = 0;
+	size_t monitorCheck = millis();
 	const char* lastEvent;
 
 	// wait notification initiate
 	while (!notification)
 		taskYIELD();
 
-
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
+
+		if (millis() - monitorCheck > 5000) {
+			ESP_LOGI(TAG, "Wifi Status: %s", WiFi.isConnected() ? "Connected" : "Disconnected");
+			monitorCheck = millis();
+		};
+		
 		display->clearBuffer();
 
 		if (!notification->has(NOTIFICATION_DISPLAY) && updateDelay == 0) {
@@ -34,8 +41,6 @@ void mainTask(void *param) {
 			if (updateDelay == 0) {
 				updateDelay = millis() + 3000;
 				lastEvent = EVENT_DISPLAY_WAKEWORD;
-				faceDisplay->LookFront();
-				faceDisplay->Expression.GoTo_Happy();
 			}
 			displayHappyFace();
 			// send buffer will handled by Face class
