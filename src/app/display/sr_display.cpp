@@ -1,5 +1,4 @@
 #include "app/display_list.h"
-#include "Mochi.h"
 
 void displayListening() {
     if (!display) return;
