@@ -190,14 +190,14 @@ static void audio_feed_task(void *arg) {
         audio_buffer[i * SR_CHANNEL_NUM + 2] = 0;
         audio_buffer[i * SR_CHANNEL_NUM + 1] = 0;
         audio_buffer[i * SR_CHANNEL_NUM + 0] = audio_buffer[i];
-        if (i % 10 == 0) yield();
+        if (i % 10 == 0) taskYIELD();
       }
     } else if (SR::g_sr_data->i2s_rx_chan_num == 2) {
       for (int i = audio_chunksize - 1; i >= 0; i--) {
         audio_buffer[i * SR_CHANNEL_NUM + 2] = 0;
         audio_buffer[i * SR_CHANNEL_NUM + 1] = audio_buffer[i*2+1];
         audio_buffer[i * SR_CHANNEL_NUM + 0] = audio_buffer[i*2];
-        if (i % 10 == 0) yield();
+        if (i % 10 == 0) taskYIELD();
       }
     } else {
       ESP_LOGW(SR::TAG, "i2s_rx_chan_num is invalid: %d", SR::g_sr_data->i2s_rx_chan_num);
@@ -374,7 +374,7 @@ esp_err_t sr_setup(
 
   // Load WakeWord Detection
   // https://docs.espressif.com/projects/esp-sr/en/latest/esp32/audio_front_end/migration_guide.html
-  afe_config_t *afe_config = afe_config_init("MRR", models, AFE_TYPE_SR, AFE_MODE_LOW_COST);
+  afe_config_t *afe_config = afe_config_init("MNN", models, AFE_TYPE_SR, AFE_MODE_LOW_COST);
   afe_config->wakenet_model_name = esp_srmodel_filter(SR::models, ESP_WN_PREFIX, "hiesp");
   afe_config->aec_init = false;
   afe_config->se_init = true;
@@ -416,7 +416,7 @@ esp_err_t sr_setup(
 
 esp_err_t sr_start(int feedCore, int detectCore) {
   //Start tasks
-  esp_err_t ret_val = xTaskCreateUniversal(&SR::audio_feed_task, "SR Feed Task", 4 * 1024, NULL, 10, &SR::g_sr_data->feed_task, feedCore);
+  esp_err_t ret_val = xTaskCreateUniversal(&SR::audio_feed_task, "SR Feed Task", 4 * 1024, NULL, 6, &SR::g_sr_data->feed_task, feedCore);
   if(pdPASS != ret_val) {
     ESP_LOGE(SR::TAG, "Failed create audio feed task");
     ::sr_stop();
@@ -424,14 +424,14 @@ esp_err_t sr_start(int feedCore, int detectCore) {
   }
 
   vTaskDelay(10);
-  ret_val = xTaskCreateUniversal(&SR::audio_detect_task, "SR Detect Task", 8 * 1024, NULL, 10, &SR::g_sr_data->detect_task, detectCore);
+  ret_val = xTaskCreateUniversal(&SR::audio_detect_task, "SR Detect Task", 8 * 1024, NULL, 6, &SR::g_sr_data->detect_task, detectCore);
   if(pdPASS != ret_val) {
     ESP_LOGE(SR::TAG, "Failed create audio detect task");
     ::sr_stop();
     return ESP_FAIL;
   }
 
-  ret_val = xTaskCreateUniversal(&SR::sr_handler_task, "SR Handler Task", 6 * 1024, NULL, 10, &SR::g_sr_data->handle_task, feedCore);
+  ret_val = xTaskCreateUniversal(&SR::sr_handler_task, "SR Handler Task", 6 * 1024, NULL, configMAX_PRIORITIES -1, &SR::g_sr_data->handle_task, feedCore);
   if(pdPASS != ret_val) {
     ESP_LOGE(SR::TAG, "Failed create audio handler task");
     ::sr_stop();

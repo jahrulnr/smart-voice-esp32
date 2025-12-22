@@ -2,6 +2,7 @@
 #include "boot/init.h"
 #include "app/tasks.h"
 #include <LittleFS.h>
+#include <WiFi.h>
 
 #include "hal/timer_hal.h"
 #include "hal/wdt_types.h"
@@ -25,6 +26,9 @@ void setup() {
   setCpuFrequencyMhz(240);
 	Serial.begin(115200);
   LittleFS.begin(true);
+
+	Wire.begin(SDA_PIN, SCL_PIN);
+	WiFi.begin("ANDROID AP", "tes12345");
 
 	// Configure Task Watchdog Timer to prevent system hangs
 	esp_err_t esp_task_wdt_reconfigure(const esp_task_wdt_config_t *config);

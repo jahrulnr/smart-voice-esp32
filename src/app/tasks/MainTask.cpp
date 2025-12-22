@@ -25,7 +25,7 @@ void mainTask(void *param) {
 			ESP_LOGI(TAG, "Wifi Status: %s", WiFi.isConnected() ? "Connected" : "Disconnected");
 			monitorCheck = millis();
 		};
-		
+
 		display->clearBuffer();
 
 		if (!notification->has(NOTIFICATION_DISPLAY) && updateDelay == 0) {
@@ -52,7 +52,7 @@ void mainTask(void *param) {
 		}
 
 		// Handle any notifications that might be relevant to SR
-		if (notification && notification->has(NOTIFICATION_COMMAND)) {
+		if (notification->has(NOTIFICATION_COMMAND)) {
 			void* event = notification->consume(NOTIFICATION_COMMAND);
 			if (event) {
 				const char* command = (const char*)event;
