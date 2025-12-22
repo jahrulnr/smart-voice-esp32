@@ -8,7 +8,7 @@ Microphone* microphone = nullptr;
 bool sr_system_running = false;
 
 void setupApp(){
-	Serial.println("[setupApp] initiate global variable");
+	log_i("[setupApp] initiate global variable");
 
 	setupNotification();
 	setupMicrophone();
@@ -80,7 +80,7 @@ void setupFaceDisplay(uint16_t size) {
 void setupSpeechRecognition() {
 	void* mic_instance = nullptr;
 
-	Serial.println("🧠 Setting up Speech Recognition system...");
+	log_i("🧠 Setting up Speech Recognition system...");
 
 	// Start ESP-SR system with high-level API
 	esp_err_t ret = SR::sr_setup(
@@ -96,12 +96,12 @@ void setupSpeechRecognition() {
 
 	if (ret == ESP_OK) {
 		sr_system_running = true;
-		Serial.println("✅ Speech Recognition started successfully!");
-		Serial.println("🎯 Say 'Hi ESP' to activate");
-		Serial.println("");
-		Serial.printf("📋 Loaded %d voice commands:\n", sizeof(voice_commands) / sizeof(sr_cmd_t));
+		log_i("✅ Speech Recognition started successfully!");
+		log_i("🎯 Say 'Hi ESP' to activate");
+		log_i("");
+		log_i("📋 Loaded %d voice commands", sizeof(voice_commands) / sizeof(sr_cmd_t));
 		for (int i = 0; i < (sizeof(voice_commands) / sizeof(sr_cmd_t)); i++) {
-			Serial.printf("   [%d] Group %d: '%s' -> '%s'\n",
+			log_i("   [%d] Group %d: '%s' -> '%s'\n",
 						i,
 						voice_commands[i].command_id,
 						voice_commands[i].str,
@@ -110,7 +110,7 @@ void setupSpeechRecognition() {
 
 		SR::sr_start(0, 1);
 	} else {
-		Serial.printf("❌ Failed to start Speech Recognition: %s\n", esp_err_to_name(ret));
+		log_i("❌ Failed to start Speech Recognition: %s", esp_err_to_name(ret));
 		sr_system_running = false;
 	}
 }
