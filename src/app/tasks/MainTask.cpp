@@ -18,7 +18,6 @@ void mainTask(void *param) {
 	while (!notification)
 		taskYIELD();
 
-	// SR::sr_set_mode(SR_MODE_COMMAND);
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
 

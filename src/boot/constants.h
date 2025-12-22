@@ -8,7 +8,8 @@
 
 // Voice command IDs
 enum CommandId {
-    CMD_TIME = 0,
+    CMD_WAKEUP = 0,
+    CMD_TIME,
     CMD_WEATHER,
     CMD_RECORD_AUDIO,
     CMD_MAX
@@ -16,6 +17,7 @@ enum CommandId {
 
 // Define voice commands (phonetic representations)
 static const SR::csr_cmd_t voice_commands[] = {
+	{CMD_WAKEUP, "Hi Cozmo",    "hi KbZMb"},
 	{CMD_TIME, "time",    "TiM"},
 	{CMD_WEATHER, "weather", "Wfjk"},
 	{CMD_RECORD_AUDIO, "record audio", "RfKkD nDmb"}

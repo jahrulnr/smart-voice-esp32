@@ -15,6 +15,7 @@
 
 #define SR_CMD_STR_LEN_MAX     64
 #define SR_CMD_PHONEME_LEN_MAX 64
+#define WAKEWORD_COMMAND 			 "hicozmo"
 
 namespace SR {
 

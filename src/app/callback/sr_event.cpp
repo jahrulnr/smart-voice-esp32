@@ -37,25 +37,28 @@ void sr_event_callback(void *arg, sr_event_t event, int command_id, int phrase_i
 			// Handle specific command groups based on command_id (from voice_commands array)
 			// File: src/boot/constants.h:18
 			switch (command_id) {
+				case CMD_WAKEUP:
+					log_i("💡 Action: %s", voice_commands[CMD_WAKEUP].str);
+					if (notification) {
+						// notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_WAKEUP]);
+					}
+					break;
 				case CMD_TIME:
 					log_i("💡 Action: %s", voice_commands[CMD_TIME].str);
-					// Add your light ON control logic here
 					if (notification) {
-						notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_TIME]);
+						// notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_TIME]);
 					}
 					break;
 				case CMD_WEATHER:
 					log_i("💡 Action: %s", voice_commands[CMD_WEATHER].str);
-					// Add your light OFF control logic here
 					if (notification) {
-						notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_WEATHER]);
+						// notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_WEATHER]);
 					}
 					break;
 				case CMD_RECORD_AUDIO:
 					log_i("💡 Action: %s", voice_commands[CMD_RECORD_AUDIO].str);
-					// Add your light OFF control logic here
 					if (notification) {
-						notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_RECORD_AUDIO].str);
+						// notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_RECORD_AUDIO].str);
 					}
 					break;
 				default:

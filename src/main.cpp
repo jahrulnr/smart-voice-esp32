@@ -45,7 +45,10 @@ void setup() {
 
   setupApp();
   runTasks();
-  vTaskDelete(NULL);
 }
 
-void loop() {}
+void loop() {
+	vTaskDelay(pdMS_TO_TICKS(5000));
+	SR::sr_set_mode(SR_MODE_COMMAND);
+  vTaskDelete(NULL);
+}
