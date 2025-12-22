@@ -4,7 +4,7 @@
 void sr_event_callback(void *arg, sr_event_t event, int command_id, int phrase_id) {
 	switch (event) {
 		case SR_EVENT_WAKEWORD:
-			Serial.println("🎙️ Wake word 'Alexa' detected!");
+			Serial.println("🎙️ Wake word 'Hi ESP' detected!");
 			if (notification) {
 				notification->send(NOTIFICATION_DISPLAY, (void*)EVENT_DISPLAY_WAKEWORD);
 			}
@@ -77,10 +77,7 @@ void sr_event_callback(void *arg, sr_event_t event, int command_id, int phrase_i
 			break;
 
 		case SR_EVENT_TIMEOUT:
-			Serial.println("⏰ Command timeout - returning to wake word mode");
-			Serial.println("   💭 No command detected within timeout period");
-			Serial.println("   🔄 Say 'Alexa' to activate again");
-			SR::sr_set_mode(SR_MODE_WAKEWORD);
+			SR::sr_set_mode(SR_MODE_COMMAND);
 			break;
 
 		default:
@@ -90,7 +87,7 @@ void sr_event_callback(void *arg, sr_event_t event, int command_id, int phrase_i
 			Serial.println("      SR_EVENT_WAKEWORD_CHANNEL: Multi-channel wake word");
 			Serial.println("      SR_EVENT_COMMAND: Voice command detected");
 			Serial.println("      SR_EVENT_TIMEOUT: Command timeout occurred");
-			SR::sr_set_mode(SR_MODE_WAKEWORD);
+			SR::sr_set_mode(SR_MODE_COMMAND);
 			break;
 	}
 }

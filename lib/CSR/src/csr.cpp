@@ -137,7 +137,7 @@ void sr_handler_task(void *pvParam) {
     if (ESP_MN_STATE_TIMEOUT == result.state) {
       if (SR::g_sr_data->user_cb) {
         SR::g_sr_data->user_cb(SR::g_sr_data->user_cb_arg, SR_EVENT_TIMEOUT, -1, -1);
-        ESP_LOGI(SR::TAG, "SR_EVENT_TIMEOUT");
+        ESP_LOGD(SR::TAG, "SR_EVENT_TIMEOUT");
       }
       continue;
     }

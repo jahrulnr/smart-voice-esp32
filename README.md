@@ -8,7 +8,7 @@ An ESP32-S3 based wake word detection system using Espressif's ESP-SR framework.
 
 ## Features
 
-- **Wake Word Detection**: Activate with "Alexa" command
+- **Wake Word Detection**: Activate with "Hi ESP" command
 - **Voice Commands**: Control lights and fans with natural language
 - **Animated Display**: OLED display with expressive face animations
 - **Dual Microphone Support**: I2S digital or analog microphone options
@@ -62,7 +62,7 @@ An ESP32-S3 based wake word detection system using Espressif's ESP-SR framework.
 ## Voice Commands
 
 1. Wake Word:
-   - Say "Alexa" to activate command mode
+   - Say "Hi ESP" to activate command mode
 
 2. Light Control:
    ```

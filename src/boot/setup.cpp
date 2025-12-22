@@ -97,7 +97,7 @@ void setupSpeechRecognition() {
 	if (ret == ESP_OK) {
 		sr_system_running = true;
 		Serial.println("✅ Speech Recognition started successfully!");
-		Serial.println("🎯 Say 'Alexa' to activate");
+		Serial.println("🎯 Say 'Hi ESP' to activate");
 		Serial.println("");
 		Serial.printf("📋 Loaded %d voice commands:\n", sizeof(voice_commands) / sizeof(sr_cmd_t));
 		for (int i = 0; i < (sizeof(voice_commands) / sizeof(sr_cmd_t)); i++) {
