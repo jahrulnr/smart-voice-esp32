@@ -83,7 +83,7 @@ void setupSpeechRecognition() {
 	log_i("🧠 Setting up Speech Recognition system...");
 
 	// Start ESP-SR system with high-level API
-	esp_err_t ret = SR::sr_setup(
+	esp_err_t ret = SR::setup(
 		sr_fill_callback,                              // I2S data fill callback
 		mic_instance,                                  // Microphone instance (I2SMicrophone or I2SMicrophone)
 		SR_CHANNELS_MONO,                              // Single channel I2S input
@@ -98,17 +98,17 @@ void setupSpeechRecognition() {
 		sr_system_running = true;
 		log_i("✅ Speech Recognition started successfully!");
 		log_i("🎯 Say 'Hi ESP' to activate");
-		log_i("");
 		log_i("📋 Loaded %d voice commands", sizeof(voice_commands) / sizeof(sr_cmd_t));
 		for (int i = 0; i < (sizeof(voice_commands) / sizeof(sr_cmd_t)); i++) {
-			log_i("   [%d] Group %d: '%s' -> '%s'\n",
-						i,
-						voice_commands[i].command_id,
-						voice_commands[i].str,
-						voice_commands[i].phoneme);
+			log_i("   [%d] Group %d: '%s' -> '%s'",
+				i,
+				voice_commands[i].command_id,
+				voice_commands[i].str,
+				voice_commands[i].phoneme);
 		}
 
-		SR::sr_start(0, 1);
+		// SR::start(0, 1);
+		SR::start(tskNO_AFFINITY, tskNO_AFFINITY);
 	} else {
 		log_i("❌ Failed to start Speech Recognition: %s", esp_err_to_name(ret));
 		sr_system_running = false;

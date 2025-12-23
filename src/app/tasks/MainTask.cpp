@@ -1,9 +1,4 @@
 #include "app/tasks.h"
-#include <esp_log.h>
-#include <esp32-hal-log.h>
-#include <WiFi.h>
-
-TaskHandle_t mainTaskHandle = nullptr;
 
 void mainTask(void *param) {
 	const char* TAG = "mainTask";
@@ -16,14 +11,17 @@ void mainTask(void *param) {
 
 	// wait notification initiate
 	while (!notification)
-		taskYIELD();
+		vTaskDelay(1);
 
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
 
 		if (millis() - monitorCheck > 5000) {
-			ESP_LOGI(TAG, "Wifi Status: %s", WiFi.isConnected() ? "Connected" : "Disconnected");
 			monitorCheck = millis();
+
+			SR::set_mode(SR_MODE_WAKEWORD);
+			vTaskDelay(pdMS_TO_TICKS(100));
+			SR::set_mode(SR_MODE_COMMAND);
 		};
 
 		display->clearBuffer();
@@ -61,10 +59,10 @@ void mainTask(void *param) {
 				// Handle command notifications if needed
 				if (strcmp(command, "pause_sr") == 0) {
 					ESP_LOGI(TAG, "Pausing speech recognition");
-					SR::sr_pause();
+					SR::pause();
 				} else if (strcmp(command, "resume_sr") == 0) {
 					ESP_LOGI(TAG, "Resuming speech recognition");
-					SR::sr_resume();
+					SR::resume();
 				}
 			}
 		}

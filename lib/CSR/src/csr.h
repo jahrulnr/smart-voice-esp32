@@ -15,7 +15,7 @@
 
 #define SR_CMD_STR_LEN_MAX     64
 #define SR_CMD_PHONEME_LEN_MAX 64
-#define WAKEWORD_COMMAND 			 "hicozmo"
+#define WAKEWORD_COMMAND 			 ""
 
 namespace SR {
 
@@ -25,15 +25,15 @@ typedef struct csr_cmd_t {
   char phoneme[SR_CMD_PHONEME_LEN_MAX];
 } csr_cmd_t;
 
-	esp_err_t sr_setup(
-		sr_fill_cb fill_cb, void *fill_cb_arg, sr_channels_t rx_chan, sr_mode_t mode, const SR::csr_cmd_t *sr_commands, size_t cmd_number, sr_event_cb cb, void *cb_arg
-	);
-	
-	esp_err_t sr_start(int feedCore = 1, int detectCore = 0);
-	esp_err_t sr_stop(void);
-	esp_err_t sr_pause(void);
-	esp_err_t sr_resume(void);
-	esp_err_t sr_set_mode(sr_mode_t mode);
+esp_err_t setup(
+	sr_fill_cb fill_cb, void *fill_cb_arg, sr_channels_t rx_chan, sr_mode_t mode, const SR::csr_cmd_t *sr_commands, size_t cmd_number, sr_event_cb cb, void *cb_arg
+);
+
+esp_err_t start(BaseType_t feedCore = 1, BaseType_t detectCore = 0);
+esp_err_t stop(void);
+esp_err_t pause(void);
+esp_err_t resume(void);
+esp_err_t set_mode(sr_mode_t mode);
 
 }
 

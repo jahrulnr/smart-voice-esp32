@@ -100,7 +100,7 @@ static SR::sr_data_t *g_sr_data = NULL;
 
 const char* TAG = "CSR";
 
-esp_err_t sr_set_mode(sr_mode_t mode);
+esp_err_t set_mode(sr_mode_t mode);
 
 void sr_handler_task(void *pvParam) {
   while (true) {
@@ -246,7 +246,7 @@ static void audio_detect_task(void *arg) {
         };
         xQueueSend(SR::g_sr_data->result_que, &result, 0);
       } else if (res->wakeup_state == WAKENET_CHANNEL_VERIFIED) {
-        SR::sr_set_mode(SR_MODE_OFF);
+        SR::set_mode(SR_MODE_OFF);
         ESP_LOGD(SR::TAG, "AFE_FETCH_CHANNEL_VERIFIED, channel index: %d", res->trigger_channel_id);
         SR::sr_result_t result = {
           .wakenet_mode = WAKENET_CHANNEL_VERIFIED,
@@ -269,7 +269,7 @@ static void audio_detect_task(void *arg) {
 
       if (ESP_MN_STATE_TIMEOUT == mn_state) {
         esp_mn_results_t *mn_result = SR::g_sr_data->multinet->get_results(SR::g_sr_data->model_data);
-        SR::sr_set_mode(SR_MODE_OFF);
+        SR::set_mode(SR_MODE_OFF);
         ESP_LOGD(SR::TAG, "Time out, text: %s", mn_result->string);
         SR::sr_result_t result = {
           .wakenet_mode = WAKENET_NO_DETECT,
@@ -282,7 +282,7 @@ static void audio_detect_task(void *arg) {
       }
 
       if (ESP_MN_STATE_DETECTED == mn_state) {
-        SR::sr_set_mode(SR_MODE_OFF);
+        SR::set_mode(SR_MODE_OFF);
         esp_mn_results_t *mn_result = SR::g_sr_data->multinet->get_results(SR::g_sr_data->model_data);
         for (int i = 0; i < mn_result->num; i++) {
           ESP_LOGD(SR::TAG, "TOP %d, command_id: %d, phrase_id: %d, prob: %f", i + 1, mn_result->command_id[i], mn_result->phrase_id[i], mn_result->prob[i]);
@@ -307,7 +307,7 @@ static void audio_detect_task(void *arg) {
   vTaskDeleteWithCaps(NULL);
 }
 
-esp_err_t sr_set_mode(sr_mode_t mode) {
+esp_err_t set_mode(sr_mode_t mode) {
   ESP_RETURN_ON_FALSE(NULL != SR::g_sr_data, ESP_ERR_INVALID_STATE, "SR is not running");
   switch (mode) {
     case SR_MODE_OFF:
@@ -331,7 +331,7 @@ esp_err_t sr_set_mode(sr_mode_t mode) {
   return ESP_OK;
 }
 
-esp_err_t sr_setup(
+esp_err_t setup(
   sr_fill_cb fill_cb, void *fill_cb_arg, sr_channels_t rx_chan, sr_mode_t mode, const SR::csr_cmd_t sr_commands[], size_t cmd_number, sr_event_cb cb, void *cb_arg
 ) {
   if(NULL != SR::g_sr_data){
@@ -339,24 +339,25 @@ esp_err_t sr_setup(
     return ESP_ERR_INVALID_STATE;
   }
 
-  SR::g_sr_data = (SR::sr_data_t*) heap_caps_calloc(1, sizeof(SR::sr_data_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+  // SR::g_sr_data = (SR::sr_data_t*) heap_caps_calloc(1, sizeof(SR::sr_data_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+  SR::g_sr_data = (SR::sr_data_t*) heap_caps_calloc(1, sizeof(SR::sr_data_t), MALLOC_CAP_SPIRAM);
   if(NULL == SR::g_sr_data){
     ESP_LOGE(SR::TAG, "Failed create sr data");
-   ::sr_stop();
+   SR::stop();
     return ESP_ERR_NO_MEM;
   }
 
   SR::g_sr_data->result_que = xQueueCreate(3, sizeof(SR::sr_result_t));
   if(NULL == SR::g_sr_data->result_que) {
     ESP_LOGE(SR::TAG, "Failed create result queue");
-    ::sr_stop();
+    SR::stop();
     return ESP_ERR_NO_MEM;
   }
 
   SR::g_sr_data->event_group = xEventGroupCreate();
   if(NULL == SR::g_sr_data->event_group) {
     ESP_LOGE(SR::TAG, "Failed create event_group");
-    ::sr_stop();
+    SR::stop();
     return ESP_ERR_NO_MEM;
   }
 
@@ -414,34 +415,34 @@ esp_err_t sr_setup(
   return ESP_OK;
 }
 
-esp_err_t sr_start(int feedCore, int detectCore) {
+esp_err_t start(BaseType_t feedCore, BaseType_t detectCore) {
   //Start tasks
-  esp_err_t ret_val = xTaskCreateUniversal(&SR::audio_feed_task, "SR Feed Task", 4 * 1024, NULL, 6, &SR::g_sr_data->feed_task, feedCore);
+  esp_err_t ret_val = xTaskCreatePinnedToCore(&SR::audio_feed_task, "SR Feed Task", 4 * 1024, NULL, 6, &SR::g_sr_data->feed_task, feedCore);
   if(pdPASS != ret_val) {
     ESP_LOGE(SR::TAG, "Failed create audio feed task");
-    ::sr_stop();
+    SR::stop();
     return ESP_FAIL;
   }
 
   vTaskDelay(10);
-  ret_val = xTaskCreateUniversal(&SR::audio_detect_task, "SR Detect Task", 8 * 1024, NULL, 6, &SR::g_sr_data->detect_task, detectCore);
+  ret_val = xTaskCreatePinnedToCore(&SR::audio_detect_task, "SR Detect Task", 8 * 1024, NULL, 6, &SR::g_sr_data->detect_task, detectCore);
   if(pdPASS != ret_val) {
     ESP_LOGE(SR::TAG, "Failed create audio detect task");
-    ::sr_stop();
+    SR::stop();
     return ESP_FAIL;
   }
 
-  ret_val = xTaskCreateUniversal(&SR::sr_handler_task, "SR Handler Task", 6 * 1024, NULL, configMAX_PRIORITIES -1, &SR::g_sr_data->handle_task, feedCore);
+  ret_val = xTaskCreatePinnedToCore(&SR::sr_handler_task, "SR Handler Task", 4 * 1024, NULL, configMAX_PRIORITIES -10, &SR::g_sr_data->handle_task, feedCore);
   if(pdPASS != ret_val) {
     ESP_LOGE(SR::TAG, "Failed create audio handler task");
-    ::sr_stop();
+    SR::stop();
     return ESP_FAIL;
   }
 
   return ESP_OK;
 }
 
-esp_err_t sr_stop(void) {
+esp_err_t stop(void) {
   ESP_RETURN_ON_FALSE(NULL != SR::g_sr_data, ESP_ERR_INVALID_STATE, "SR is not running");
 
   /**
@@ -480,14 +481,14 @@ esp_err_t sr_stop(void) {
   return ESP_OK;
 }
 
-esp_err_t sr_pause(void) {
+esp_err_t pause(void) {
   ESP_RETURN_ON_FALSE(NULL != SR::g_sr_data, ESP_ERR_INVALID_STATE, "SR is not running");
   xEventGroupSetBits(SR::g_sr_data->event_group, PAUSE_FEED | PAUSE_DETECT);
   ESP_LOGI(TAG, "SR paused");
   return ESP_OK;
 }
 
-esp_err_t sr_resume(void) {
+esp_err_t resume(void) {
   ESP_RETURN_ON_FALSE(NULL != SR::g_sr_data, ESP_ERR_INVALID_STATE, "SR is not running");
   xEventGroupSetBits(SR::g_sr_data->event_group, RESUME_FEED | RESUME_DETECT);
   ESP_LOGI(TAG, "resuming SR");

@@ -9,7 +9,7 @@ void sr_event_callback(void *arg, sr_event_t event, int command_id, int phrase_i
 				notification->send(NOTIFICATION_DISPLAY, (void*)EVENT_DISPLAY_WAKEWORD);
 			}
 			// Switch to command listening mode
-			SR::sr_set_mode(SR_MODE_COMMAND);
+			SR::set_mode(SR_MODE_COMMAND);
 			log_i("📞 Listening for commands...");
 			break;
 
@@ -18,7 +18,7 @@ void sr_event_callback(void *arg, sr_event_t event, int command_id, int phrase_i
 			if (notification) {
 				notification->send(NOTIFICATION_DISPLAY, (void*)EVENT_DISPLAY_WAKEWORD);
 			}
-			SR::sr_set_mode(SR_MODE_COMMAND);
+			SR::set_mode(SR_MODE_COMMAND);
 			break;
 
 		case SR_EVENT_COMMAND:
@@ -75,12 +75,12 @@ void sr_event_callback(void *arg, sr_event_t event, int command_id, int phrase_i
 			}
 
 			// Return to wake word mode after command
-			SR::sr_set_mode(SR_MODE_COMMAND);
+			SR::set_mode(SR_MODE_COMMAND);
 			log_i("🔄 Returning to command mode");
 			break;
 
 		case SR_EVENT_TIMEOUT:
-			SR::sr_set_mode(SR_MODE_COMMAND);
+			SR::set_mode(SR_MODE_COMMAND);
 			break;
 
 		default:
@@ -90,7 +90,7 @@ void sr_event_callback(void *arg, sr_event_t event, int command_id, int phrase_i
 			log_i("      SR_EVENT_WAKEWORD_CHANNEL: Multi-channel wake word");
 			log_i("      SR_EVENT_COMMAND: Voice command detected");
 			log_i("      SR_EVENT_TIMEOUT: Command timeout occurred");
-			SR::sr_set_mode(SR_MODE_COMMAND);
+			SR::set_mode(SR_MODE_COMMAND);
 			break;
 	}
 }

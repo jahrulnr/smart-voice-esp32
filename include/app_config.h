@@ -1,6 +1,9 @@
 #pragma once
 
-#define SCL_PIN 3
+#define WIFI_SSID "ANDROID AP"
+#define WIFI_PASS "tes12345"
+
+#define SCL_PIN SCL
 #define SDA_PIN SDA
 
 // set to analog or i2s microphone
