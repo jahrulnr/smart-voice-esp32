@@ -1,20 +1,27 @@
 #include "init.h"
-#include "csr.h"
-#include <WiFi.h>
+#include <app/display/ui/boot.h>
 
 Notification *notification = nullptr;
 Face* faceDisplay = nullptr;
 Microphone* microphone = nullptr;
 bool sr_system_running = false;
 
+WifiManager wifiManager;
+
 void setupApp(){
 	log_i("[setupApp] initiate global variable");
-
 	setupNotification();
-	setupMicrophone();
 	setupDisplay(SDA_PIN, SCL_PIN);
+
+	BootSplashDrawer bootScreen(display);
+	bootScreen.start();
+	delay(1000);
+
+	setupMicrophone();
 	setupFaceDisplay(40);
 	setupSpeechRecognition();
+
+	bootScreen.stop();
 }
 
 void setupNotification() {

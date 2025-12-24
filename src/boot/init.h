@@ -10,6 +10,8 @@
 #include "Display.h"
 #include "Face.h"
 #include "esp32-hal-sr.h"
+#include "csr.h"
+#include "app/network/WiFiManager.h"
 
 extern Notification* notification;
 extern Face* faceDisplay;

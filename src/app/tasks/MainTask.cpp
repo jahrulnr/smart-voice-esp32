@@ -4,7 +4,7 @@ void mainTask(void *param) {
 	const char* TAG = "mainTask";
 
   TickType_t lastWakeTime = xTaskGetTickCount();
-  TickType_t updateFrequency = pdMS_TO_TICKS(61);
+  TickType_t updateFrequency = pdMS_TO_TICKS(60);
 	size_t updateDelay = 0;
 	size_t monitorCheck = millis();
 	const char* lastEvent;

@@ -38,9 +38,11 @@ void networkTask(void *param) {
 	const char* TAG = "networkTask";
 
   TickType_t lastWakeTime = xTaskGetTickCount();
-  TickType_t updateFrequency = pdMS_TO_TICKS(101);
+  TickType_t updateFrequency = pdMS_TO_TICKS(100);
 	size_t monitorCheck = millis();
 	const char* lastEvent;
+
+	wifiManager.begin();
 
 	// wait notification initiate
 	while (!notification)

@@ -2,9 +2,11 @@
 
 #define WIFI_SSID "ANDROID AP"
 #define WIFI_PASS "tes12345"
+#define HOTSPOT_SSID "PioAssistant"
+#define HOTSPOT_PASSWORD "tes12345"
 
-#define SCL_PIN SCL
-#define SDA_PIN SDA
+#define SCL_PIN 3
+#define SDA_PIN 46
 
 // set to analog or i2s microphone
 // #define MIC_TYPE MIC_TYPE_ANALOG
@@ -16,9 +18,9 @@
 #define MIC_WS  GPIO_NUM_NC
 #define MIC_DIN GPIO_NUM_41
 #else
-#define MIC_SCK GPIO_NUM_13
-#define MIC_WS  GPIO_NUM_12
-#define MIC_DIN GPIO_NUM_11
+#define MIC_SCK GPIO_NUM_1
+#define MIC_WS  GPIO_NUM_0
+#define MIC_DIN GPIO_NUM_45
 #endif
 
 // analog microphone
