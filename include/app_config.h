@@ -3,7 +3,14 @@
 #define WIFI_SSID "ANDROID AP"
 #define WIFI_PASS "tes12345"
 #define HOTSPOT_SSID "PioAssistant"
-#define HOTSPOT_PASSWORD "tes12345"
+#define HOTSPOT_PASS "tes12345"
+#define FTP_USER "pio"
+#define FTP_PASS "tes12345"
+#define MQTT_SERVER "192.168.18.250"
+#define MQTT_PORT 1883
+#define MQTT_USER ""
+#define MQTT_PASS ""
+#define MQTT_CLIENT_ID "pio-assistant"
 
 #define SCL_PIN 3
 #define SDA_PIN 46

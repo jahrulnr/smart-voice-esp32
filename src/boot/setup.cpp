@@ -6,6 +6,7 @@ Face* faceDisplay = nullptr;
 Microphone* microphone = nullptr;
 
 WifiManager wifiManager;
+PubSubClient mqttClient;
 
 void setupApp(){
 	log_i("[setupApp] initiate global variable");

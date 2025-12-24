@@ -13,9 +13,11 @@
 #include "csr.h"
 #include "app/network/WiFiManager.h"
 #include "app/network/WeatherService.h"
+#include <PubSubClient.h>
 
 extern Notification* notification;
 extern Face* faceDisplay;
+extern PubSubClient mqttClient;
 
 void setupApp();
 

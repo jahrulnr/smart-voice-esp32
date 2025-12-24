@@ -17,12 +17,13 @@ void setup() {
   LittleFS.begin(true);
 	Wire.begin(SDA_PIN, SCL_PIN);
   timeManager.init();
+  Serial.setTimeout(300);
 			
   setupApp();
   runTasks();
 
   #if BOARD_HAS_PSRAM
-  heap_caps_malloc_extmem_enable(0);
+  heap_caps_malloc_extmem_enable(512);
   #endif
 }
 

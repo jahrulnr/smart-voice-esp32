@@ -1,4 +1,5 @@
 #include "app/tasks.h"
+#include <FTPServer.h>
 
 struct NetworkInfo {
 		String ssid;
@@ -42,11 +43,25 @@ void networkTask(void *param) {
 	unsigned long monitorCheck = millis();
 	unsigned long timeCheck = 0;
 	unsigned long weatherCheck = 0;
+	unsigned long mqttCheck = 0;
 	const char* lastEvent;
 
 	wifiManager.init();
 	wifiManager.addNetwork(WIFI_SSID, WIFI_PASS);
 	wifiManager.begin();
+	WiFiClient wifiClient;
+	
+	String mac = WiFi.macAddress();
+	mac.replace(":", "");
+	String mqttClientId = String(MQTT_CLIENT_ID) + "-" + mac.substring(6);
+
+	FTPServer ftpServer(LittleFS);
+	ftpServer.begin(FTP_USER, FTP_PASS);
+
+	mqttClient.setClient(wifiClient);
+	mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
+	mqttClient.setBufferSize(4096);
+	mqttClient.setCallback(mqttCallback);
 
 	weatherConfig_t weatherConfig;
 	weatherConfig.adm4Code = "31.73.05.1001"; // Default Jakarta Barat location
@@ -62,6 +77,7 @@ void networkTask(void *param) {
 
 		if(notification->hasSignal("WiFi check") && notification->signal("WiFi check") == 1){
 			ESP_LOGI(TAG, "Wifi Status: %s", wifiStatus());
+			ESP_LOGI(TAG, "MQTT Status: %s; clientId: %s", mqttClient.connected() ? "Connected" : "Disconnected", mqttClientId.c_str());
 			std::vector<NetworkInfo> networks;
 			int numNetworks = WiFi.scanNetworks();
 			for (int i = 0; i < numNetworks; i++) {
@@ -84,14 +100,14 @@ void networkTask(void *param) {
 			}
 		}
 
-		if (WiFi.isConnected() && millis() - timeCheck > 30000){
+		if (wifiManager.isConnected() && millis() - timeCheck > 30000){
 			timeManager.syncTime();
 			ESP_LOGI(TAG, "Current Time: %s", timeManager.getCurrentTime());
 			timeCheck = millis();
 		}
 
 		// Periodic weather updates (every 5 minutes)
-		if (WiFi.isConnected() && millis() - weatherCheck > (weatherService.isCacheValid() ? 300000 : 10000)) {
+		if (wifiManager.isConnected() && millis() - weatherCheck > (weatherService.isCacheValid() ? 300000 : 10000)) {
 			ESP_LOGI(TAG, "Fetching weather update...");
 			weatherService.getCurrentWeather([TAG](const weatherData_t& data, bool success) {
 				if (success) {
@@ -108,5 +124,26 @@ void networkTask(void *param) {
 			});
 			weatherCheck = millis();
 		}
+		
+		if (wifiManager.isConnected()) {
+			ftpServer.handleFTP();
+
+			// handle loop
+			if (mqttClient.connected()) {
+				mqttClient.loop();
+			} 
+			// reconnect
+			else if (!mqttClient.connected() && millis() - mqttCheck > 5000) {
+				if (strlen(MQTT_USER) > 0) {
+					mqttClient.connect(mqttClientId.c_str(), MQTT_USER, MQTT_PASS);
+				} else {
+					mqttClient.connect(mqttClientId.c_str());
+				}
+
+				mqttCheck = millis();
+			}
+		}
 	}
+
+	ftpServer.stop();
 }
