@@ -20,7 +20,7 @@ void runTasks(){
 	xTaskCreatePinnedToCoreWithCaps(
 		networkTask,
 		"networkTask",
-		1024 * 4,
+		1024 * 8,
 		NULL,
 		1,
 		&networkTaskHandle,

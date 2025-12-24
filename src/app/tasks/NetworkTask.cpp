@@ -37,15 +37,21 @@ const char* wifiStatus() {
 void networkTask(void *param) {
 	const char* TAG = "networkTask";
 
-  TickType_t lastWakeTime = xTaskGetTickCount();
-  TickType_t updateFrequency = pdMS_TO_TICKS(100);
-	size_t monitorCheck = millis();
-	size_t timeCheck = millis();
+	TickType_t lastWakeTime = xTaskGetTickCount();
+	TickType_t updateFrequency = pdMS_TO_TICKS(100);
+	unsigned long monitorCheck = millis();
+	unsigned long timeCheck = 0;
+	unsigned long weatherCheck = 0;
 	const char* lastEvent;
 
 	wifiManager.init();
 	wifiManager.addNetwork(WIFI_SSID, WIFI_PASS);
 	wifiManager.begin();
+
+	weatherConfig_t weatherConfig;
+	weatherConfig.adm4Code = "31.73.05.1001"; // Default Jakarta Barat location
+	weatherConfig.cacheExpiryMinutes = 60;
+	weatherService.init(weatherConfig);
 
 	// wait notification initiate
 	while (!notification)
@@ -53,12 +59,6 @@ void networkTask(void *param) {
 
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
-
-		if (WiFi.isConnected() && millis() - timeCheck > 30000){
-			timeManager.syncTime();
-			ESP_LOGI(TAG, "Current Time: %s", timeManager.getCurrentTime());
-			timeCheck = millis();
-		}
 
 		if(notification->hasSignal("WiFi check") && notification->signal("WiFi check") == 1){
 			ESP_LOGI(TAG, "Wifi Status: %s", wifiStatus());
@@ -72,16 +72,41 @@ void networkTask(void *param) {
 				network.bssid = WiFi.BSSIDstr(i);
 				network.channel = WiFi.channel(i);
 				networks.push_back(network);
-					
-				if (network.ssid == WIFI_SSID && !WiFi.isConnected() && wifiStatus() == "WL_DISCONNECTED") {
+
+				if (network.ssid == WIFI_SSID && wifiStatus() == "WL_DISCONNECTED") {
 					WiFi.reconnect();
 				}
 			}
 
 			for (auto network : networks) {
-				ESP_LOGI(TAG, "Network: %s, RSSI: %d, Encryption: %d, BSSID: %s, Channel: %d", 
+				ESP_LOGI(TAG, "Network: %s, RSSI: %d, Encryption: %d, BSSID: %s, Channel: %d",
 					network.ssid.c_str(), network.rssi, network.encryptionType, network.bssid.c_str(), network.channel);
 			}
+		}
+
+		if (WiFi.isConnected() && millis() - timeCheck > 30000){
+			timeManager.syncTime();
+			ESP_LOGI(TAG, "Current Time: %s", timeManager.getCurrentTime());
+			timeCheck = millis();
+		}
+
+		// Periodic weather updates (every 5 minutes)
+		if (WiFi.isConnected() && millis() - weatherCheck > (weatherService.isCacheValid() ? 300000 : 10000)) {
+			ESP_LOGI(TAG, "Fetching weather update...");
+			weatherService.getCurrentWeather([TAG](const weatherData_t& data, bool success) {
+				if (success) {
+					// Send weather update event
+					ESP_LOGI(TAG, "Weather updated: %s, %d°C", data.description.c_str(), data.temperature);
+					
+					weatherData_t* newData = new weatherData_t(data);
+					if (!notification->send(NOTIFICATION_WEATHER, (void*)newData)){
+						delete newData;
+					}
+				} else {
+					ESP_LOGE(TAG, "Weather update failed");
+				}
+			});
+			weatherCheck = millis();
 		}
 	}
 }

@@ -1,4 +1,5 @@
 #include "app/tasks.h"
+#include <app/display/ui/main.h>
 
 void mainTask(void *param) {
 	const char* TAG = "mainTask";
@@ -9,12 +10,19 @@ void mainTask(void *param) {
 	size_t monitorCheck = millis();
 	const char* lastEvent;
 
+	MainStatusDrawer mainDisplay = MainStatusDrawer(display);
+
 	// wait notification initiate
 	while (!notification)
 		vTaskDelay(1);
 
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
+
+		if (notification->has(NOTIFICATION_WEATHER)) {
+			weatherData_t* data = (weatherData_t*) notification->consume(NOTIFICATION_WEATHER, 0);
+			mainDisplay.updateData(data);
+		}
 
 		if (millis() - monitorCheck > 5000) {
 			monitorCheck = millis();
@@ -27,7 +35,7 @@ void mainTask(void *param) {
 		display->clearBuffer();
 
 		if (!notification->has(NOTIFICATION_DISPLAY) && updateDelay == 0) {
-			displaySoundDetector();
+			mainDisplay.draw();
 	    display->sendBuffer();
 			continue;
 		}

@@ -12,10 +12,10 @@
 #include "esp32-hal-sr.h"
 #include "csr.h"
 #include "app/network/WiFiManager.h"
+#include "app/network/WeatherService.h"
 
 extern Notification* notification;
 extern Face* faceDisplay;
-extern bool sr_system_running;
 
 void setupApp();
 

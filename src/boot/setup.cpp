@@ -4,7 +4,6 @@
 Notification *notification = nullptr;
 Face* faceDisplay = nullptr;
 Microphone* microphone = nullptr;
-bool sr_system_running = false;
 
 WifiManager wifiManager;
 
@@ -100,7 +99,6 @@ void setupSpeechRecognition() {
 	);
 
 	if (ret == ESP_OK) {
-		sr_system_running = true;
 		log_i("✅ Speech Recognition started successfully!");
 		log_i("🎯 Say 'Hi ESP' to activate");
 		log_i("📋 Loaded %d voice commands", sizeof(voice_commands) / sizeof(sr_cmd_t));
@@ -116,6 +114,5 @@ void setupSpeechRecognition() {
 		SR::start(tskNO_AFFINITY, tskNO_AFFINITY);
 	} else {
 		log_i("❌ Failed to start Speech Recognition: %s", esp_err_to_name(ret));
-		sr_system_running = false;
 	}
 }

@@ -68,8 +68,8 @@ public:
 
 private:
 	unsigned long _startTime;
-		TaskHandle_t _taskHandle;
-		U8G2* _display;
+	TaskHandle_t _taskHandle;
+	U8G2* _display;
 };
 
 #endif // BOOT_SPLASH_DRAWER_H
