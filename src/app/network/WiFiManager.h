@@ -58,7 +58,7 @@ public:
      * @param password Network password
      * @return true if added successfully
      */
-    bool addNetwork(const String& ssid, const String& password);
+    bool addNetwork(const String& ssid, const String& password) noexcept;
 
     /**
      * Remove a saved network

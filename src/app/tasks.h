@@ -3,6 +3,7 @@
 #include <esp_log.h>
 #include <WiFi.h>
 
+#include <core/time.h>
 #include "boot/init.h"
 #include "display_list.h"
 #include <esp_log.h>

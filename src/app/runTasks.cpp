@@ -12,7 +12,7 @@ void runTasks(){
 		NULL,
 		6,
 		&mainTaskHandle,
-		tskNO_AFFINITY,
+		1,
 		MALLOC_CAP_SPIRAM
 	);
 
@@ -24,8 +24,8 @@ void runTasks(){
 		NULL,
 		1,
 		&networkTaskHandle,
-		tskNO_AFFINITY,
-		MALLOC_CAP_SPIRAM
+		1,
+		MALLOC_CAP_INTERNAL
 	);
 
 	vTaskDelay(100);
@@ -36,7 +36,7 @@ void runTasks(){
 		NULL,
 		0,
 		&taskMonitorerHandle,
-		tskNO_AFFINITY,
+		1,
 		MALLOC_CAP_SPIRAM
 	);
 }

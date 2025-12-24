@@ -79,8 +79,6 @@ void setupFaceDisplay(uint16_t size) {
 		faceDisplay->RandomBehavior =
 		faceDisplay->RandomLook =
 			false;
-
-		faceDisplay->Update();
 	}
 }
 

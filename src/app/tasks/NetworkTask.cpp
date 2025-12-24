@@ -40,8 +40,11 @@ void networkTask(void *param) {
   TickType_t lastWakeTime = xTaskGetTickCount();
   TickType_t updateFrequency = pdMS_TO_TICKS(100);
 	size_t monitorCheck = millis();
+	size_t timeCheck = millis();
 	const char* lastEvent;
 
+	wifiManager.init();
+	wifiManager.addNetwork(WIFI_SSID, WIFI_PASS);
 	wifiManager.begin();
 
 	// wait notification initiate
@@ -50,6 +53,12 @@ void networkTask(void *param) {
 
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
+
+		if (WiFi.isConnected() && millis() - timeCheck > 30000){
+			timeManager.syncTime();
+			ESP_LOGI(TAG, "Current Time: %s", timeManager.getCurrentTime());
+			timeCheck = millis();
+		}
 
 		if(notification->hasSignal("WiFi check") && notification->signal("WiFi check") == 1){
 			ESP_LOGI(TAG, "Wifi Status: %s", wifiStatus());

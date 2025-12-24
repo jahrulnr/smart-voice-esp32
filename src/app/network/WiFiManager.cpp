@@ -11,8 +11,9 @@ WifiManager::~WifiManager() {
 bool WifiManager::init() {
     ESP_LOGI("WIFI", "Initializing WiFi manager");
     WiFi.onEvent(onWiFiEvent);
+    WiFi.persistent(false);
 
-    addNetwork(WIFI_SSID, WIFI_PASS);
+    delay(1);
     return true;
 }
 
@@ -57,27 +58,30 @@ std::vector<String> WifiManager::scanNetworks() {
 }
 
 bool WifiManager::connect(const String& ssid, const String& password) {
-    ESP_LOGI("WIFI", "Connecting to: %s", ssid.c_str());
     WiFi.softAPdisconnect();
     WiFi.begin(ssid.c_str(), password.c_str());
 
     int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 20) {
-        delay(500);
-        attempts++;
+    do{
+        ESP_LOGI("WIFI", "Connecting to: %s; attempt: %d", ssid.c_str(), ++attempts);
     }
-
+    while (WiFi.waitForConnectResult(1000) != WL_CONNECTED && attempts < 10);
+    
     return WiFi.status() == WL_CONNECTED;
 }
 
-bool WifiManager::addNetwork(const String& ssid, const String& password) {
+bool WifiManager::addNetwork(const String& ssid, const String& password) noexcept  {
     if (ssid.length() == 0) return false;
     
+    std::vector<String> savedNetworks = getSavedNetworks();
     Preferences preferences;
-    preferences.begin("wifi", false);
+    delay(100);
+    if (!preferences.begin("wifi", false)) {
+        ESP_LOGE("WIFI", "Failed to open wifi preferences");
+        return false;
+    }
     
     // Check if network already exists
-    std::vector<String> savedNetworks = getSavedNetworks();
     for (const auto& savedSsid : savedNetworks) {
         if (savedSsid == ssid) {
             // Update password for existing network
@@ -117,7 +121,9 @@ bool WifiManager::addNetwork(const String& ssid, const String& password) {
 
 bool WifiManager::removeNetwork(const String& ssid) {
     Preferences preferences;
-    preferences.begin("wifi", false);
+    if (!preferences.begin("wifi", false)) {
+        return false;
+    }
     
     String networksKey = "networks";
     String currentNetworks = preferences.getString(networksKey.c_str(), "");
@@ -167,7 +173,9 @@ std::vector<String> WifiManager::getSavedNetworks() {
     ESP_LOGI("WIFI", "Getting saved networks from NVS");
     std::vector<String> networks;
     Preferences preferences;
-    preferences.begin("wifi", true);
+    if (!preferences.begin("wifi", true)) {
+        return networks;
+    }
     
     String networksStr = preferences.getString("networks", "");
     preferences.end();
@@ -220,7 +228,9 @@ bool WifiManager::connectToAvailableNetwork() {
                 
                 // Get password for this network
                 Preferences preferences;
-                preferences.begin("wifi", true);
+                if (!preferences.begin("wifi", true)){
+                    continue;
+                }
                 String pwdKey = "pwd_" + savedNetwork;
                 String password = preferences.getString(pwdKey.c_str(), "");
                 preferences.end();

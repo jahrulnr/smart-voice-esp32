@@ -1,24 +1,28 @@
 #include <Arduino.h>
-#include <core/core.h>
+#include <core/wdt.h>
+#include <core/time.h>
+#include "core/nvs.h"
 #include "boot/init.h"
 #include "app/tasks.h"
 #include <LittleFS.h>
+#include <nvs_flash.h>
 
-// void init(){
-//   esp_panic_handler_disable_timg_wdts();
-// }
+void init(){
+  // esp_panic_handler_disable_timg_wdts();
+
+  nvs_init();
+}
 
 void setup() {
-  // setCpuFrequencyMhz(240);
-	// Serial.begin(115200);
   LittleFS.begin(true);
 	Wire.begin(SDA_PIN, SCL_PIN);
-
+  timeManager.init();
+			
   setupApp();
   runTasks();
 
   #if BOARD_HAS_PSRAM
-  heap_caps_malloc_extmem_enable(512);
+  heap_caps_malloc_extmem_enable(0);
   #endif
 }
 
