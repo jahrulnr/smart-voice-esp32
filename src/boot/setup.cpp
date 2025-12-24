@@ -4,9 +4,11 @@
 Notification *notification = nullptr;
 Face* faceDisplay = nullptr;
 Microphone* microphone = nullptr;
+Speaker* speaker = nullptr;
 
 WifiManager wifiManager;
 PubSubClient mqttClient;
+TTS tts;
 
 void setupApp(){
 	log_i("[setupApp] initiate global variable");
@@ -18,10 +20,13 @@ void setupApp(){
 	delay(1000);
 
 	setupMicrophone();
+	setupSpeaker();
 	setupFaceDisplay(40);
 	setupSpeechRecognition();
 
+	tts.begin();
 	bootScreen.stop();
+	tts.speak("Halo! Pio Assistant is ready!");
 }
 
 void setupNotification() {
@@ -35,6 +40,14 @@ void setupMicrophone() {
 	if (!microphone) {
 		microphone = new Microphone(MIC_TYPE);
 		microphone->init();
+	}
+}
+
+void setupSpeaker() {
+	if (!speaker) {
+		speaker = new Speaker();
+		speaker->init();
+		speaker->start();
 	}
 }
 

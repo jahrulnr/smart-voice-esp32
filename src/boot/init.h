@@ -6,6 +6,8 @@
 #include "constants.h"
 #include "app/callback_list.h"
 #include "app/audio/microphone.h"
+#include <app/audio/speaker.h>
+#include <app/audio/tts.h>
 #include "Notification.h"
 #include "Display.h"
 #include "Face.h"
@@ -18,10 +20,12 @@
 extern Notification* notification;
 extern Face* faceDisplay;
 extern PubSubClient mqttClient;
+extern Speaker* speaker;
 
 void setupApp();
 
 void setupNotification();
 void setupMicrophone();
+void setupSpeaker();
 void setupFaceDisplay(uint16_t size = 40);
 void setupSpeechRecognition();
