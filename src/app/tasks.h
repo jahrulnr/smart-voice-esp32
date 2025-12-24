@@ -5,7 +5,6 @@
 
 #include <core/time.h>
 #include "boot/init.h"
-#include "display_list.h"
 #include <esp_log.h>
 #include <esp32-hal-log.h>
 #include <WiFi.h>

@@ -40,18 +40,6 @@ void mainTask(void *param) {
 			continue;
 		}
 
-		void* event = notification->has(NOTIFICATION_DISPLAY)
-			? notification->consume(NOTIFICATION_DISPLAY, updateFrequency)
-			: nullptr;
-		if ((event && strcmp((const char*)event, EVENT_DISPLAY_WAKEWORD) == 0) || strcmp(lastEvent, EVENT_DISPLAY_WAKEWORD) == 0) {
-			if (updateDelay == 0) {
-				updateDelay = millis() + 3000;
-				lastEvent = EVENT_DISPLAY_WAKEWORD;
-			}
-			displayHappyFace();
-			// send buffer will handled by Face class
-		}
-
 		if (updateDelay <= millis()) {
 			updateDelay = 0;
 			lastEvent = "";
