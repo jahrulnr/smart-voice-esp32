@@ -3,6 +3,7 @@
 TaskHandle_t taskMonitorerHandle = nullptr;
 TaskHandle_t mainTaskHandle = nullptr;
 TaskHandle_t networkTaskHandle = nullptr;
+TaskHandle_t recorderTaskHandle = nullptr;
 
 void runTasks(){
 	xTaskCreatePinnedToCoreWithCaps(
@@ -36,6 +37,18 @@ void runTasks(){
 		NULL,
 		0,
 		&taskMonitorerHandle,
+		1,
+		MALLOC_CAP_SPIRAM
+	);
+
+	vTaskDelay(100);
+	xTaskCreatePinnedToCoreWithCaps(
+		recorderTask,
+		"recorderTask",
+		1024 * 3,
+		NULL,
+		15,
+		&recorderTaskHandle,
 		1,
 		MALLOC_CAP_SPIRAM
 	);

@@ -25,6 +25,7 @@ static const SR::csr_cmd_t voice_commands[] = {
 
 static const char* NOTIFICATION_DISPLAY = "display";
 static const char* NOTIFICATION_WEATHER = "weather";
+static const char* NOTIFICATION_RECORD = "record";
 static const char* NOTIFICATION_COMMAND = "command";
 
 // Display Events

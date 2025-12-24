@@ -39,7 +39,7 @@ void networkTask(void *param) {
 	const char* TAG = "networkTask";
 
 	TickType_t lastWakeTime = xTaskGetTickCount();
-	TickType_t updateFrequency = pdMS_TO_TICKS(100);
+	TickType_t updateFrequency = pdMS_TO_TICKS(1);
 	unsigned long monitorCheck = millis();
 	unsigned long timeCheck = 0;
 	unsigned long weatherCheck = 0;
@@ -129,18 +129,27 @@ void networkTask(void *param) {
 			ftpServer.handleFTP();
 
 			// handle loop
-			if (mqttClient.connected()) {
-				mqttClient.loop();
-			} 
-			// reconnect
-			else if (!mqttClient.connected() && millis() - mqttCheck > 5000) {
-				if (strlen(MQTT_USER) > 0) {
-					mqttClient.connect(mqttClientId.c_str(), MQTT_USER, MQTT_PASS);
-				} else {
-					mqttClient.connect(mqttClientId.c_str());
+			try {
+				if (mqttClient.connected()) {
+						mqttClient.loop();
 				}
+				// reconnect
+				else if (!mqttClient.connected() && millis() - mqttCheck > 5000) {
+					if (strlen(MQTT_USER) > 0) {
+						mqttClient.connect(mqttClientId.c_str(), MQTT_USER, MQTT_PASS);
+					} else {
+						mqttClient.connect(mqttClientId.c_str());
+					}
 
-				mqttCheck = millis();
+					mqttCheck = millis();
+				}
+			}
+			catch(const std::exception& e)
+			{
+				ESP_LOGW(TAG, "MQTT loop error: %s", e.what());
+			}
+			catch(...) {
+				ESP_LOGW(TAG, "MQTT loop unknown error");
 			}
 		}
 	}

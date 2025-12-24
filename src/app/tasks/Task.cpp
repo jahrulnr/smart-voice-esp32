@@ -14,15 +14,27 @@ void taskMonitorer(void* param){
 	do {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
 
-		portYIELD_CORE(0);
-		vTaskDelay(1);
-		portYIELD_CORE(1);
+		// portYIELD_CORE(0);
+		// vTaskDelay(1);
+		// portYIELD_CORE(1);
 
 		if (millis() - monitorTimer > 10000) {
 			cleanupTasks();
 			printTaskStatus();
-			notification->send("WiFi check", 1);
+			// notification->send("WiFi check", 1);
 			monitorTimer = millis();
+
+			static int record = 0;
+			if (record == 0) {
+				record = 1;
+				SR::resume();
+			}
+			else {
+				record = 0;
+				SR::pause();
+			}
+			ESP_LOGW("Record", "status: %s", record == 0 ? "ON" : "OFF");
+			notification->send(NOTIFICATION_RECORD, record);
 		}
 	}
 	while(1);
