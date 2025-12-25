@@ -65,7 +65,7 @@ void recorderTask(void* param) {
 	uint32_t lastKey = millis();
 	uint32_t key;
 
-	size_t maxSamples = 16 * 1024;
+	size_t maxSamples = 8 * 1024;
 	size_t samplesRead;
 	esp_err_t err = ESP_OK;
 
@@ -73,19 +73,19 @@ void recorderTask(void* param) {
 	int16_t* readBuffer = (int16_t*)heap_caps_malloc(maxSamples, MALLOC_CAP_SPIRAM);
 
 	bool streaming = false;
+	uint8_t* chunk = nullptr;
   while (true) {
 		int signal = notification->signal(NOTIFICATION_RECORD, 0);
 		if (signal == 0) {
-			streaming = true;
 			ESP_LOGW(TAG, "status: ON");
+			streaming = true;
+			lastIndex = 0;
 		}
 		else if (signal == 1) {
-			streaming = false;
 			ESP_LOGW(TAG, "status: OFF");
-			if (lastIndex >= 0) {
-				lastIndex = -1;
-				goto publish;
-			}
+			streaming = false;
+			lastIndex = -1;
+			goto publish;
 		}
 		
 		if (!streaming) goto end;
@@ -104,21 +104,20 @@ void recorderTask(void* param) {
     // Publish start
 		publish:
     key = generateKey(lastKey, lastIndex);
-		if (lastIndex == 0 || lastIndex == -1) {
-	    publishChunk(key, nullptr, 0);
-			lastIndex++;
-			goto unlock;
-		}
-
-		samplesRead = 0;
-		err = microphone->read(readBuffer, maxSamples, &samplesRead, portMAX_DELAY);
-		if (err != ESP_OK || samplesRead == 0) {
-			ESP_LOGE(TAG, "Failed to read microphone samples");
-			goto unlock;
+		if (lastIndex != 0 && lastIndex != -1) {
+			samplesRead = 0;
+			err = microphone->read(readBuffer, maxSamples, &samplesRead, portMAX_DELAY);
+			if (err != ESP_OK || samplesRead == 0) {
+				ESP_LOGE(TAG, "Failed to read microphone samples");
+				goto unlock;
+			}
+			chunk = (uint8_t*)readBuffer;
+		} else {
+			chunk = nullptr;
 		}
 
 		try {
-			publishChunk(key, (uint8_t*)readBuffer, maxSamples);
+			publishChunk(key, chunk, maxSamples);
 			lastIndex++;
 		}
 		catch(...) {}

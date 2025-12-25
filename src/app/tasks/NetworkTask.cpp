@@ -62,7 +62,7 @@ void networkTask(void *param) {
 
 	mqttClient.setClient(wifiClient);
 	mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-	mqttClient.setBufferSize(16 * 1030);
+	mqttClient.setBufferSize(8 * 1024 + 100); // 8k buffer + header
 	mqttClient.setCallback(mqttCallback);
 	bool hasSubsribe = false;
 	AudioSamples audioSamples;
