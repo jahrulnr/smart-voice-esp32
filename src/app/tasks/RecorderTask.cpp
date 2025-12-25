@@ -64,7 +64,7 @@ void recorderTask(void* param) {
 	uint32_t key;
 	bool hasSubscribe = false;
 
-	size_t maxSamples = 2048;
+	size_t maxSamples = 1024;
 	size_t samplesRead;
 	esp_err_t err = ESP_OK;
 

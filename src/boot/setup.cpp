@@ -125,7 +125,7 @@ void setupSpeechRecognition() {
 		}
 
 		// SR::start(0, 1);
-		SR::start(tskNO_AFFINITY, tskNO_AFFINITY);
+		SR::start(1, 0);
 	} else {
 		log_i("❌ Failed to start Speech Recognition: %s", esp_err_to_name(ret));
 	}
