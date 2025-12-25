@@ -82,7 +82,6 @@ typedef struct {
   esp_afe_sr_data_t *afe_data;
   int16_t *afe_in_buffer;
   sr_mode_t mode;
-  uint8_t i2s_rx_chan_num;
   sr_event_cb user_cb;
   void *user_cb_arg;
   sr_fill_cb fill_cb;
@@ -94,8 +93,6 @@ typedef struct {
   EventGroupHandle_t event_group;
 } sr_data_t;
 
-static int SR_CHANNEL_NUM = 3;
-static srmodel_list_t *models = NULL;
 static SR::sr_data_t *g_sr_data = NULL;
 
 const char* TAG = "CSR";
@@ -148,11 +145,11 @@ void sr_handler_task(void *pvParam) {
 static void audio_feed_task(void *arg) {
   size_t bytes_read = 0;
   int audio_chunksize = SR::g_sr_data->afe_handle->get_feed_chunksize(SR::g_sr_data->afe_data);
-  ESP_LOGI(SR::TAG, "audio_chunksize=%d, feed_channel=%d", audio_chunksize, SR_CHANNEL_NUM);
+  ESP_LOGI(SR::TAG, "audio_chunksize=%d", audio_chunksize);
 
   /* Allocate audio buffer and check for result */
   // int16_t *audio_buffer = (int16_t*) heap_caps_malloc(audio_chunksize * sizeof(int16_t) * SR_CHANNEL_NUM, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
-  int16_t *audio_buffer = (int16_t*) heap_caps_malloc(audio_chunksize * sizeof(int16_t) * SR_CHANNEL_NUM, MALLOC_CAP_SPIRAM);
+  int16_t *audio_buffer = (int16_t*) heap_caps_malloc(audio_chunksize * sizeof(int16_t), MALLOC_CAP_SPIRAM);
   if (NULL == audio_buffer) {
     esp_system_abort("No mem for audio buffer");
   }
@@ -176,31 +173,10 @@ static void audio_feed_task(void *arg) {
       continue;
     }
     esp_err_t err = SR::g_sr_data->fill_cb(
-      SR::g_sr_data->fill_cb_arg, (char *)audio_buffer, audio_chunksize * SR::g_sr_data->i2s_rx_chan_num * sizeof(int16_t), &bytes_read, portMAX_DELAY
+      SR::g_sr_data->fill_cb_arg, (char *)audio_buffer, audio_chunksize * sizeof(int16_t), &bytes_read, portMAX_DELAY
     );
     if (err != ESP_OK) {
       ESP_LOGW(SR::TAG, "fill_cb is err: %s", esp_err_to_name(err));
-      vTaskDelay(100);
-      continue;
-    }
-
-    /* Channel Adjust */
-    if (SR::g_sr_data->i2s_rx_chan_num == 1) {
-      for (int i = audio_chunksize - 1; i >= 0; i--) {
-        audio_buffer[i * SR_CHANNEL_NUM + 2] = 0;
-        audio_buffer[i * SR_CHANNEL_NUM + 1] = 0;
-        audio_buffer[i * SR_CHANNEL_NUM + 0] = audio_buffer[i];
-        if (i % 10 == 0) taskYIELD();
-      }
-    } else if (SR::g_sr_data->i2s_rx_chan_num == 2) {
-      for (int i = audio_chunksize - 1; i >= 0; i--) {
-        audio_buffer[i * SR_CHANNEL_NUM + 2] = 0;
-        audio_buffer[i * SR_CHANNEL_NUM + 1] = audio_buffer[i*2+1];
-        audio_buffer[i * SR_CHANNEL_NUM + 0] = audio_buffer[i*2];
-        if (i % 10 == 0) taskYIELD();
-      }
-    } else {
-      ESP_LOGW(SR::TAG, "i2s_rx_chan_num is invalid: %d", SR::g_sr_data->i2s_rx_chan_num);
       vTaskDelay(100);
       continue;
     }
@@ -332,7 +308,7 @@ esp_err_t set_mode(sr_mode_t mode) {
 }
 
 esp_err_t setup(
-  sr_fill_cb fill_cb, void *fill_cb_arg, sr_channels_t rx_chan, sr_mode_t mode, const SR::csr_cmd_t sr_commands[], size_t cmd_number, sr_event_cb cb, void *cb_arg
+  sr_fill_cb fill_cb, void *fill_cb_arg, sr_mode_t mode, const SR::csr_cmd_t sr_commands[], size_t cmd_number, sr_event_cb cb, void *cb_arg
 ) {
   if(NULL != SR::g_sr_data){
     ESP_LOGE(SR::TAG, "SR already running");
@@ -366,29 +342,15 @@ esp_err_t setup(
   SR::g_sr_data->user_cb_arg = cb_arg;
   SR::g_sr_data->fill_cb = fill_cb;
   SR::g_sr_data->fill_cb_arg = fill_cb_arg;
-  SR::g_sr_data->i2s_rx_chan_num = rx_chan + 1;
   SR::g_sr_data->mode = mode;
 
-  // Init Model
-  ESP_LOGD(SR::TAG, "init model");
-  SR::models = esp_srmodel_init("model");
-
   // Load WakeWord Detection
-  // https://docs.espressif.com/projects/esp-sr/en/latest/esp32/audio_front_end/migration_guide.html
-  afe_config_t *afe_config = afe_config_init("MNN", models, AFE_TYPE_SR, AFE_MODE_LOW_COST);
-  afe_config->wakenet_model_name = esp_srmodel_filter(SR::models, ESP_WN_PREFIX, WAKEWORD_COMMAND);
-  afe_config->aec_init = false;
-  afe_config->se_init = true;
-  afe_config->vad_mode = VAD_MODE_4;
-  afe_config->memory_alloc_mode = AFE_MEMORY_ALLOC_MORE_PSRAM;
-  afe_config = afe_config_check(afe_config);
-  afe_config_print(afe_config);
-  SR::g_sr_data->afe_handle = esp_afe_handle_from_config(afe_config);
-  ESP_LOGD(SR::TAG, "load wakenet '%s'", afe_config->wakenet_model_name);
-  SR::g_sr_data->afe_data = SR::g_sr_data->afe_handle->create_from_config(afe_config);
+  SR::g_sr_data->afe_handle = getAfeHandle();
+  ESP_LOGD(SR::TAG, "load wakenet '%s'", getAfeConfig()->wakenet_model_name);
+  SR::g_sr_data->afe_data = getAfeData();
 
   // Load Custom Command Detection
-  char *mn_name = esp_srmodel_filter(SR::models, ESP_MN_PREFIX, ESP_MN_ENGLISH);
+  char *mn_name = esp_srmodel_filter(getModels(), ESP_MN_PREFIX, ESP_MN_ENGLISH);
   ESP_LOGD(SR::TAG, "load multinet '%s'", mn_name);
   SR::g_sr_data->multinet = esp_mn_handle_from_name(mn_name);
   ESP_LOGD(SR::TAG, "load model_data '%s'", mn_name);

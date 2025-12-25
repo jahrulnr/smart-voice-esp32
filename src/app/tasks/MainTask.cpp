@@ -34,6 +34,7 @@ void mainTask(void *param) {
 		if (updateDelay <= millis()) {
 			updateDelay = 0;
 			lastEvent = "";
+			notification->consume(NOTIFICATION_DISPLAY, 0);
 		}
 
 		// Handle any notifications that might be relevant to SR

@@ -9,6 +9,8 @@
 #include <Arduino.h>
 #if CONFIG_IDF_TARGET_ESP32S3
 
+#include "esp_afe_sr_models.h"
+#include "esp_afe_sr_iface.h"
 #include "driver/i2s_types.h"
 #include "esp32-hal-sr.h"
 #include "esp_err.h"
@@ -16,6 +18,11 @@
 #define SR_CMD_STR_LEN_MAX     64
 #define SR_CMD_PHONEME_LEN_MAX 64
 #define WAKEWORD_COMMAND 			 ""
+
+srmodel_list_t* getModels();
+afe_config_t* getAfeConfig();
+esp_afe_sr_data_t* getAfeData();
+const esp_afe_sr_iface_t *getAfeHandle();
 
 namespace SR {
 
@@ -26,7 +33,7 @@ typedef struct csr_cmd_t {
 } csr_cmd_t;
 
 esp_err_t setup(
-	sr_fill_cb fill_cb, void *fill_cb_arg, sr_channels_t rx_chan, sr_mode_t mode, const SR::csr_cmd_t *sr_commands, size_t cmd_number, sr_event_cb cb, void *cb_arg
+	sr_fill_cb fill_cb, void *fill_cb_arg, sr_mode_t mode, const SR::csr_cmd_t *sr_commands, size_t cmd_number, sr_event_cb cb, void *cb_arg
 );
 
 esp_err_t start(BaseType_t feedCore = 1, BaseType_t detectCore = 0);

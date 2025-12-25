@@ -104,7 +104,6 @@ void setupSpeechRecognition() {
 	esp_err_t ret = SR::setup(
 		sr_fill_callback,                              // I2S data fill callback
 		mic_instance,                                  // Microphone instance (I2SMicrophone or I2SMicrophone)
-		SR_CHANNELS_MONO,                              // Single channel I2S input
 		SR_MODE_WAKEWORD,                              // Start in wake word mode
 		voice_commands,                                // Commands array
 		sizeof(voice_commands) / sizeof(sr_cmd_t),     // Number of commands
@@ -124,7 +123,6 @@ void setupSpeechRecognition() {
 				voice_commands[i].phoneme);
 		}
 
-		// SR::start(0, 1);
 		SR::start(1, 0);
 	} else {
 		log_i("❌ Failed to start Speech Recognition: %s", esp_err_to_name(ret));

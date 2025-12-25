@@ -19,7 +19,7 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
                 strncpy(newText, text, 255);
                 text = newText;
             }
-            tts.speak(text);
+            // tts.speak(text);
             ESP_LOGI("MQTT", "[Speak] topic %s: %s", topicStr.c_str(), text);
         }
 
