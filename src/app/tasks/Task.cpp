@@ -19,8 +19,8 @@ void taskMonitorer(void* param){
 		// portYIELD_CORE(1);
 
 		if (millis() - monitorTimer > 10000) {
-			cleanupTasks();
-			printTaskStatus();
+			// cleanupTasks();
+			// printTaskStatus();
 			// notification->send("WiFi check", 1);
 			monitorTimer = millis();
 

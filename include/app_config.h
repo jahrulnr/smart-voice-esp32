@@ -11,6 +11,8 @@
 #define MQTT_USER ""
 #define MQTT_PASS ""
 #define MQTT_CLIENT_ID "pio-assistant"
+#define MQTT_TOPIC_AUDIO "pioassistant/audio"
+#define MQTT_TOPIC_STT "pioassistant/stt"
 
 #define SCL_PIN 3
 #define SDA_PIN 46

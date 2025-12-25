@@ -1,7 +1,5 @@
 #include "app/tasks.h"
 
-const char* topic = "pioassistant/audio";
-
 uint32_t generateKey(uint32_t uniqueId, int index) {
     if (index == 0) return uniqueId * 10000;  // start
     if (index == -1) return uniqueId * 10000 + 9999;  // end
@@ -11,7 +9,7 @@ uint32_t generateKey(uint32_t uniqueId, int index) {
 bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
     // Don't send data chunks smaller than 2 bytes (1 sample) to avoid corrupted chunks
     if (data != nullptr && dataSize < 2) {
-        ESP_LOGD("AudioStreamer", "Skipping small data chunk (%d bytes) for key %u", dataSize, key);
+        ESP_LOGW("AudioStreamer", "Skipping small data chunk (%d bytes) for key %u", dataSize, key);
         return true;
     }
 
@@ -28,10 +26,14 @@ bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
     if (data) memcpy(payload + sizeof(uint32_t), data, dataSize);
 
     // Publish message for NetworkConsumer
-		bool result;
+		BaseType_t result;
 		try {
-			mqttClient.loop();
-			result = mqttClient.publish(topic, payload, payloadSize);
+			AudioSamples audioSamples = {
+				.topic = MQTT_TOPIC_AUDIO,
+				.data = payload,
+				.length = payloadSize
+			};
+			result = xQueueSend(audioQueue, &audioSamples, 0);
 		}
 		catch (const std::exception& e) {
 			ESP_LOGE("AudioStreamer", "Failed to send MQTT publish message to NetworkConsumer: %s", e.what());
@@ -42,10 +44,10 @@ bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
 		}
 
     // Clean up
-    delete[] payload;
-    payload = nullptr;
+    // delete[] payload;
+    // payload = nullptr;
 
-    if (!result) {
+    if (result != pdTRUE) {
         return false;
     }
 
@@ -62,15 +64,13 @@ void recorderTask(void* param) {
 	uint32_t lastIndex = 0;
 	uint32_t lastKey = millis();
 	uint32_t key;
-	bool hasSubscribe = false;
 
-	size_t maxSamples = 1024;
+	size_t maxSamples = 16 * 1024;
 	size_t samplesRead;
 	esp_err_t err = ESP_OK;
 
 	QueueHandle_t lock = xSemaphoreCreateMutex();
 	int16_t* readBuffer;
-
 
 	bool streaming = false;
   while (true) {
@@ -95,15 +95,6 @@ void recorderTask(void* param) {
 			goto end;
 		}
 
-		if (!hasSubscribe && mqttClient.connected()) {
-			mqttClient.subscribe(topic);
-			hasSubscribe = true;
-		} 
-		else if (hasSubscribe && !mqttClient.connected()) {
-			hasSubscribe = false;
-			goto unlock;
-		}
-
 		if (lastIndex == 0) lastKey = millis();
 
     // Publish start
@@ -116,9 +107,15 @@ void recorderTask(void* param) {
 		}
 
 		readBuffer = (int16_t*)heap_caps_malloc(maxSamples, MALLOC_CAP_SPIRAM);
+		if (readBuffer == nullptr) {
+			ESP_LOGE(TAG, "Failed to allocate read buffer");
+			goto unlock;
+		}
+
 		samplesRead = 0;
 		err = microphone->read(readBuffer, maxSamples, &samplesRead, portMAX_DELAY);
 		if (err != ESP_OK || samplesRead == 0) {
+			ESP_LOGE(TAG, "Failed to read microphone samples");
 			heap_caps_free(readBuffer);
 			readBuffer = nullptr;
 			goto unlock;

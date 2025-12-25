@@ -4,8 +4,11 @@ TaskHandle_t taskMonitorerHandle = nullptr;
 TaskHandle_t mainTaskHandle = nullptr;
 TaskHandle_t networkTaskHandle = nullptr;
 TaskHandle_t recorderTaskHandle = nullptr;
+QueueHandle_t audioQueue = nullptr;
 
 void runTasks(){
+	audioQueue = xQueueCreateWithCaps(5, sizeof(AudioSamples), MALLOC_CAP_SPIRAM);
+
 	xTaskCreatePinnedToCoreWithCaps(
 		mainTask,
 		"mainTask",
@@ -25,7 +28,7 @@ void runTasks(){
 		NULL,
 		1,
 		&networkTaskHandle,
-		1,
+		0,
 		MALLOC_CAP_INTERNAL
 	);
 

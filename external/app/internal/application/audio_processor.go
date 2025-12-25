@@ -52,13 +52,26 @@ func (ap *AudioProcessor) ProcessAudio(stream *domain.AudioStream) error {
 	log.Printf("Processing audio stream %d (%d bytes, %.2f seconds)",
 		stream.SessionID, len(audioData), stream.GetDuration())
 
-	// Apply noise reduction if enabled
-	processedAudioData, err := ap.applyNoiseReduction(audioData)
-	if err != nil {
-		log.Printf("Noise reduction failed, using original audio: %v", err)
-		processedAudioData = audioData
+	// 1. Add WAV header
+	wavData := ap.createWAVData(audioData)
+
+	// 2. Apply noise reduction if profile exists and succeeds
+	if ap.enableNoiseReduction && ap.noiseProfileExists() {
+		processedWav, err := ap.applyNoiseReduction(wavData)
+		if err != nil {
+			log.Printf("Noise reduction failed, using original: %v", err)
+		} else {
+			wavData = processedWav
+			log.Printf("Noise reduction applied successfully")
+		}
 	}
 
+	// 3. Continue with transcription
+	return ap.transcribeAndPublish(wavData, stream)
+}
+
+// transcribeAndPublish handles the transcription and publishing of processed WAV data
+func (ap *AudioProcessor) transcribeAndPublish(wavData []byte, stream *domain.AudioStream) error {
 	// Create multipart form data
 	var buf bytes.Buffer
 	writer := multipart.NewWriter(&buf)
@@ -69,11 +82,10 @@ func (ap *AudioProcessor) ProcessAudio(stream *domain.AudioStream) error {
 		return fmt.Errorf("failed to create form file: %w", err)
 	}
 
-	// Write WAV header and processed audio data
-	wavData := ap.createWAVData(processedAudioData)
+	// Write processed WAV data directly
 	_, err = fileWriter.Write(wavData)
 	if err != nil {
-		return fmt.Errorf("failed to write audio data: %w", err)
+		return fmt.Errorf("failed to write processed WAV: %w", err)
 	}
 
 	// Save audio to file if enabled (save processed version)
@@ -168,6 +180,17 @@ func (ap *AudioProcessor) saveAudioToFile(sessionID uint32, wavData []byte) erro
 	return nil
 }
 
+// noiseProfileExists checks if the noise profile file exists
+func (ap *AudioProcessor) noiseProfileExists() bool {
+	noiseProfileFile := "/app/audio/noise.prof"
+	exists := true
+	if _, err := os.Stat(noiseProfileFile); os.IsNotExist(err) {
+		log.Printf("Noise profile file not found at %s", noiseProfileFile)
+		exists = false
+	}
+	return exists
+}
+
 // createWAVData creates a simple WAV header for 16kHz mono 16-bit PCM
 func (ap *AudioProcessor) createWAVData(pcmData []byte) []byte {
 	sampleRate := uint32(16000)
@@ -210,29 +233,24 @@ func uint32ToBytes(v uint32) []byte {
 	return []byte{byte(v), byte(v >> 8), byte(v >> 16), byte(v >> 24)}
 }
 
-// applyNoiseReduction applies noise reduction to the audio data using SOX
-func (ap *AudioProcessor) applyNoiseReduction(audioData []byte) ([]byte, error) {
-	if !ap.enableNoiseReduction {
-		return audioData, nil
-	}
-
-	// Create temporary input file
-	inputFile, err := os.CreateTemp("", "input_*.wav")
+// applyNoiseReduction applies noise reduction to WAV data using SOX
+func (ap *AudioProcessor) applyNoiseReduction(wavData []byte) ([]byte, error) {
+	// Create temp input file
+	inputFile, err := os.CreateTemp("/tmp", "input_*.wav")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp input file: %w", err)
 	}
 	defer os.Remove(inputFile.Name())
 	defer inputFile.Close()
 
-	// Write WAV data to input file
-	wavData := ap.createWAVData(audioData)
+	// Write input WAV data
 	if _, err := inputFile.Write(wavData); err != nil {
 		return nil, fmt.Errorf("failed to write input WAV: %w", err)
 	}
 	inputFile.Close()
 
-	// Create temporary output file
-	outputFile, err := os.CreateTemp("", "output_*.wav")
+	// Create temp output file
+	outputFile, err := os.CreateTemp("/tmp", "output_*.wav")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create temp output file: %w", err)
 	}
@@ -241,28 +259,21 @@ func (ap *AudioProcessor) applyNoiseReduction(audioData []byte) ([]byte, error) 
 	outputFile.Close()
 
 	// Run SOX noise reduction
-	// sox input.wav output.wav noisered noise.prof 0.21
-	cmd := exec.Command("sox", inputFile.Name(), outputFile.Name(), "noisered", "/dev/null", "0.21")
-	if err := cmd.Run(); err != nil {
-		log.Printf("SOX noise reduction failed, using original audio: %v", err)
-		return audioData, nil // Return original if SOX fails
-	}
+	noiseProfileFile := "/app/audio/noise.prof"
+	cmd := exec.Command("sox", inputFile.Name(), outputFile.Name(), "noisered", noiseProfileFile, "0.21")
+	log.Printf("Running SOX: %v", cmd.Args)
 
-	// Read processed audio
-	processedData, err := os.ReadFile(outputFile.Name())
+	output, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Printf("Failed to read processed audio: %v", err)
-		return audioData, nil
+		return nil, fmt.Errorf("SOX failed: %v, output: %s", err, string(output))
 	}
 
-	// Extract PCM data from WAV (skip header)
-	if len(processedData) < 44 {
-		log.Printf("Processed WAV file too small")
-		return audioData, nil
+	// Read processed WAV
+	processedWavData, err := os.ReadFile(outputFile.Name())
+	if err != nil {
+		return nil, fmt.Errorf("failed to read processed WAV: %w", err)
 	}
 
-	pcmData := processedData[44:] // Skip WAV header
-	log.Printf("Applied noise reduction: %d bytes -> %d bytes", len(audioData), len(pcmData))
-
-	return pcmData, nil
+	log.Printf("Noise reduction completed: %d bytes output", len(processedWavData))
+	return processedWavData, nil
 }

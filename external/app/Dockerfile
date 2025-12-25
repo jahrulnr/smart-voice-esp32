@@ -25,6 +25,7 @@ WORKDIR /app
 
 # Copy the binary from builder stage
 COPY --from=builder /app/main .
+COPY audio/*.prof /app/audio/
 
 # Expose port if needed (though this is a consumer, not a server)
 # EXPOSE 8080

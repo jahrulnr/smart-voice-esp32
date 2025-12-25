@@ -1,6 +1,8 @@
 #include "app/tasks.h"
 #include <FTPServer.h>
 
+const char* topic = "pioassistant/audio";
+
 struct NetworkInfo {
 		String ssid;
 		int32_t rssi;
@@ -60,8 +62,10 @@ void networkTask(void *param) {
 
 	mqttClient.setClient(wifiClient);
 	mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
-	mqttClient.setBufferSize(4096);
+	mqttClient.setBufferSize(16 * 1030);
 	mqttClient.setCallback(mqttCallback);
+	bool hasSubsribe = false;
+	AudioSamples audioSamples;
 
 	weatherConfig_t weatherConfig;
 	weatherConfig.adm4Code = "31.73.05.1001"; // Default Jakarta Barat location
@@ -124,17 +128,29 @@ void networkTask(void *param) {
 			});
 			weatherCheck = millis();
 		}
+
+		bool connected = mqttClient.loop();
+		if (!connected && hasSubsribe) {
+			mqttClient.unsubscribe(MQTT_TOPIC_STT);
+		} else if (connected && !hasSubsribe) {
+			mqttClient.subscribe(MQTT_TOPIC_STT);
+			hasSubsribe = true;
+		}
 		
 		if (wifiManager.isConnected()) {
 			ftpServer.handleFTP();
 
+			if (xQueueReceive(audioQueue, &audioSamples, 10) == pdTRUE) {
+				if (audioSamples.data != nullptr && audioSamples.length > 0){
+					mqttClient.publish(audioSamples.topic, audioSamples.data, audioSamples.length);
+					delete[] audioSamples.data;
+					audioSamples.data = nullptr;
+				}
+			}
+
 			// handle loop
 			try {
-				if (mqttClient.connected()) {
-						mqttClient.loop();
-				}
-				// reconnect
-				else if (!mqttClient.connected() && millis() - mqttCheck > 5000) {
+				if (!connected && millis() - mqttCheck > 5000) {
 					if (strlen(MQTT_USER) > 0) {
 						mqttClient.connect(mqttClientId.c_str(), MQTT_USER, MQTT_PASS);
 					} else {

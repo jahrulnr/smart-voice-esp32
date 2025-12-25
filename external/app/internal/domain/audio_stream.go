@@ -27,7 +27,7 @@ func NewAudioStream(sessionID uint32) *AudioStream {
 		SessionID: sessionID,
 		Chunks:    make([]*AudioChunk, 0),
 		buffer:    &bytes.Buffer{},
-		Volume:    20.0,
+		Volume:    50.0,
 	}
 }
 

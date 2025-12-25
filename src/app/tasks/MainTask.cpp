@@ -20,7 +20,7 @@ void mainTask(void *param) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
 
 		if (notification->has(NOTIFICATION_WEATHER)) {
-			weatherData_t* data = (weatherData_t*) notification->consume(NOTIFICATION_WEATHER, 0);
+			weatherData_t* data = (weatherData_t*) notification->consume(NOTIFICATION_WEATHER, 10);
 			mainDisplay.updateData(data);
 		}
 

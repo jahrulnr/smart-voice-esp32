@@ -26,6 +26,3 @@ main
 
 # Logs
 *.log
-
-# Audio files
-audio/

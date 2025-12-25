@@ -12,6 +12,13 @@
 extern TaskHandle_t taskMonitorerHandle;
 extern TaskHandle_t mainTaskHandle;
 extern TaskHandle_t networkTaskHandle;
+extern QueueHandle_t audioQueue;
+
+typedef struct AudioSamples {
+	const char* topic;
+	uint8_t* data;
+	size_t length;
+};
 
 void runTasks();
 

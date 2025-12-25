@@ -1,12 +1,21 @@
 #include "app/callback_list.h"
 
 void mqttCallback(char* topic, byte* payload, unsigned int length) {
-    // String topicStr = String(topic);
-    // String payloadStr;
+    String topicStr = String(topic);
+    String payloadStr;
 
-    // for (unsigned int i = 0; i < length; i++) {
-    //     payloadStr += (char)payload[i];
-    // }
+    for (unsigned int i = 0; i < length; i++) {
+        payloadStr += (char)payload[i];
+    }
 
-    // ESP_LOGI("MQTT", "Received message on topic %s", topicStr.c_str());
+    ESP_LOGI("MQTT", "[Received] topic %s: %s", topicStr.c_str(), payloadStr.c_str());
+    if (topicStr == MQTT_TOPIC_STT) {
+        JsonDocument docs;
+        deserializeJson(docs, payloadStr);
+        if (!docs["text"].isNull()) {
+            tts.speak(docs["text"]);
+        }
+
+        docs.clear();
+    }
 }
