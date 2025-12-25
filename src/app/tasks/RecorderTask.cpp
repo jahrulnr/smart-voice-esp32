@@ -34,6 +34,10 @@ bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
 				.length = payloadSize
 			};
 			result = xQueueSend(audioQueue, &audioSamples, 0);
+			if (result != pdTRUE) {
+				delete[] payload;
+				payload = nullptr;
+			}
 		}
 		catch (const std::exception& e) {
 			ESP_LOGE("AudioStreamer", "Failed to send MQTT publish message to NetworkConsumer: %s", e.what());
@@ -42,10 +46,6 @@ bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
 		catch(...) {
 			ESP_LOGW("AudioStreamer", "Failed to send MQTT loop unknown error");
 		}
-
-    // Clean up
-    // delete[] payload;
-    // payload = nullptr;
 
     if (result != pdTRUE) {
         return false;
@@ -70,7 +70,7 @@ void recorderTask(void* param) {
 	esp_err_t err = ESP_OK;
 
 	QueueHandle_t lock = xSemaphoreCreateMutex();
-	int16_t* readBuffer;
+	int16_t* readBuffer = (int16_t*)heap_caps_malloc(maxSamples, MALLOC_CAP_SPIRAM);
 
 	bool streaming = false;
   while (true) {
@@ -106,18 +106,10 @@ void recorderTask(void* param) {
 			goto unlock;
 		}
 
-		readBuffer = (int16_t*)heap_caps_malloc(maxSamples, MALLOC_CAP_SPIRAM);
-		if (readBuffer == nullptr) {
-			ESP_LOGE(TAG, "Failed to allocate read buffer");
-			goto unlock;
-		}
-
 		samplesRead = 0;
 		err = microphone->read(readBuffer, maxSamples, &samplesRead, portMAX_DELAY);
 		if (err != ESP_OK || samplesRead == 0) {
 			ESP_LOGE(TAG, "Failed to read microphone samples");
-			heap_caps_free(readBuffer);
-			readBuffer = nullptr;
 			goto unlock;
 		}
 
@@ -127,12 +119,10 @@ void recorderTask(void* param) {
 		}
 		catch(...) {}
 
-		heap_caps_free(readBuffer);
-		readBuffer = nullptr;
 		unlock:
+		memset(readBuffer, 0, maxSamples);
 		xSemaphoreGive(lock);
 		end:
-		// vTaskDelayUntil(&lastWakeTime, updateFrequency);
-		vTaskDelay(updateFrequency);
+		vTaskDelayUntil(&lastWakeTime, updateFrequency);
   }
 }

@@ -9,16 +9,21 @@
 #include <esp32-hal-log.h>
 #include <WiFi.h>
 
-extern TaskHandle_t taskMonitorerHandle;
-extern TaskHandle_t mainTaskHandle;
-extern TaskHandle_t networkTaskHandle;
-extern QueueHandle_t audioQueue;
+typedef void (*SomeTask)(void* param);
 
-typedef struct AudioSamples {
-	const char* topic;
-	uint8_t* data;
-	size_t length;
+struct BackgroundTask {
+	const char* name;
+	TaskHandle_t handle;
+	SomeTask task;
+	uint32_t stack;
+	BaseType_t core;
+	UBaseType_t priority;
+	UBaseType_t caps;
 };
+
+extern TaskHandle_t taskMonitorerHandle;
+extern std::vector<BackgroundTask> tasks;
+extern QueueHandle_t audioQueue;
 
 void runTasks();
 
@@ -26,3 +31,9 @@ void taskMonitorer(void* param);
 void mainTask(void *param);
 void networkTask(void *param);
 void recorderTask(void* param);
+
+struct AudioSamples {
+	const char* topic;
+	uint8_t* data;
+	size_t length;
+};

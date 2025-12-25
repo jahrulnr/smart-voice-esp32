@@ -1,36 +1,39 @@
 #include "tasks.h"
 
 TaskHandle_t taskMonitorerHandle = nullptr;
-TaskHandle_t mainTaskHandle = nullptr;
-TaskHandle_t networkTaskHandle = nullptr;
-TaskHandle_t recorderTaskHandle = nullptr;
+std::vector<BackgroundTask> tasks;
 QueueHandle_t audioQueue = nullptr;
 
 void runTasks(){
 	audioQueue = xQueueCreateWithCaps(5, sizeof(AudioSamples), MALLOC_CAP_SPIRAM);
 
-	xTaskCreatePinnedToCoreWithCaps(
-		mainTask,
-		"mainTask",
-		1024 * 4,
-		NULL,
-		6,
-		&mainTaskHandle,
-		1,
-		MALLOC_CAP_SPIRAM
-	);
-
-	vTaskDelay(100);
-	xTaskCreatePinnedToCoreWithCaps(
-		networkTask,
-		"networkTask",
-		1024 * 8,
-		NULL,
-		1,
-		&networkTaskHandle,
-		0,
-		MALLOC_CAP_INTERNAL
-	);
+	tasks.push_back(BackgroundTask{
+		.name = "mainTask",
+		.handle = nullptr,
+		.task = mainTask,
+		.stack = 1024 * 4,
+		.core = 1,
+		.priority = 6,
+		.caps = MALLOC_CAP_SPIRAM
+	});
+	tasks.push_back(BackgroundTask{
+		.name = "networkTask",
+		.handle = nullptr,
+		.task = networkTask,
+		.stack = 1024 * 8,
+		.core = 0,
+		.priority = 1,
+		.caps = MALLOC_CAP_INTERNAL
+	});
+	tasks.push_back(BackgroundTask{
+		.name = "recorderTask",
+		.handle = nullptr,
+		.task = recorderTask,
+		.stack = 1024 * 3,
+		.core = 1,
+		.priority = 15,
+		.caps = MALLOC_CAP_SPIRAM
+	});
 
 	vTaskDelay(100);
 	xTaskCreatePinnedToCoreWithCaps(
@@ -38,20 +41,8 @@ void runTasks(){
 		"taskMonitorer",
 		1024 * 3,
 		NULL,
-		0,
+		24,
 		&taskMonitorerHandle,
-		1,
-		MALLOC_CAP_SPIRAM
-	);
-
-	vTaskDelay(100);
-	xTaskCreatePinnedToCoreWithCaps(
-		recorderTask,
-		"recorderTask",
-		1024 * 3,
-		NULL,
-		15,
-		&recorderTaskHandle,
 		1,
 		MALLOC_CAP_SPIRAM
 	);
