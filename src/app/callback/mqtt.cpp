@@ -9,11 +9,13 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     }
 
     ESP_LOGI("MQTT", "[Received] topic %s: %s", topicStr.c_str(), payloadStr.c_str());
-    if (topicStr == MQTT_TOPIC_STT) {
+    if (topicStr.equalsIgnoreCase(MQTT_TOPIC_STT)) {
         JsonDocument docs;
         deserializeJson(docs, payloadStr);
         if (!docs["text"].isNull()) {
-            tts.speak(docs["text"]);
+            const char* text = docs["text"].as<String>().c_str();
+            tts.speak(text);
+            ESP_LOGI("MQTT", "[Speak] topic %s: %s", topicStr.c_str(), text);
         }
 
         docs.clear();
