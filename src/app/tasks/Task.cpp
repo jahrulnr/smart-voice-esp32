@@ -52,7 +52,6 @@ void taskMonitorer(void* param){
 				record = 0;
 				SR::pause();
 			}
-			ESP_LOGW(TAG, "status: %s", record == 0 ? "ON" : "OFF");
 			notification->send(NOTIFICATION_RECORD, record);
 		}
 	}

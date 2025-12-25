@@ -75,10 +75,14 @@ void recorderTask(void* param) {
 	bool streaming = false;
   while (true) {
 		int signal = notification->signal(NOTIFICATION_RECORD, 0);
-		if (signal == 0) streaming = true;
+		if (signal == 0) {
+			streaming = true;
+			ESP_LOGW(TAG, "status: ON");
+		}
 		else if (signal == 1) {
 			streaming = false;
-			if (lastIndex > 0) {
+			ESP_LOGW(TAG, "status: OFF");
+			if (lastIndex >= 0) {
 				lastIndex = -1;
 				goto publish;
 			}

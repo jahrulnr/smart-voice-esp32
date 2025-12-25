@@ -14,6 +14,11 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
         deserializeJson(docs, payloadStr);
         if (!docs["text"].isNull()) {
             const char* text = docs["text"].as<String>().c_str();
+            if (strlen(text) > 256) {
+                char newText[256];
+                strncpy(newText, text, 255);
+                text = newText;
+            }
             tts.speak(text);
             ESP_LOGI("MQTT", "[Speak] topic %s: %s", topicStr.c_str(), text);
         }

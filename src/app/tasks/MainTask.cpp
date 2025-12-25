@@ -7,7 +7,6 @@ void mainTask(void *param) {
   TickType_t lastWakeTime = xTaskGetTickCount();
   TickType_t updateFrequency = pdMS_TO_TICKS(60);
 	size_t updateDelay = 0;
-	size_t monitorCheck = millis();
 	const char* lastEvent;
 
 	MainStatusDrawer mainDisplay = MainStatusDrawer(display);
@@ -23,14 +22,6 @@ void mainTask(void *param) {
 			weatherData_t* data = (weatherData_t*) notification->consume(NOTIFICATION_WEATHER, 10);
 			mainDisplay.updateData(data);
 		}
-
-		if (millis() - monitorCheck > 5000) {
-			monitorCheck = millis();
-
-			SR::set_mode(SR_MODE_WAKEWORD);
-			vTaskDelay(pdMS_TO_TICKS(100));
-			SR::set_mode(SR_MODE_COMMAND);
-		};
 
 		display->clearBuffer();
 
