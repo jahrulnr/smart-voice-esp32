@@ -13,15 +13,16 @@ import (
 func main() {
 	// Configuration
 	mqttBroker := getEnv("MQTT_BROKER", "tcp://localhost:1883")
-	mqttTopic := getEnv("MQTT_TOPIC", "pioassistant/audio")
+	audioTopic := getEnv("AUDIO_TOPIC", "pioassistant/audio")
+	sttTopic := getEnv("STT_TOPIC", "pioassistant/stt")
 	whisperURL := getEnv("WHISPER_URL", "http://localhost:8000/transcribe")
 	saveAudio := getEnv("SAVE_AUDIO", "false") == "true"
 	audioSaveDir := getEnv("AUDIO_SAVE_DIR", "./audio")
 
 	// Initialize components
-	mqttClient := infrastructure.NewMQTTClient(mqttBroker, mqttTopic)
+	mqttClient := infrastructure.NewMQTTClient(mqttBroker, audioTopic)
 	audioAssembler := application.NewAudioAssembler()
-	audioProcessor := application.NewAudioProcessor(whisperURL, saveAudio, audioSaveDir)
+	audioProcessor := application.NewAudioProcessor(whisperURL, saveAudio, audioSaveDir, mqttClient, sttTopic)
 
 	// Wire up the application
 	messageHandler := application.NewMessageHandler(audioAssembler, audioProcessor)

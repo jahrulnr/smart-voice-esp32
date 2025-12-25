@@ -1,5 +1,5 @@
 imagename = whisper
-platform = arm
+platform = amd
 
 build-amd:
 	docker build . -t ${imagename}:amd64 --platform amd64

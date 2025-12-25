@@ -5,10 +5,12 @@ services:
     build: .
     environment:
       - MQTT_BROKER=tcp://mosquitto:1883
-      - MQTT_TOPIC=pioassistant/audio
+      - AUDIO_TOPIC=pioassistant/audio
+      - STT_TOPIC=pioassistant/stt
       - WHISPER_URL=http://whisper:8000/transcribe
       - SAVE_AUDIO=true
       - AUDIO_SAVE_DIR=./audio
+      - ENABLE_NOISE_REDUCTION=true
     depends_on:
       - mosquitto
       - whisper

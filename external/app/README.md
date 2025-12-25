@@ -45,10 +45,11 @@ internal/
 Environment variables:
 
 - `MQTT_BROKER`: MQTT broker URL (default: `tcp://localhost:1883`)
-- `MQTT_TOPIC`: MQTT topic to subscribe to (default: `pioassistant/audio`)
-- `WHISPER_URL`: Whisper API endpoint (default: `http://localhost:8000/transcribe`)
+- `AUDIO_TOPIC`: MQTT topic to subscribe to (default: `pioassistant/audio`)
+- `STT_TOPIC`: MQTT topic to publish transcriptions to (default: `pioassistant/stt`)
 - `SAVE_AUDIO`: Whether to save audio files (default: `false`)
 - `AUDIO_SAVE_DIR`: Directory to save audio files (default: `./audio`)
+- `ENABLE_NOISE_REDUCTION`: Whether to apply noise reduction to audio before transcription (default: `true`)
 
 ## Audio Saving
 

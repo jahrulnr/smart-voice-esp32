@@ -16,7 +16,7 @@ import (
 
 const (
 	MQTT_BROKER = "tcp://192.168.18.250:1883"
-	MQTT_TOPIC  = "pioassistant/audio"
+	AUDIO_TOPIC = "pioassistant/audio"
 	CHUNK_SIZE  = 512 // Same as ESP32 buffer logic
 )
 
@@ -194,7 +194,7 @@ func sendMQTTChunk(client mqtt.Client, key uint32, data []byte) error {
 	}
 
 	// Publish to MQTT
-	token := client.Publish(MQTT_TOPIC, 1, false, payload)
+	token := client.Publish(AUDIO_TOPIC, 1, false, payload)
 	if !token.WaitTimeout(5 * time.Second) {
 		return fmt.Errorf("MQTT publish timeout for key %d", key)
 	}

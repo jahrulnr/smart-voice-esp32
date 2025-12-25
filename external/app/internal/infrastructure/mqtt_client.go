@@ -86,3 +86,21 @@ func (mc *MQTTClient) Disconnect() {
 		log.Println("Disconnected from MQTT broker")
 	}
 }
+
+// Publish sends a message to the specified topic
+func (mc *MQTTClient) Publish(topic string, payload []byte) error {
+	if mc.client == nil || !mc.client.IsConnected() {
+		return fmt.Errorf("MQTT client not connected")
+	}
+
+	token := mc.client.Publish(topic, 1, false, payload)
+	if !token.WaitTimeout(5 * time.Second) {
+		return fmt.Errorf("publish timeout")
+	}
+	if token.Error() != nil {
+		return token.Error()
+	}
+
+	log.Printf("Published message to topic %s", topic)
+	return nil
+}

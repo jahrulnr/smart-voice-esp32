@@ -17,10 +17,6 @@ BINARY_UNIX=$(BINARY_NAME)_unix
 build:
 	$(GOBUILD) -o $(BINARY_NAME) -v $(MAIN_PACKAGE)
 
-# Run the project
-run:
-	$(GOCMD) run $(MAIN_PACKAGE)
-
 # Clean build files
 clean:
 	$(GOCLEAN)
@@ -44,18 +40,21 @@ build-linux:
 docker-build:
 	docker build -t golang-mqtt-consumer .
 
-docker-run: docker-build
+run: docker-build
+	@make stop
 	docker run --restart unless-stopped --network mqttui_default -d \
 		--name golang_consumer \
-		-e MQTT_BROKER=tcp://192.168.18.250:1883 \
-		-e MQTT_TOPIC=pioassistant/audio \
-		-e WHISPER_URL=http://192.168.18.250:8000/transcribe \
+		-e MQTT_BROKER=tcp://mosquitto:1883 \
+		-e AUDIO_TOPIC=pioassistant/audio \
+		-e STT_TOPIC=pioassistant/stt \
+		-e WHISPER_URL=http://whisper:8000/transcribe \
 		-e SAVE_AUDIO=true \
 		-e AUDIO_SAVE_DIR=/app/audio \
+		-e ENABLE_NOISE_REDUCTION=true \
 		-v ./audio:/app/audio \
 		golang-mqtt-consumer
 
-docker-stop:
+stop:
 	docker stop golang_consumer; docker rm golang_consumer
 
 # Development

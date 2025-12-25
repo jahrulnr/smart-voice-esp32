@@ -18,7 +18,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd
 # Final stage
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates
+# Install SOX for audio processing
+RUN apk --no-cache add ca-certificates sox
 
 WORKDIR /app
 

@@ -16,3 +16,8 @@ type AudioAssembler interface {
 type AudioProcessor interface {
 	ProcessAudio(stream *domain.AudioStream) error
 }
+
+// BrokerPublisher defines the interface for publishing MQTT messages
+type BrokerPublisher interface {
+	Publish(topic string, payload []byte) error
+}
