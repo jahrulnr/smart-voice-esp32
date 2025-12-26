@@ -1,5 +1,6 @@
 #include "app/callback_list.h"
 #include <app/display/ui/main.h>
+#include <app/display/ui/wifi.h>
 #include <app/display/ui/face.h>
 #include <app/display/ui/record.h>
 
@@ -7,6 +8,7 @@ void displayCallback() {
 	const char* TAG = "displayCallback";
 	static EVENT_DISPLAY lastDisplayEvent = EDISPLAY_NONE;
 	static MainStatusDrawer mainDisplay = MainStatusDrawer(display);
+	static WifiDrawer wifiDisplay = WifiDrawer(display);
 	static FaceDrawer faceDisplay = FaceDrawer(display);
 	static RecordDrawer recordDisplay = RecordDrawer(display);
 
@@ -40,11 +42,32 @@ void displayCallback() {
 				recordDisplay.draw();
 			}
 			break;
+		case EDISPLAY_WIFI:
+			{
+				static WifiDrawer::State lastState;
+				WifiDrawer::State state;
+				switch (wifiManager.getState()) {
+					case WL_CONNECTED:
+						state = WifiDrawer::State::WIFI_FULL;
+						break;
+					case WL_CONNECT_FAILED:
+					case WL_CONNECTION_LOST:
+					case WL_DISCONNECTED:
+						state = WifiDrawer::State::DISCONNECT;
+						break;
+					default:
+						state = WifiDrawer::State::WIFI_LOW;
+						break;
+				}
+				wifiDisplay.setState(state);
+				wifiDisplay.draw();
+				lastState = state;
+			}
+			break;
 		case EDISPLAY_FACE:
 			faceDisplay.draw();
 			break;
 		default:
-			// faceDisplay.draw();
 			mainDisplay.draw();
 			break;
 	}

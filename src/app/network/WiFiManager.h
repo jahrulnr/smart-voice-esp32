@@ -31,6 +31,7 @@ public:
      * @return true if connected
      */
     bool isConnected();
+    inline wl_status_t getState() const { return WiFi.status(); }
 
     /**
      * Get current IP address

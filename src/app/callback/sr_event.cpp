@@ -58,7 +58,7 @@ void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id)
 				case CMD_RECORD_AUDIO:
 					log_i("💡 Action: %s", voice_commands[CMD_RECORD_AUDIO].str);
 					if (notification) {
-						// notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_RECORD_AUDIO].str);
+						notification->send(NOTIFICATION_DISPLAY, (int)EDISPLAY_WAKEWORD);
 					}
 					break;
 				default:
@@ -80,6 +80,7 @@ void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id)
 			break;
 
 		case SR_EVENT_TIMEOUT:
+			notification->send(NOTIFICATION_DISPLAY, (int)EDISPLAY_NONE);
 			SR::set_mode(SR_MODE_COMMAND);
 			break;
 
