@@ -5,29 +5,23 @@
 
 class BootSplashDrawer : public DisplayDrawer {
 public:
-	BootSplashDrawer(U8G2* display = nullptr) : _startTime(millis()), _display(display), _taskHandle(nullptr) {}
+	BootSplashDrawer(U8G2* display = nullptr) : _startTime(millis()), _display(display), _taskHandle(nullptr), _interrupt(false) {}
 	~BootSplashDrawer() override {}
 
 	inline void start() {
 		xTaskCreate([](void* arg) {
 			BootSplashDrawer* drawer = static_cast<BootSplashDrawer*>(arg);
-			for(;;){
-				vTaskDelay(pdMS_TO_TICKS(33));
+			while(!drawer->_interrupt){
 				drawer->draw();
+				vTaskDelay(pdMS_TO_TICKS(33));
 			}
-			vTaskDelete(nullptr);
+			vTaskDelete(drawer->_taskHandle);
 		}, "bootSplash", 4096, this, 1, &_taskHandle);
 	}
 
 	inline void stop() {
-		if(_taskHandle != nullptr){
-			vTaskDelete(_taskHandle);
-			_taskHandle = nullptr;
-		}
-		
-		delay(100);
-		_display->clearBuffer();
-		_display->sendBuffer();
+		_interrupt = true;
+		ESP_LOGI("bootSplash", "stop");
 	}
 	
 	inline void draw() override {
@@ -75,6 +69,7 @@ private:
 	unsigned long _startTime;
 	TaskHandle_t _taskHandle;
 	U8G2* _display;
+	bool _interrupt;
 };
 
 #endif // BOOT_SPLASH_DRAWER_H

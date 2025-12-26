@@ -4,7 +4,7 @@ void mainTask(void *param) {
 	const char* TAG = "mainTask";
 
   TickType_t lastWakeTime = xTaskGetTickCount();
-  TickType_t updateFrequency = pdMS_TO_TICKS(60);
+  TickType_t updateFrequency = pdMS_TO_TICKS(33);
 
 	ESP_LOGI(TAG, "Main task started");
 	while(1) {

@@ -10,7 +10,7 @@ inline void esp_panic_handler_disable_timg_wdts(void)
 
 	// Configure Task Watchdog Timer to prevent system hangs
 	esp_task_wdt_config_t config = {
-    .timeout_ms = 60 * 1000,
+    .timeout_ms = 3 * 1000,
 		.trigger_panic = false,
 	};
 

@@ -8,8 +8,7 @@
 #include <nvs_flash.h>
 
 void init(){
-  // esp_panic_handler_disable_timg_wdts();
-
+  esp_panic_handler_disable_timg_wdts();
   nvs_init();
 }
 

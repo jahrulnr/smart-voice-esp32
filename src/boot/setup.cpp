@@ -24,9 +24,11 @@ void setupApp(){
 	setupFaceDisplay(40);
 	setupSpeechRecognition();
 
+	delay(1);
 	tts.begin();
-	bootScreen.stop();
 	tts.speak("Halo! Pio Assistant is ready!");
+
+	bootScreen.stop();
 }
 
 void setupNotification() {
