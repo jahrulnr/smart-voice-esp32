@@ -6,6 +6,7 @@
 class BootSplashDrawer : public DisplayDrawer {
 public:
 	BootSplashDrawer(U8G2* display = nullptr) : _startTime(millis()), _display(display), _taskHandle(nullptr) {}
+	~BootSplashDrawer() override {}
 
 	inline void start() {
 		xTaskCreate([](void* arg) {
@@ -24,6 +25,7 @@ public:
 			_taskHandle = nullptr;
 		}
 		
+		delay(100);
 		_display->clearBuffer();
 		_display->sendBuffer();
 	}

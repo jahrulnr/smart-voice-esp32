@@ -27,7 +27,6 @@ void setupApp(){
 	tts.begin();
 	bootScreen.stop();
 	tts.speak("Halo! Pio Assistant is ready!");
-	vTaskDelay(1000);
 }
 
 void setupNotification() {

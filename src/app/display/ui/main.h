@@ -12,6 +12,7 @@ public:
 	MainStatusDrawer(U8G2* display = nullptr): 
 		_display(display), 
 		_data(weatherData_t{}){}
+	~MainStatusDrawer() override {}
 
 	void updateData(weatherData_t* data) {
 		if (!data) return;
