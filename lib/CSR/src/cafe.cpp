@@ -24,7 +24,7 @@ afe_config_t* getAfeConfig() {
   afe_config->wakenet_model_name = esp_srmodel_filter(models, ESP_WN_PREFIX, WAKEWORD_COMMAND);
   afe_config->aec_init = false;
   afe_config->se_init = true;
-  afe_config->vad_mode = VAD_MODE_4;
+  afe_config->vad_mode = VAD_MODE_2;
   afe_config->memory_alloc_mode = AFE_MEMORY_ALLOC_MORE_PSRAM;
   afe_config = afe_config_check(afe_config);
   afe_config_print(afe_config);

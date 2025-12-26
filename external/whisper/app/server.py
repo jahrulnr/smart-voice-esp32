@@ -4,9 +4,17 @@ import whisper
 import tempfile
 import os
 
+# curl --request POST \
+#   --url https://api.openai.com/v1/audio/transcriptions \
+#   --header "Authorization: Bearer $OPENAI_API_KEY" \
+#   --header 'Content-Type: multipart/form-data' \
+#   --form file=@/path/to/file/audio.mp3 \
+#   --form model=gpt-4o-transcribe
+
 app = FastAPI(title="Whisper API", version="1.0.0")
 
 # Load model once at startup
+# models: tiny, base, small, medium, large, turbo
 model = whisper.load_model("tiny")
 
 @app.post("/transcribe")

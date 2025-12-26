@@ -5,11 +5,42 @@ void mainTask(void *param) {
 
   TickType_t lastWakeTime = xTaskGetTickCount();
   TickType_t updateFrequency = pdMS_TO_TICKS(33);
+	int lastHour = -1;
 
 	ESP_LOGI(TAG, "Main task started");
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
 		notification->send(TAG, 1);
+
+		int hour = timeManager.getHour();
+		if (lastHour != hour && hour >= 0) {
+			lastHour = hour;
+
+			String speakCmd = "It is " + String(hour) + " o'clock. ";
+			if (hour == 9) {
+				speakCmd += "It is time to work.";
+			}
+			else if (hour == 22) {
+				speakCmd += "It is time to sleep.";
+			}
+			else if (hour == 5) {
+				speakCmd += "It is time for the Subuh prayer.";
+			}
+			else if (hour == 12) {
+				speakCmd += "It is time for the Dzuhur prayer.";
+			}
+			else if (hour == 15) {
+				speakCmd += "It is time for the Ashar prayer.";
+			}
+			else if (hour == 18) {
+				speakCmd += "It is time for the Maghrib prayer.";
+			}
+			else if (hour == 19) {
+				speakCmd += "It is time for the Isya prayer.";
+			}
+
+			tts.speak(speakCmd.c_str());
+		}
 
 		// handle display
 		displayCallback();

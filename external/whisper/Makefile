@@ -13,11 +13,14 @@ save:
 	docker save ${imagename} | gzip > ${imagename}.tar.gz
 
 run: build-${platform}
+	@make stop
 	docker run --name ${imagename} --network mqttui_default \
 	-d -p 8000:8000 --name whisper \
 	--restart unless-stopped \
-	--cpu-shares="512" --memory="512m" \
 	${imagename}:${platform}64
+
+stop:
+	@docker stop whisper; docker rm whisper
 
 test:
 	curl -X POST "http://localhost:8000/transcribe" \
