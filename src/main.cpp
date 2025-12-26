@@ -16,7 +16,7 @@ void setup() {
   LittleFS.begin(true);
 	Wire.begin(SDA_PIN, SCL_PIN);
   timeManager.init();
-			
+
   setupApp();
   runTasks();
 
