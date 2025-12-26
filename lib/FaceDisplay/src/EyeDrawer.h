@@ -24,7 +24,7 @@ enum CornerType {T_R, T_L, B_L, B_R};
  */
 class EyeDrawer {
   public:
-    static void Draw(U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2, int16_t centerX, int16_t centerY, EyeConfig *config) {
+    static void Draw(U8G2 *_u8g2, int16_t centerX, int16_t centerY, EyeConfig *config) {
       // Amount by which corners will be shifted up/down based on requested "slope"
       int32_t delta_y_top = config->Height * config->Slope_Top / 2.0;
       int32_t delta_y_bottom = config->Height * config->Slope_Bottom / 2.0;
@@ -95,7 +95,7 @@ class EyeDrawer {
     }
 
     // Draw rounded corners
-    static void FillEllipseCorner(U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2, CornerType corner, int16_t x0, int16_t y0, int32_t rx, int32_t ry, uint16_t color) {
+    static void FillEllipseCorner(U8G2 *_u8g2, CornerType corner, int16_t x0, int16_t y0, int32_t rx, int32_t ry, uint16_t color) {
       if (rx < 2) return;
       if (ry < 2) return;
       int32_t x, y;
@@ -183,7 +183,7 @@ class EyeDrawer {
     }
 
     // Fill a solid rectangle between specified coordinates
-    static void FillRectangle(U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t color) {
+    static void FillRectangle(U8G2 *_u8g2, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t color) {
       // Always draw from TL->BR
       int32_t l = min(x0, x1);
       int32_t r = max(x0, x1);
@@ -196,13 +196,13 @@ class EyeDrawer {
       _u8g2->setDrawColor(1);
     }
 
-    static void FillRectangularTriangle(U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t color) {
+    static void FillRectangularTriangle(U8G2 *_u8g2, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t color) {
       _u8g2->setDrawColor(color);
       _u8g2->drawTriangle(x0, y0, x1, y1, x1, y0);
       _u8g2->setDrawColor(1);
     }
 
-    static void FillTriangle(U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color) {
+    static void FillTriangle(U8G2 *_u8g2, int32_t x0, int32_t y0, int32_t x1, int32_t y1, int32_t x2, int32_t y2, int32_t color) {
         _u8g2->setDrawColor(color);
         _u8g2->drawTriangle(x0, y0, x1, y1, x2, y2);
         _u8g2->setDrawColor(1);

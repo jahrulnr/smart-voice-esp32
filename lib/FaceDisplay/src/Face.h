@@ -27,7 +27,7 @@ You should have received a copy of the GNU Affero General Public License along w
 class Face {
 
 public:
-    Face(U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2, uint16_t screenWidth, uint16_t screenHeight, uint16_t eyeSize);
+    Face(U8G2 *_u8g2, uint16_t screenWidth, uint16_t screenHeight, uint16_t eyeSize);
 
     uint16_t Width;
     uint16_t Height;
@@ -58,10 +58,10 @@ public:
     void Wait(unsigned long milliseconds);
 
 private:
-    U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2;
+    U8G2 *_u8g2;
 
 protected:
-    void Draw(U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2);
+    void Draw(U8G2 *_u8g2);
 };
 
 #endif

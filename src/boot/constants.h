@@ -32,6 +32,7 @@ static const char* NOTIFICATION_COMMAND = "command";
 enum EVENT_DISPLAY {
     EDISPLAY_NONE = 0,
     EDISPLAY_WAKEWORD,
+    EDISPLAY_FACE,
     EDISPLAY_MAX
 };
 

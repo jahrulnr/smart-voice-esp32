@@ -5,6 +5,7 @@ afe_config_t *afe_config;
 const esp_afe_sr_iface_t *afe_handle;
 esp_afe_sr_data_t *afe_data;
 int16_t *afe_in_buffer;
+vad_state_t afe_state = VAD_SILENCE;
 
 srmodel_list_t* getModels() {
 	if (models)
@@ -50,4 +51,19 @@ const esp_afe_sr_iface_t* getAfeHandle() {
 
 int getAfeChunkSize(esp_afe_sr_data_t *data) {
 	return getAfeHandle()->get_feed_chunksize(data) * sizeof(int16_t);
+}
+
+void feedAfe(int16_t *audio_buffer) {
+	getAfeHandle()->feed(getAfeData(), audio_buffer);
+}
+
+afe_fetch_result_t* fetchAfe() {
+	afe_fetch_result_t *result = getAfeHandle()->fetch(getAfeData());
+	if (result && result->ret_value != ESP_FAIL)
+		afe_state = result->vad_state;
+	return result;
+}
+
+vad_state_t getAfeState() {
+	return afe_state;
 }

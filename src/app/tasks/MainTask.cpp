@@ -12,7 +12,6 @@ void mainTask(void *param) {
 		notification->send(TAG, 1);
 
 		// handle display
-		vTaskDelay(1);
 		displayCallback();
 
 		// Handle any notifications that might be relevant to SR

@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * Display Drawer Interface - Defines drawing methods for different display states
  * Allows for consistent drawing implementations that can be swapped
@@ -5,6 +7,7 @@
 #include <U8g2lib.h>
 class DisplayDrawer {
 public:
+    DisplayDrawer() = default;
     virtual ~DisplayDrawer() = default;
 
     /**

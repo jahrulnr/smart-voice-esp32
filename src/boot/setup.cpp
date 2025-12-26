@@ -2,7 +2,6 @@
 #include <app/display/ui/boot.h>
 
 Notification *notification = nullptr;
-Face* faceDisplay = nullptr;
 Microphone* microphone = nullptr;
 Speaker* speaker = nullptr;
 
@@ -21,7 +20,6 @@ void setupApp(){
 
 	setupMicrophone();
 	setupSpeaker();
-	setupFaceDisplay(40);
 	setupSpeechRecognition();
 
 	delay(1);
@@ -50,50 +48,6 @@ void setupSpeaker() {
 		speaker = new Speaker();
 		speaker->init();
 		speaker->start();
-	}
-}
-
-void setupFaceDisplay(uint16_t size) {
-	if (!faceDisplay) {
-		faceDisplay = new Face(display, SCREEN_WIDTH, SCREEN_HEIGHT, size);
-		faceDisplay->Expression.GoTo_Normal();
-		faceDisplay->LookFront();
-
-		// Assign a weight to each emotion
-		// Normal emotions
-		faceDisplay->Behavior.SetEmotion(eEmotions::Normal, 1.0);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Unimpressed, 1.0);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Focused, 1.0);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Skeptic, 1.0);
-
-		// Happy emotions
-		faceDisplay->Behavior.SetEmotion(eEmotions::Happy, 1.0);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Glee, 1.0);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Awe, 1.0);
-
-		// Sad emotions
-		faceDisplay->Behavior.SetEmotion(eEmotions::Sad, 0.2);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Worried, 0.2);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Sleepy, 0.2);
-
-		// Other emotions
-		faceDisplay->Behavior.SetEmotion(eEmotions::Angry, 0.2);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Annoyed, 0.2);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Surprised, 0.2);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Frustrated, 0.2);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Suspicious, 0.2);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Squint, 0.2);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Furious, 0.2);
-		faceDisplay->Behavior.SetEmotion(eEmotions::Scared, 0.2);
-
-		faceDisplay->Behavior.Timer.SetIntervalMillis(10000);
-		faceDisplay->Blink.Timer.SetIntervalMillis(1000);
-		faceDisplay->Look.Timer.SetIntervalMillis(5000);
-
-		faceDisplay->RandomBlink = true;
-		faceDisplay->RandomBehavior =
-		faceDisplay->RandomLook =
-			false;
 	}
 }
 

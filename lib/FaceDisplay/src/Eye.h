@@ -50,7 +50,7 @@ class Eye {
 
     void ApplyPreset(const EyeConfig preset);
     void TransitionTo(const EyeConfig preset);
-    void Draw(U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2);
+    void Draw(U8G2 *_u8g2);
 };
 
 #endif

@@ -182,7 +182,8 @@ static void audio_feed_task(void *arg) {
     }
 
     /* Feed samples of an audio stream to the AFE_SR */
-    SR::g_sr_data->afe_handle->feed(SR::g_sr_data->afe_data, audio_buffer);
+    // SR::g_sr_data->afe_handle->feed(SR::g_sr_data->afe_data, audio_buffer);
+    feedAfe(audio_buffer);
   }
   vTaskDelete(NULL);
 }
@@ -204,7 +205,7 @@ static void audio_detect_task(void *arg) {
       continue;
     }
 
-    afe_fetch_result_t *res = SR::g_sr_data->afe_handle->fetch(SR::g_sr_data->afe_data);
+    afe_fetch_result_t *res = fetchAfe();
     if (!res || res->ret_value == ESP_FAIL) {
       ESP_LOGW(SR::TAG, "failed fetch afe data: %s", res != nullptr ? esp_err_to_name(res->ret_value) : "null");
       vTaskDelay(1);

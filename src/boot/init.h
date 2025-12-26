@@ -10,7 +10,6 @@
 #include <app/audio/tts.h>
 #include "Notification.h"
 #include "Display.h"
-#include "Face.h"
 #include "esp32-hal-sr.h"
 #include "csr.h"
 #include "app/network/WiFiManager.h"
@@ -18,7 +17,6 @@
 #include <PubSubClient.h>
 
 extern Notification* notification;
-extern Face* faceDisplay;
 extern PubSubClient mqttClient;
 extern Speaker* speaker;
 
@@ -27,5 +25,4 @@ void setupApp();
 void setupNotification();
 void setupMicrophone();
 void setupSpeaker();
-void setupFaceDisplay(uint16_t size = 40);
 void setupSpeechRecognition();

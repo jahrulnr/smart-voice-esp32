@@ -1,11 +1,14 @@
 #include "app/callback_list.h"
 #include <app/display/ui/main.h>
+#include <app/display/ui/face.h>
+#include <app/display/ui/record.h>
 
 void displayCallback() {
 	const char* TAG = "displayCallback";
-	static size_t updateDelay = 0;
 	static EVENT_DISPLAY lastDisplayEvent = EDISPLAY_NONE;
 	static MainStatusDrawer mainDisplay = MainStatusDrawer(display);
+	static FaceDrawer faceDisplay = FaceDrawer(display);
+	static RecordDrawer recordDisplay = RecordDrawer(display);
 
 	// Update weather data if available to display
 	if (notification->has(NOTIFICATION_WEATHER)) {
@@ -18,23 +21,30 @@ void displayCallback() {
 	if (signalDisplay) {
 		EVENT_DISPLAY event = (EVENT_DISPLAY) notification->signal(NOTIFICATION_DISPLAY, 100);
 		if (event != lastDisplayEvent) {
-			updateDelay = millis() + 1000;
 			lastDisplayEvent = event;
 		}
-	}
-	else if (updateDelay <= millis()) {
-		updateDelay = 0;
-		lastDisplayEvent = EDISPLAY_NONE;
-		notification->signal(NOTIFICATION_DISPLAY, 0);
 	}
 
 	// Update Display
 	switch (lastDisplayEvent) {
 		case EDISPLAY_WAKEWORD:
-			display->clearBuffer();
-			faceDisplay->Update();
+			{
+				vad_state_t vadState = getAfeState();
+				RecordDrawer::State state = RecordDrawer::MUTE;
+				if (vadState == VAD_SILENCE) {
+					state = RecordDrawer::IDLE;
+				} else if (vadState == VAD_SPEECH) {
+					state = RecordDrawer::RECORDING;
+				}
+				recordDisplay.setState(state);
+				recordDisplay.draw();
+			}
+			break;
+		case EDISPLAY_FACE:
+			faceDisplay.draw();
 			break;
 		default:
+			// faceDisplay.draw();
 			mainDisplay.draw();
 			break;
 	}

@@ -13,7 +13,7 @@ You should have received a copy of the GNU Affero General Public License along w
 
 #include "Face.h"
 
-Face::Face(U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2, uint16_t screenWidth, uint16_t screenHeight, uint16_t eyeSize) 
+Face::Face(U8G2 *_u8g2, uint16_t screenWidth, uint16_t screenHeight, uint16_t eyeSize) 
 	: _u8g2(_u8g2), LeftEye(*this), RightEye(*this), Blink(*this), Look(*this), Behavior(*this), Expression(*this) {
 	Width = screenWidth;
 	Height = screenHeight;
@@ -67,7 +67,7 @@ void Face::Update() {
 	Draw(_u8g2);
 }
 
-void Face::Draw(U8G2_SSD1306_128X64_NONAME_F_HW_I2C *_u8g2) {
+void Face::Draw(U8G2 *_u8g2) {
 	if (!_u8g2) return;
 	
 	// Draw left eye
