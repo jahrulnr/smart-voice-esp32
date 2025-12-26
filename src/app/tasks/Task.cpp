@@ -51,16 +51,16 @@ void taskMonitorer(void* param){
 				}
 			}
 
-			static int record = 0;
-			if (record == 0) {
-				record = 1;
-				SR::resume();
-			}
-			else {
-				record = 0;
-				SR::pause();
-			}
-			notification->send(NOTIFICATION_RECORD, record);
+			// static int record = 0;
+			// if (record == 0) {
+			// 	record = 1;
+			// 	SR::resume();
+			// }
+			// else {
+			// 	record = 0;
+			// 	SR::pause();
+			// }
+			// notification->send(NOTIFICATION_RECORD, record);
 		}
 	}
 	while(1);
