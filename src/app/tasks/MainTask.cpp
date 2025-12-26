@@ -1,41 +1,19 @@
 #include "app/tasks.h"
-#include <app/display/ui/main.h>
 
 void mainTask(void *param) {
 	const char* TAG = "mainTask";
 
   TickType_t lastWakeTime = xTaskGetTickCount();
   TickType_t updateFrequency = pdMS_TO_TICKS(60);
-	size_t updateDelay = 0;
-	const char* lastEvent;
 
-	MainStatusDrawer mainDisplay = MainStatusDrawer(display);
-
-	// wait notification initiate
-	while (!notification)
-		vTaskDelay(1);
-
+	ESP_LOGI(TAG, "Main task started");
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
+		notification->send(TAG, 1);
 
-		if (notification->has(NOTIFICATION_WEATHER)) {
-			weatherData_t* data = (weatherData_t*) notification->consume(NOTIFICATION_WEATHER, 10);
-			mainDisplay.updateData(data);
-		}
-
-		display->clearBuffer();
-
-		if (!notification->has(NOTIFICATION_DISPLAY) && updateDelay == 0) {
-			mainDisplay.draw();
-	    display->sendBuffer();
-			continue;
-		}
-
-		if (updateDelay <= millis()) {
-			updateDelay = 0;
-			lastEvent = "";
-			notification->consume(NOTIFICATION_DISPLAY, 0);
-		}
+		// handle display
+		vTaskDelay(1);
+		displayCallback();
 
 		// Handle any notifications that might be relevant to SR
 		if (notification->has(NOTIFICATION_COMMAND)) {
@@ -55,4 +33,7 @@ void mainTask(void *param) {
 			}
 		}
 	}
+
+	ESP_LOGE(TAG, "Main task exited unexpectedly");
+	vTaskDeleteWithCaps(NULL);
 }

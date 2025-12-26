@@ -1,12 +1,12 @@
 #include "app/callback_list.h"
 
 // Event callback for SR system
-void sr_event_callback(void *arg, sr_event_t event, int command_id, int phrase_id) {
+void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id) {
 	switch (event) {
 		case SR_EVENT_WAKEWORD:
 			log_i("🎙️ Wake word 'Hi ESP' detected!");
 			if (notification) {
-				notification->send(NOTIFICATION_DISPLAY, (void*)EVENT_DISPLAY_WAKEWORD);
+				notification->send(NOTIFICATION_DISPLAY, (int)EDISPLAY_WAKEWORD);
 			}
 			// Switch to command listening mode
 			SR::set_mode(SR_MODE_COMMAND);
@@ -16,7 +16,7 @@ void sr_event_callback(void *arg, sr_event_t event, int command_id, int phrase_i
 		case SR_EVENT_WAKEWORD_CHANNEL:
 			log_i("🎙️ Wake word detected on channel: %d", command_id);
 			if (notification) {
-				notification->send(NOTIFICATION_DISPLAY, (void*)EVENT_DISPLAY_WAKEWORD);
+				notification->send(NOTIFICATION_DISPLAY, (int)EDISPLAY_WAKEWORD);
 			}
 			SR::set_mode(SR_MODE_COMMAND);
 			break;

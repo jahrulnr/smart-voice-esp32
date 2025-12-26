@@ -1,13 +1,13 @@
 #include "tasks.h"
 
 TaskHandle_t taskMonitorerHandle = nullptr;
-std::vector<BackgroundTask> tasks;
+std::vector<BackgroundTask*> tasks;
 QueueHandle_t audioQueue = nullptr;
 
 void runTasks(){
 	audioQueue = xQueueCreateWithCaps(5, sizeof(AudioSamples), MALLOC_CAP_SPIRAM);
 
-	tasks.push_back(BackgroundTask{
+	tasks.push_back(new BackgroundTask{
 		.name = "mainTask",
 		.handle = nullptr,
 		.task = mainTask,
@@ -16,7 +16,7 @@ void runTasks(){
 		.priority = 6,
 		.caps = MALLOC_CAP_SPIRAM
 	});
-	tasks.push_back(BackgroundTask{
+	tasks.push_back(new BackgroundTask{
 		.name = "networkTask",
 		.handle = nullptr,
 		.task = networkTask,
@@ -25,7 +25,7 @@ void runTasks(){
 		.priority = 1,
 		.caps = MALLOC_CAP_INTERNAL
 	});
-	tasks.push_back(BackgroundTask{
+	tasks.push_back(new BackgroundTask{
 		.name = "recorderTask",
 		.handle = nullptr,
 		.task = recorderTask,
@@ -41,7 +41,7 @@ void runTasks(){
 		"taskMonitorer",
 		1024 * 3,
 		NULL,
-		24,
+		0,
 		&taskMonitorerHandle,
 		1,
 		MALLOC_CAP_SPIRAM

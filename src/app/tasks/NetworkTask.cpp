@@ -72,12 +72,10 @@ void networkTask(void *param) {
 	weatherConfig.cacheExpiryMinutes = 60;
 	weatherService.init(weatherConfig);
 
-	// wait notification initiate
-	while (!notification)
-		vTaskDelay(1);
-
+	ESP_LOGI(TAG, "Network task started");
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
+		notification->send(TAG, 1);
 
 		if(notification->hasSignal("WiFi check") && notification->signal("WiFi check") == 1){
 			ESP_LOGI(TAG, "Wifi Status: %s", wifiStatus());

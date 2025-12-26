@@ -16,8 +16,9 @@ void init(){
 void setup() {
   LittleFS.begin(true);
 	Wire.begin(SDA_PIN, SCL_PIN);
+  Wire.setTimeout(10);
+  Wire.setTimeOut(10);
   timeManager.init();
-  // Serial.setTimeout(100);
 			
   setupApp();
   runTasks();

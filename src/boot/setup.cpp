@@ -27,6 +27,7 @@ void setupApp(){
 	tts.begin();
 	bootScreen.stop();
 	tts.speak("Halo! Pio Assistant is ready!");
+	vTaskDelay(1000);
 }
 
 void setupNotification() {
@@ -102,12 +103,12 @@ void setupSpeechRecognition() {
 
 	// Start ESP-SR system with high-level API
 	esp_err_t ret = SR::setup(
-		sr_fill_callback,                              // I2S data fill callback
+		srAudioCallback,                              // I2S data fill callback
 		mic_instance,                                  // Microphone instance (I2SMicrophone or I2SMicrophone)
 		SR_MODE_WAKEWORD,                              // Start in wake word mode
 		voice_commands,                                // Commands array
 		sizeof(voice_commands) / sizeof(sr_cmd_t),     // Number of commands
-		sr_event_callback,                             // Event callback
+		srEventCallback,                             // Event callback
 		NULL                                           // Event callback argument
 	);
 

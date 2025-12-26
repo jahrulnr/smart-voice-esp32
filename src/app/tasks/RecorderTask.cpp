@@ -74,7 +74,11 @@ void recorderTask(void* param) {
 
 	bool streaming = false;
 	uint8_t* chunk = nullptr;
+
+	ESP_LOGI(TAG, "Recorder task started");
   while (true) {
+		notification->send(TAG, 1);
+		
 		int signal = notification->signal(NOTIFICATION_RECORD, 0);
 		if (signal == 0) {
 			ESP_LOGW(TAG, "status: ON");

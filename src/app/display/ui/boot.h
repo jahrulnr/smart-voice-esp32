@@ -7,23 +7,26 @@ class BootSplashDrawer : public DisplayDrawer {
 public:
 	BootSplashDrawer(U8G2* display = nullptr) : _startTime(millis()), _display(display), _taskHandle(nullptr) {}
 
-		inline void start() {
-			xTaskCreate([](void* arg) {
-				BootSplashDrawer* drawer = static_cast<BootSplashDrawer*>(arg);
-				for(;;){
-					vTaskDelay(pdMS_TO_TICKS(33));
-					drawer->draw();
-				}
-				vTaskDelete(nullptr);
-			}, "bootSplash", 4096, this, 1, &_taskHandle);
-		}
-
-		inline void stop() {
-			if(_taskHandle != nullptr){
-				vTaskDelete(_taskHandle);
-				_taskHandle = nullptr;
+	inline void start() {
+		xTaskCreate([](void* arg) {
+			BootSplashDrawer* drawer = static_cast<BootSplashDrawer*>(arg);
+			for(;;){
+				vTaskDelay(pdMS_TO_TICKS(33));
+				drawer->draw();
 			}
+			vTaskDelete(nullptr);
+		}, "bootSplash", 4096, this, 1, &_taskHandle);
+	}
+
+	inline void stop() {
+		if(_taskHandle != nullptr){
+			vTaskDelete(_taskHandle);
+			_taskHandle = nullptr;
 		}
+		
+		_display->clearBuffer();
+		_display->sendBuffer();
+	}
 	
 	inline void draw() override {
 		// Clear display with black background

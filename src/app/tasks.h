@@ -22,7 +22,7 @@ struct BackgroundTask {
 };
 
 extern TaskHandle_t taskMonitorerHandle;
-extern std::vector<BackgroundTask> tasks;
+extern std::vector<BackgroundTask*> tasks;
 extern QueueHandle_t audioQueue;
 
 void runTasks();

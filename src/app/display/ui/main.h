@@ -20,6 +20,7 @@ public:
 	}
 
 	void draw() override {
+		_display->clearBuffer();
 		_display->setFontMode(1);
 		_display->setContrast(180);  // Higher contrast for better visibility
 
@@ -99,6 +100,7 @@ public:
 		int ipX = 2 + (124 - ipWidth) / 2;  // Center within the 124px wide frame (starts at x=2)
 		_display->setCursor(ipX, 50);
 		_display->printf("%s", ipText.c_str());
+		_display->sendBuffer();
 	}
 
 private:

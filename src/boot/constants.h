@@ -29,6 +29,10 @@ static const char* NOTIFICATION_RECORD = "record";
 static const char* NOTIFICATION_COMMAND = "command";
 
 // Display Events
-static const char* EVENT_DISPLAY_WAKEWORD = "display_wakeword";
+enum EVENT_DISPLAY {
+    EDISPLAY_NONE = 0,
+    EDISPLAY_WAKEWORD,
+    EDISPLAY_MAX
+};
 
 #endif
