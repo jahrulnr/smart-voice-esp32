@@ -44,18 +44,24 @@ public:
 		_display->drawFrame(2, 18, 60, 20);
 
 		// Weather icon (17x16) - dynamic based on weather
-		const unsigned char* weatherIcon = icon16::weather_sun; // default sunny
+		const unsigned char* weatherIcon;
 		String weatherDesc = _data.description;
 		weatherDesc.toLowerCase();
 		
 		if (weatherDesc.indexOf("hujan") >= 0 || weatherDesc.indexOf("rain") >= 0 || weatherDesc.indexOf("shower") >= 0) {
-			weatherIcon = icon16::weather_cloud_rain;
+			weatherIcon = animateRain();
+			_display->drawXBM(6, 20, 17, 16, weatherIcon);
 		} else if (weatherDesc.indexOf("thunder") >= 0 || weatherDesc.indexOf("storm") >= 0 || weatherDesc.indexOf("lightning") >= 0) {
-			weatherIcon = icon16::weather_cloud_lightning;
+			weatherIcon = animateCloudLightning();
+			_display->drawXBM(6, 20, 17, 16, weatherIcon);
 		} else if (weatherDesc.indexOf("berawan") >= 0 || weatherDesc.indexOf("cloud") >= 0) {
-			weatherIcon = icon16::weather_cloud_sunny;
-		}
+			weatherIcon = animateCloudSunny();
+			_display->drawXBM(6, 20, 17, 16, weatherIcon);
+		} else {
 		// Default to weather_sun for "cerah" (clear/sunny) and other conditions
+			weatherIcon = animateSunny();
+			_display->drawXBM(6, 20, 16, 15, weatherIcon);
+		}
 		
 		_display->setBitmapMode(1);
 		_display->drawXBM(6, 20, 17, 16, weatherIcon);
@@ -107,6 +113,57 @@ public:
 private:
 	U8G2* _display;
 	weatherData_t _data;
+
+	const unsigned char* animateRain() {
+		vTaskDelay(pdMS_TO_TICKS(300));
+		static int frame = 0;
+		if (frame > 3) frame = 0;
+		switch (frame++) {
+			case 0: return icon16::weather_cloud_rain0;
+			case 1: return icon16::weather_cloud_rain1;
+			case 2: return icon16::weather_cloud_rain2;
+			case 3: return icon16::weather_cloud_rain3;
+			default: return icon16::weather_cloud_rain0;
+		}
+	}
+
+	const unsigned char* animateCloudSunny() {
+		vTaskDelay(pdMS_TO_TICKS(300));
+		static int frame = 0;
+		if (frame > 2) frame = 0;
+		switch (frame++) {
+			case 0: return icon16::weather_cloud_sunny0;
+			case 1: return icon16::weather_cloud_sunny1;
+			case 2: return icon16::weather_cloud_sunny2;
+			default: return icon16::weather_cloud_rain0;
+		}
+	}
+
+	const unsigned char* animateCloudLightning() {
+		vTaskDelay(pdMS_TO_TICKS(250));
+		static int frame = 0;
+		if (frame > 5) frame = 0;
+		switch (frame++) {
+			case 0: return icon16::weather_cloud_rain0;
+			case 1: return icon16::weather_cloud_rain1;
+			case 2: return icon16::weather_cloud_rain2;
+			case 3: return icon16::weather_cloud_rain3;
+			case 4: return icon16::weather_cloud_lightning0;
+			case 5: return icon16::weather_cloud_lightning1;
+			default: return icon16::weather_cloud_rain0;
+		}
+	}
+
+	const unsigned char* animateSunny() {
+		vTaskDelay(pdMS_TO_TICKS(300));
+		static int frame = 0;
+		if (frame > 1) frame = 0;
+		switch (frame++) {
+			case 0: return icon16::weather_sun0;
+			case 1: return icon16::weather_sun1;
+			default: return icon16::weather_sun0;
+		}
+	}
 };
 
 #endif // MAIN_STATUS_DRAWER_H
