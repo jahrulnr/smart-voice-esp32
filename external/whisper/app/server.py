@@ -1,6 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.responses import JSONResponse
-import whisper
+from faster_whisper import WhisperModel
+import torch 
 import tempfile
 import os
 
@@ -12,18 +13,20 @@ import os
 #   --form model=gpt-4o-transcribe
 
 app = FastAPI(title="Whisper API", version="1.0.0")
+device = "cuda" if torch.cuda.is_available() else "cpu"
+compute_type = "float16" if torch.cuda.is_available() else "int8"
 
-# Load model once at startup
-# models: tiny, base, small, medium, large, turbo
-model = whisper.load_model("tiny")
+# For TensorRT: Install nvidia-tensorrt and set backend="tensorrt" in WhisperModel
+# Available models: tiny, base, small, medium, large-v2, large-v3
+model = WhisperModel("base", device, compute_type=compute_type)  
 
 @app.post("/transcribe")
 async def transcribe_audio(
     file: UploadFile = File(...),
     language: str = Form(None)  # Optional: "id", "en", etc.
 ):
-    if not file.filename.lower().endswith(('.mp3', '.wav', '.m4a', '.flac')):
-        raise HTTPException(400, "Unsupported file type. Supported: .mp3, .wav, .m4a, .flac")
+    if not file.filename.lower().endswith(('.mp3', '.wav', '.m4a', '.flac', '.mp4', '.ogg')):
+        raise HTTPException(400, "Unsupported file type. Supported: .mp3, .wav, .m4a, .flac, .mp4, .ogg")
 
     # Save temp file
     with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
@@ -31,26 +34,21 @@ async def transcribe_audio(
         tmp_path = tmp.name
 
     try:
-        # Load and process audio
-        audio = whisper.load_audio(tmp_path)
-        audio = whisper.pad_or_trim(audio)
-        mel = whisper.log_mel_spectrogram(audio, n_mels=model.dims.n_mels).to(model.device)
+        # Transcribe using faster-whisper (TensorRT optimized)
+        segments, info = model.transcribe(
+            tmp_path,
+            language=language,  # None for auto-detection
+            beam_size=5,
+            vad_filter=True,  # Voice activity detection
+            vad_parameters=dict(threshold=0.5, min_speech_duration_ms=250)
+        )
 
-        # Handle language
-        if language:
-            detected_lang = language
-            options = whisper.DecodingOptions(language=language)
-        else:
-            _, probs = model.detect_language(mel)
-            detected_lang = max(probs, key=probs.get)
-            options = whisper.DecodingOptions()
-
-        # Decode
-        result = whisper.decode(model, mel, options)
+        # Combine all segments into full text
+        full_text = " ".join([segment.text for segment in segments])
 
         return JSONResponse({
-            "language": detected_lang,
-            "text": result.text
+            "language": info.language,
+            "text": full_text.strip()
         })
     finally:
         os.unlink(tmp_path)

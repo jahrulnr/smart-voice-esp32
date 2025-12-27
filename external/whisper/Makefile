@@ -15,7 +15,7 @@ save:
 run: build-${platform}
 	@make stop || true
 	docker run --name ${imagename} --network mqttui_default \
-	-d -p 8000:8000 --name whisper --gpus all  \
+	-d -p 8000:8000 --name whisper  \
 	--restart unless-stopped \
 	${imagename}:${platform}64
 
@@ -26,5 +26,5 @@ test:
 	curl -X POST "http://localhost:8000/transcribe" \
 		-H "accept: application/json" \
 		-H "Content-Type: multipart/form-data" \
-		-F "file=@sample/audio.mp3" \
-		-F "language=id"
+		-F "language=id" \
+		-F "file=@sample/audio.mp3"

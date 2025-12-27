@@ -5,7 +5,8 @@ ENV uvInstall="uv ${pipInstall}"
 RUN apt update; apt install ffmpeg curl -y; \
 	${pipInstall} -U uv --root-user-action ignore; \
 	${uvInstall} torch --index-url https://download.pytorch.org/whl/cpu --system; \
-	${uvInstall} openai-whisper fastapi uvicorn[standard] python-multipart --system; \
+	# ${uvInstall} torch --system; \
+	${uvInstall} faster-whisper fastapi uvicorn[standard] python-multipart --system; \
 	rm -rf /var/cache/apt/archives /var/lib/apt/lists/*; \
 	apt-get clean; pip cache purge;
 
