@@ -17,12 +17,13 @@ void setupApp(){
 
 	BootSplashDrawer bootScreen(display);
 	bootScreen.start();
+	button.begin(BUTTON_PIN);
+	ai.init(GPT_API_KEY);
 	delay(1000);
 
 	setupMicrophone();
 	setupSpeaker();
 	setupSpeechRecognition();
-	button.begin(BUTTON_PIN);
 
 	delay(1);
 	tts.begin();

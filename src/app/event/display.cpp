@@ -1,12 +1,12 @@
-#include "app/callback_list.h"
+#include "app/events.h"
 #include <app/display/ui/screensaver.h>
 #include <app/display/ui/main.h>
 #include <app/display/ui/wifi.h>
 #include <app/display/ui/face.h>
 #include <app/display/ui/record.h>
 
-void displayCallback() {
-	const char* TAG = "displayCallback";
+void displayEvent() {
+	const char* TAG = "displayEvent";
 	static EVENT_DISPLAY lastDisplayEvent = EDISPLAY_NONE;
 	static ScreenSaverDrawer screenSaverDisplay = ScreenSaverDrawer(display);
 	static MainStatusDrawer mainDisplay = MainStatusDrawer(display);

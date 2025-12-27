@@ -18,9 +18,8 @@ void mainTask(void *param) {
 
 		if(getAfeState() == VAD_SPEECH) {
 			int16_t* lastSample = microphone->getCache().lastSample;
-			ESP_LOGI(TAG, "Speech level: %d, Last detected: %dms, Last sample: [%d, %d, %d, %d, %d]", 
-				microphone->level(), millis() - getLastSpeech(), 
-				lastSample[0], lastSample[1], lastSample[2], lastSample[3], lastSample[4]);
+			ESP_LOGI(TAG, "Speech level: %d, Last detected: %dms", 
+				microphone->level(), millis() - getLastSpeech());
 			if(!record) notification->send(NOTIFICATION_RECORD, 0);
 			record = true;
 		} else {
@@ -55,12 +54,13 @@ void mainTask(void *param) {
 				speakCmd += "It is time for the Isya prayer.";
 			}
 
-			tts.speak(speakCmd.c_str());
+			// tts.speak(speakCmd.c_str());
+			ai.sendPrompt("Tell this, but as a expresif girl (max 100 char): " +speakCmd, aiCallback);
 			updateActivity();
 		}
 
 		// handle display
-		displayCallback();
+		displayEvent();
 		// update button
 		button.update();
 

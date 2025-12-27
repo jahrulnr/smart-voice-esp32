@@ -98,12 +98,14 @@ public:
 			break;
 		}
 
-		if (lastSampleLen > 0) {
+		if (lastSampleLen > 0 && lastSampleLen <= 16000) {
 			delete[] lastSample;
+			lastSample = nullptr;
 			lastSampleLen = 0;
 			lastSampleTime = 0;
 		}
 
+		if (*bytes_read == 0 || len > 16000) return ret;
 		lastSample = (int16_t*) heap_caps_malloc(len, MALLOC_CAP_SPIRAM);
 		if (lastSample) {
 			memcpy(lastSample, out, len);
@@ -131,7 +133,7 @@ public:
 		return 0;
 	}
 
-	inline Cache getCache() {
+	inline Cache getCache() const {
 		return Cache{lastSample, lastSampleLen, lastSampleTime};
 	}
 

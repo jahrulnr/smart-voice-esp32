@@ -2,7 +2,6 @@
 
 #include <WiFi.h>
 #include <Preferences.h>
-#include <app_config.h>
 
 /**
  * WiFi Manager class for ESP32

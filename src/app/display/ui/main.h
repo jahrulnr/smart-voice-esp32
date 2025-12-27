@@ -4,8 +4,8 @@
 #include "../interface.h"
 #include "../icons.h"
 #include <core/time.h>
-#include "app/network/WiFiManager.h"
-#include "app/network/WeatherService.h"
+#include <WiFiManager.h>
+#include <app/network/WeatherService.h>
 
 class MainStatusDrawer : public DisplayDrawer {
 public:

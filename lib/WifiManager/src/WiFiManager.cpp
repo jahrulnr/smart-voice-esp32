@@ -251,7 +251,7 @@ void WifiManager::startHotspot() {
     if (apMode) return;
 
     ESP_LOGI("WIFI", "Starting AP hotspot");
-    WiFi.softAP(HOTSPOT_SSID, HOTSPOT_PASS);
+    WiFi.softAP("PioAssistant", "tes12345");
     apMode = true;
 
     ESP_LOGI("WIFI", "Hotspot started. Connect to ESP32-Config and visit %s", WiFi.softAPIP().toString().c_str());
