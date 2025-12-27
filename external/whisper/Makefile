@@ -15,7 +15,7 @@ save:
 run: build-${platform}
 	@make stop || true
 	docker run --name ${imagename} --network mqttui_default \
-	-d -p 8000:8000 --name whisper \
+	-d -p 8000:8000 --name whisper --gpus all  \
 	--restart unless-stopped \
 	${imagename}:${platform}64
 

@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"app/internal/application"
 	"app/internal/infrastructure"
@@ -27,6 +28,23 @@ func main() {
 	// Wire up the application
 	messageHandler := application.NewMessageHandler(audioAssembler, audioProcessor)
 	mqttClient.SetMessageHandler(messageHandler)
+
+	// Start cleanup goroutine to handle timed-out streams
+	go func() {
+		ticker := time.NewTicker(10 * time.Second) // Check every 10 seconds
+		defer ticker.Stop()
+		for range ticker.C {
+			completedStreams := audioAssembler.Cleanup()
+			for _, stream := range completedStreams {
+				log.Printf("Cleaned up timed-out stream %d (%.2f seconds)",
+					stream.SessionID, stream.GetDuration())
+				// Process the timed-out stream
+				if err := audioProcessor.ProcessAudio(stream); err != nil {
+					log.Printf("Failed to process timed-out audio stream %d: %v", stream.SessionID, err)
+				}
+			}
+		}
+	}()
 
 	// Start the consumer
 	if err := mqttClient.Connect(); err != nil {

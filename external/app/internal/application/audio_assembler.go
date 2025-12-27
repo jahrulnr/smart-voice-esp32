@@ -43,3 +43,19 @@ func (aa *AudioAssembler) AssembleChunk(sessionID uint32, chunk *domain.AudioChu
 
 	return nil, nil // Not complete yet
 }
+
+// Cleanup removes and returns completed streams (including timed-out ones)
+func (aa *AudioAssembler) Cleanup() []*domain.AudioStream {
+	aa.mu.Lock()
+	defer aa.mu.Unlock()
+
+	var completedStreams []*domain.AudioStream
+	for sessionID, stream := range aa.streams {
+		if stream.IsComplete() {
+			completedStreams = append(completedStreams, stream)
+			delete(aa.streams, sessionID)
+		}
+	}
+
+	return completedStreams
+}

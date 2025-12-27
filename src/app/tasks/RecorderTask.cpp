@@ -70,13 +70,14 @@ void recorderTask(void* param) {
 		
 		int signal = notification->signal(NOTIFICATION_RECORD, 0);
 		if (signal == 0) {
-			ESP_LOGW(TAG, "status: ON");
-			ESP_LOGW(TAG, "status: ON, last index: %d", lastIndex);
+			ESP_LOGW(TAG, "status: ON, key: %d, last index: %d", lastKey, lastIndex);
 			streaming = true;
-			if (lastIndex == -1) {lastIndex = 0;}
+			if (lastIndex == -1) {
+				lastIndex = 0;
+			}
 		}
 		else if (signal == 1) {
-			ESP_LOGW(TAG, "status: OFF, last index: %d", lastIndex);
+			ESP_LOGW(TAG, "status: OFF, key: %d, last index: %d", lastKey, lastIndex);
 			streaming = false;
 			if(lastIndex != -1){
 				vTaskDelay(pdMS_TO_TICKS(5));

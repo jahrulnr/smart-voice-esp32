@@ -10,6 +10,7 @@ type MessageHandler interface {
 // AudioAssembler defines the interface for assembling audio chunks
 type AudioAssembler interface {
 	AssembleChunk(sessionID uint32, chunk *domain.AudioChunk) (*domain.AudioStream, error)
+	Cleanup() []*domain.AudioStream
 }
 
 // AudioProcessor defines the interface for processing complete audio streams

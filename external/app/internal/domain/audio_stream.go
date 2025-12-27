@@ -3,6 +3,7 @@ package domain
 import (
 	"bytes"
 	"fmt"
+	"time"
 )
 
 // AudioChunk represents a chunk of audio data with metadata
@@ -15,24 +16,27 @@ type AudioChunk struct {
 
 // AudioStream represents a complete audio stream session
 type AudioStream struct {
-	SessionID uint32
-	Chunks    []*AudioChunk
-	buffer    *bytes.Buffer
-	Volume    float64
+	SessionID  uint32
+	Chunks     []*AudioChunk
+	buffer     *bytes.Buffer
+	Volume     float64
+	LastUpdate time.Time
 }
 
 // NewAudioStream creates a new audio stream
 func NewAudioStream(sessionID uint32) *AudioStream {
 	return &AudioStream{
-		SessionID: sessionID,
-		Chunks:    make([]*AudioChunk, 0),
-		buffer:    &bytes.Buffer{},
-		Volume:    50.0,
+		SessionID:  sessionID,
+		Chunks:     make([]*AudioChunk, 0),
+		buffer:     &bytes.Buffer{},
+		Volume:     50.0,
+		LastUpdate: time.Now(),
 	}
 }
 
 // AddChunk adds a chunk to the stream
 func (as *AudioStream) AddChunk(chunk *AudioChunk) error {
+	as.LastUpdate = time.Now() // Update last update time
 	as.Chunks = append(as.Chunks, chunk)
 
 	if chunk.IsStart {
@@ -66,12 +70,14 @@ func (as *AudioStream) SetVolume(volume float64) {
 	as.Volume = volume
 }
 
-// IsComplete checks if the stream has received start and end markers
+// IsComplete checks if the stream has received start and end markers or 5 seconds have passed since last update
 func (as *AudioStream) IsComplete() bool {
 	if len(as.Chunks) == 0 {
 		return false
 	}
-	return as.Chunks[0].IsStart && as.Chunks[len(as.Chunks)-1].IsEnd
+	hasStartAndEnd := as.Chunks[0].IsStart && (as.Chunks[len(as.Chunks)-1].IsEnd)
+	timeoutExceeded := time.Since(as.LastUpdate) > 5*time.Second
+	return hasStartAndEnd || timeoutExceeded
 }
 
 // GetAudioData returns the assembled audio data
