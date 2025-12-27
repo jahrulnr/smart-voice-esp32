@@ -13,7 +13,7 @@ save:
 	docker save ${imagename} | gzip > ${imagename}.tar.gz
 
 run: build-${platform}
-	@make stop
+	@make stop || true
 	docker run --name ${imagename} --network mqttui_default \
 	-d -p 8000:8000 --name whisper \
 	--restart unless-stopped \

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <core/activity.h>
 #include <Wire.h>
 #include "app_config.h"
 #include "constants.h"
@@ -14,6 +15,7 @@
 #include "csr.h"
 #include "app/network/WiFiManager.h"
 #include "app/network/WeatherService.h"
+#include <app/button/button.h>
 #include <PubSubClient.h>
 
 extern Notification* notification;

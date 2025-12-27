@@ -1,4 +1,5 @@
 #include "app/callback_list.h"
+#include <app/display/ui/screensaver.h>
 #include <app/display/ui/main.h>
 #include <app/display/ui/wifi.h>
 #include <app/display/ui/face.h>
@@ -7,6 +8,7 @@
 void displayCallback() {
 	const char* TAG = "displayCallback";
 	static EVENT_DISPLAY lastDisplayEvent = EDISPLAY_NONE;
+	static ScreenSaverDrawer screenSaverDisplay = ScreenSaverDrawer(display);
 	static MainStatusDrawer mainDisplay = MainStatusDrawer(display);
 	static WifiDrawer wifiDisplay = WifiDrawer(display);
 	static FaceDrawer faceDisplay = FaceDrawer(display);
@@ -25,10 +27,20 @@ void displayCallback() {
 		if (event != lastDisplayEvent) {
 			lastDisplayEvent = event;
 		}
+		if (event != EDISPLAY_SLEEP) {
+			updateActivity();
+		}
+	}
+
+	if (lastDisplayEvent == EDISPLAY_SLEEP && millis() - getLastActivity() <= 60000) {
+		lastDisplayEvent = EDISPLAY_NONE;
 	}
 
 	// Update Display
 	switch (lastDisplayEvent) {
+		case EDISPLAY_SLEEP:
+			screenSaverDisplay.draw();
+			break;
 		case EDISPLAY_WAKEWORD:
 			{
 				vad_state_t vadState = getAfeState();

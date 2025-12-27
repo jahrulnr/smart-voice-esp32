@@ -76,6 +76,15 @@ void networkTask(void *param) {
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
 		notification->send(TAG, 1);
+		
+		if (xQueueReceive(audioQueue, &audioSamples, 10) == pdTRUE) {
+			if (audioSamples.data != nullptr && audioSamples.length > 0){
+				mqttClient.publish(audioSamples.key, audioSamples.data, audioSamples.length);
+				delete[] audioSamples.data;
+				audioSamples.data = nullptr;
+			}
+			continue;
+		}
 
 		if(notification->hasSignal("WiFi check") && notification->signal("WiFi check") == 1){
 			ESP_LOGI(TAG, "Wifi Status: %s", wifiStatus());
@@ -137,14 +146,6 @@ void networkTask(void *param) {
 		
 		if (wifiManager.isConnected()) {
 			ftpServer.handleFTP();
-
-			if (xQueueReceive(audioQueue, &audioSamples, 10) == pdTRUE) {
-				if (audioSamples.data != nullptr && audioSamples.length > 0){
-					mqttClient.publish(audioSamples.topic, audioSamples.data, audioSamples.length);
-					delete[] audioSamples.data;
-					audioSamples.data = nullptr;
-				}
-			}
 
 			// handle loop
 			try {

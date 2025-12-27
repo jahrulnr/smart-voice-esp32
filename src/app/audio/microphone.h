@@ -31,6 +31,12 @@ public:
 		}
 	}
 
+	struct Cache {
+		int16_t *lastSample = nullptr;
+		size_t lastSampleLen = 0;
+		unsigned long lastSampleTime = 0;
+	};
+
 	inline void init() {
 		switch (this->micType) {
 		case MIC_ANALOG:
@@ -54,6 +60,7 @@ public:
 	}
 
 	inline esp_err_t read(void *out, size_t len, size_t *bytes_read, uint32_t timeout_ms){
+		esp_err_t ret = ESP_OK;
 		switch (this->micType) {
 		case MIC_ANALOG: {
 			// Calculate how many 16-bit samples we need
@@ -67,28 +74,44 @@ public:
 					timeout_ms);
 			}
 
-			if (samples_read > 0) {
-					*bytes_read = samples_read * sizeof(int16_t);
-					return ESP_OK;
+			if (samples_read == 0) {
+				*bytes_read = 0;
+				ret = ESP_FAIL;
+				break;
 			}
 
-			*bytes_read = 0;
+			*bytes_read = samples_read * sizeof(int16_t);
 			break;
 		}
 		case MIC_I2S:
 			if (imic && imic->isActive()) {
-				return imic->readAudioData(
+				ret = imic->readAudioData(
 					out,
 					len,
 					bytes_read,
 					timeout_ms
 				);
+				break;
 			}
 
+			ret = ESP_FAIL;
 			break;
 		}
 
-		return ESP_FAIL;
+		if (lastSampleLen > 0) {
+			delete[] lastSample;
+			lastSampleLen = 0;
+			lastSampleTime = 0;
+		}
+
+		lastSample = (int16_t*) heap_caps_malloc(len, MALLOC_CAP_SPIRAM);
+		if (lastSample) {
+			memcpy(lastSample, out, len);
+			lastSampleLen = len;
+			lastSampleTime = millis();
+		}
+
+		return ret;
 	};
 
 	inline int level() {
@@ -106,13 +129,19 @@ public:
 		}
 
 		return 0;
+	}
 
+	inline Cache getCache() {
+		return Cache{lastSample, lastSampleLen, lastSampleTime};
 	}
 
 private:
 	MIC_HW micType;
 	I2SMicrophone* imic;
 	AnalogMicrophone* amic;
+	int16_t* lastSample;
+	size_t lastSampleLen;
+	unsigned long lastSampleTime;
 };
 
 extern Microphone* microphone;

@@ -23,6 +23,8 @@ void setup() {
   #if BOARD_HAS_PSRAM
   heap_caps_malloc_extmem_enable(4096);
   #endif
+
+  updateActivity();
 }
 
 void loop() {

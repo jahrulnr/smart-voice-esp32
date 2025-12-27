@@ -6,6 +6,7 @@ const esp_afe_sr_iface_t *afe_handle;
 esp_afe_sr_data_t *afe_data;
 int16_t *afe_in_buffer;
 vad_state_t afe_state = VAD_SILENCE;
+unsigned long afe_last_speech = 0;
 
 srmodel_list_t* getModels() {
 	if (models)
@@ -59,9 +60,17 @@ void feedAfe(int16_t *audio_buffer) {
 
 afe_fetch_result_t* fetchAfe() {
 	afe_fetch_result_t *result = getAfeHandle()->fetch(getAfeData());
-	if (result && result->ret_value != ESP_FAIL)
+	if (result && result->ret_value != ESP_FAIL){
 		afe_state = result->vad_state;
+		if (afe_state == VAD_SPEECH) {
+			afe_last_speech = millis();
+		};
+	}
 	return result;
+}
+
+unsigned long getLastSpeech() {
+	return afe_last_speech;
 }
 
 vad_state_t getAfeState() {

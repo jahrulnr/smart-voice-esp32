@@ -10,15 +10,8 @@
 class MainStatusDrawer : public DisplayDrawer {
 public:
 	MainStatusDrawer(U8G2* display = nullptr): 
-		_display(display), 
-		_data(weatherData_t{}){}
+		_display(display){}
 	~MainStatusDrawer() override {}
-
-	void updateData(weatherData_t* data) {
-		if (!data) return;
-		_data = *data;
-		delete data;
-	}
 
 	void draw() override {
 		_display->clearBuffer();
@@ -58,7 +51,7 @@ public:
 			weatherIcon = animateCloudSunny();
 			_display->drawXBM(6, 20, 17, 16, weatherIcon);
 		} else {
-		// Default to weather_sun for "cerah" (clear/sunny) and other conditions
+		// Default to sun for "cerah" (clear/sunny) and other conditions
 			weatherIcon = animateSunny();
 			_display->drawXBM(6, 20, 16, 15, weatherIcon);
 		}
@@ -112,58 +105,6 @@ public:
 
 private:
 	U8G2* _display;
-	weatherData_t _data;
-
-	const unsigned char* animateRain() {
-		vTaskDelay(pdMS_TO_TICKS(300));
-		static int frame = 0;
-		if (frame > 3) frame = 0;
-		switch (frame++) {
-			case 0: return icon16::weather_cloud_rain0;
-			case 1: return icon16::weather_cloud_rain1;
-			case 2: return icon16::weather_cloud_rain2;
-			case 3: return icon16::weather_cloud_rain3;
-			default: return icon16::weather_cloud_rain0;
-		}
-	}
-
-	const unsigned char* animateCloudSunny() {
-		vTaskDelay(pdMS_TO_TICKS(300));
-		static int frame = 0;
-		if (frame > 2) frame = 0;
-		switch (frame++) {
-			case 0: return icon16::weather_cloud_sunny0;
-			case 1: return icon16::weather_cloud_sunny1;
-			case 2: return icon16::weather_cloud_sunny2;
-			default: return icon16::weather_cloud_rain0;
-		}
-	}
-
-	const unsigned char* animateCloudLightning() {
-		vTaskDelay(pdMS_TO_TICKS(250));
-		static int frame = 0;
-		if (frame > 5) frame = 0;
-		switch (frame++) {
-			case 0: return icon16::weather_cloud_rain0;
-			case 1: return icon16::weather_cloud_rain1;
-			case 2: return icon16::weather_cloud_rain2;
-			case 3: return icon16::weather_cloud_rain3;
-			case 4: return icon16::weather_cloud_lightning0;
-			case 5: return icon16::weather_cloud_lightning1;
-			default: return icon16::weather_cloud_rain0;
-		}
-	}
-
-	const unsigned char* animateSunny() {
-		vTaskDelay(pdMS_TO_TICKS(300));
-		static int frame = 0;
-		if (frame > 1) frame = 0;
-		switch (frame++) {
-			case 0: return icon16::weather_sun0;
-			case 1: return icon16::weather_sun1;
-			default: return icon16::weather_sun0;
-		}
-	}
 };
 
 #endif // MAIN_STATUS_DRAWER_H

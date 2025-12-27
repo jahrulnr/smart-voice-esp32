@@ -5,7 +5,7 @@ std::vector<BackgroundTask*> tasks;
 QueueHandle_t audioQueue = nullptr;
 
 void runTasks(){
-	audioQueue = xQueueCreateWithCaps(5, sizeof(AudioSamples), MALLOC_CAP_SPIRAM);
+	audioQueue = xQueueCreateWithCaps(20, sizeof(AudioSamples), MALLOC_CAP_SPIRAM);
 
 	tasks.push_back(new BackgroundTask{
 		.name = "mainTask",
@@ -22,7 +22,7 @@ void runTasks(){
 		.task = networkTask,
 		.stack = 1024 * 8,
 		.core = 0,
-		.priority = 1,
+		.priority = 6,
 		.caps = MALLOC_CAP_INTERNAL
 	});
 	tasks.push_back(new BackgroundTask{

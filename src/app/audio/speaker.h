@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <app_config.h>
 #include "I2SSpeaker.h"
+#include "note.h"
+#include "music/music.h"
 
 /**
  * Speaker class for handling I2S audio output

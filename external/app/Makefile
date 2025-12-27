@@ -41,7 +41,7 @@ docker-build:
 	docker build -t golang-mqtt-consumer .
 
 run: docker-build
-	@make stop
+	@make stop || true
 	docker run --restart unless-stopped --network mqttui_default -d \
 		--name golang_consumer \
 		-e MQTT_BROKER=tcp://mosquitto:1883 \

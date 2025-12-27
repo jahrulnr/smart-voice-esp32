@@ -6,7 +6,7 @@
 #define HOTSPOT_PASS "tes12345"
 #define FTP_USER "pio"
 #define FTP_PASS "tes12345"
-#define MQTT_SERVER "192.168.18.250"
+#define MQTT_SERVER "192.168.18.81"
 #define MQTT_PORT 1883
 #define MQTT_USER ""
 #define MQTT_PASS ""
@@ -16,6 +16,8 @@
 
 #define SCL_PIN 3
 #define SDA_PIN 46
+// #define BUTTON_PIN 0
+#define BUTTON_PIN 20
 
 // set to analog or i2s microphone
 // #define MIC_TYPE MIC_TYPE_ANALOG

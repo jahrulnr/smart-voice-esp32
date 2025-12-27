@@ -4,6 +4,7 @@
 Notification *notification = nullptr;
 Microphone* microphone = nullptr;
 Speaker* speaker = nullptr;
+Button button;
 
 WifiManager wifiManager;
 PubSubClient mqttClient;
@@ -21,12 +22,14 @@ void setupApp(){
 	setupMicrophone();
 	setupSpeaker();
 	setupSpeechRecognition();
+	button.begin(BUTTON_PIN);
 
 	delay(1);
 	tts.begin();
 	tts.speak("Halo! Pio Assistant is ready!");
 
 	bootScreen.stop();
+	speaker->playTone(NOTE_A4, 100);
 }
 
 void setupNotification() {

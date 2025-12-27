@@ -1,4 +1,5 @@
 #include "app/callback_list.h"
+#include <core/time.h>
 
 // Event callback for SR system
 void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id) {
@@ -8,9 +9,11 @@ void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id)
 			if (notification) {
 				notification->send(NOTIFICATION_DISPLAY, (int)EDISPLAY_WAKEWORD);
 			}
+			log_i("📞 Listening for commands...");
+			tts.speak("Hi!");
+			vTaskDelay(pdMS_TO_TICKS(500));
 			// Switch to command listening mode
 			SR::set_mode(SR_MODE_COMMAND);
-			log_i("📞 Listening for commands...");
 			break;
 
 		case SR_EVENT_WAKEWORD_CHANNEL:
@@ -18,6 +21,7 @@ void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id)
 			if (notification) {
 				notification->send(NOTIFICATION_DISPLAY, (int)EDISPLAY_WAKEWORD);
 			}
+			vTaskDelay(pdMS_TO_TICKS(500));
 			SR::set_mode(SR_MODE_COMMAND);
 			break;
 
@@ -42,24 +46,28 @@ void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id)
 					if (notification) {
 						// notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_WAKEUP]);
 					}
+					tts.speak("Hi, I'm cozmo!");
 					break;
 				case CMD_TIME:
 					log_i("💡 Action: %s", voice_commands[CMD_TIME].str);
 					if (notification) {
 						// notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_TIME]);
 					}
+					tts.speak((String("Now is ") + timeManager.getCurrentTime()).c_str());
 					break;
 				case CMD_WEATHER:
 					log_i("💡 Action: %s", voice_commands[CMD_WEATHER].str);
 					if (notification) {
 						// notification->send(NOTIFICATION_DISPLAY, (void*)&voice_commands[CMD_WEATHER]);
 					}
+					tts.speak("The weather is coming soon!");
 					break;
 				case CMD_RECORD_AUDIO:
 					log_i("💡 Action: %s", voice_commands[CMD_RECORD_AUDIO].str);
 					if (notification) {
 						notification->send(NOTIFICATION_DISPLAY, (int)EDISPLAY_WAKEWORD);
 					}
+					speaker->playTone(NOTE_C4, 500);
 					break;
 				default:
 					log_i("❓ Unknown command ID: %d", command_id);
@@ -75,13 +83,14 @@ void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id)
 			}
 
 			// Return to wake word mode after command
-			SR::set_mode(SR_MODE_COMMAND);
+			vTaskDelay(pdMS_TO_TICKS(500));
 			log_i("🔄 Returning to command mode");
+			SR::set_mode(SR_MODE_COMMAND);
 			break;
 
 		case SR_EVENT_TIMEOUT:
 			notification->send(NOTIFICATION_DISPLAY, (int)EDISPLAY_NONE);
-			SR::set_mode(SR_MODE_COMMAND);
+			SR::set_mode(SR_MODE_WAKEWORD);
 			break;
 
 		default:
@@ -91,6 +100,7 @@ void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id)
 			log_i("      SR_EVENT_WAKEWORD_CHANNEL: Multi-channel wake word");
 			log_i("      SR_EVENT_COMMAND: Voice command detected");
 			log_i("      SR_EVENT_TIMEOUT: Command timeout occurred");
+			vTaskDelay(pdMS_TO_TICKS(500));
 			SR::set_mode(SR_MODE_COMMAND);
 			break;
 	}

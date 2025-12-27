@@ -7,10 +7,26 @@ void mainTask(void *param) {
   TickType_t updateFrequency = pdMS_TO_TICKS(33);
 	int lastHour = -1;
 
+	unsigned long time5 = millis();
+	unsigned long time10 = millis();
+	bool record = false;
+
 	ESP_LOGI(TAG, "Main task started");
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
 		notification->send(TAG, 1);
+
+		if(getAfeState() == VAD_SPEECH) {
+			int16_t* lastSample = microphone->getCache().lastSample;
+			ESP_LOGI(TAG, "Speech level: %d, Last detected: %dms, Last sample: [%d, %d, %d, %d, %d]", 
+				microphone->level(), millis() - getLastSpeech(), 
+				lastSample[0], lastSample[1], lastSample[2], lastSample[3], lastSample[4]);
+			if(!record) notification->send(NOTIFICATION_RECORD, 0);
+			record = true;
+		} else {
+			if (record) notification->send(NOTIFICATION_RECORD, 1);
+			record = false;
+		}
 
 		int hour = timeManager.getHour();
 		if (lastHour != hour && hour >= 0) {
@@ -40,10 +56,13 @@ void mainTask(void *param) {
 			}
 
 			tts.speak(speakCmd.c_str());
+			updateActivity();
 		}
 
 		// handle display
 		displayCallback();
+		// update button
+		button.update();
 
 		// Handle any notifications that might be relevant to SR
 		if (notification->has(NOTIFICATION_COMMAND)) {

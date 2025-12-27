@@ -26,6 +26,7 @@ const esp_afe_sr_iface_t *getAfeHandle();
 void feedAfe(int16_t *audio_buffer);
 afe_fetch_result_t* fetchAfe();
 vad_state_t getAfeState();
+unsigned long getLastSpeech();
 
 namespace SR {
 

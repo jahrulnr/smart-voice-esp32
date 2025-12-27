@@ -33,7 +33,7 @@ void networkTask(void *param);
 void recorderTask(void* param);
 
 struct AudioSamples {
-	const char* topic;
+	const char* key;
 	uint8_t* data;
 	size_t length;
 };

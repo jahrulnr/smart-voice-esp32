@@ -30,6 +30,11 @@ void taskMonitorer(void* param){
 		if (millis() - monitorTimer > monitorDelay) {
 			monitorTimer = millis();
 
+			if (millis() - getLastActivity() > 60000) {
+				notification->send(NOTIFICATION_DISPLAY, (int) EDISPLAY_SLEEP);
+				ESP_LOGI(TAG, "Display sleep triggered");
+			}
+
 			for(auto task: tasks) {
 				if (notification->hasSignal(task->name) && notification->signal(task->name) == 1) {
 					healtyCheck[task->name] = monitorTimer + monitorDelay;
@@ -50,17 +55,6 @@ void taskMonitorer(void* param){
 					}
 				}
 			}
-
-			// static int record = 0;
-			// if (record == 0) {
-			// 	record = 1;
-			// 	SR::resume();
-			// }
-			// else {
-			// 	record = 0;
-			// 	SR::pause();
-			// }
-			// notification->send(NOTIFICATION_RECORD, record);
 		}
 	}
 	while(1);

@@ -31,6 +31,7 @@ static const char* NOTIFICATION_COMMAND = "command";
 // Display Events
 enum EVENT_DISPLAY {
     EDISPLAY_NONE = 0,
+    EDISPLAY_SLEEP,
     EDISPLAY_WAKEWORD,
     EDISPLAY_WIFI,
     EDISPLAY_FACE,

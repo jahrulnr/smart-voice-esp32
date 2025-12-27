@@ -7,13 +7,6 @@ uint32_t generateKey(uint32_t uniqueId, int index) {
 }
 
 bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
-    // Don't send data chunks smaller than 2 bytes (1 sample) to avoid corrupted chunks
-    if (data != nullptr && dataSize < 2) {
-        ESP_LOGW("AudioStreamer", "Skipping small data chunk (%d bytes) for key %u", dataSize, key);
-        return true;
-    }
-
-    ESP_LOGD("AudioStreamer", "Publishing chunk with key %u, dataSize %d", key, dataSize);
     // Prepare payload: key + data
     size_t payloadSize = sizeof(uint32_t) + dataSize;
     uint8_t* payload = (uint8_t*)heap_caps_malloc(payloadSize, MALLOC_CAP_SPIRAM);
@@ -29,7 +22,7 @@ bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
 		BaseType_t result;
 		try {
 			AudioSamples audioSamples = {
-				.topic = MQTT_TOPIC_AUDIO,
+				.key = MQTT_TOPIC_AUDIO,
 				.data = payload,
 				.length = payloadSize
 			};
@@ -47,12 +40,7 @@ bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
 			ESP_LOGW("AudioStreamer", "Failed to send MQTT loop unknown error");
 		}
 
-    if (result != pdTRUE) {
-        return false;
-    }
-
-    ESP_LOGD("AudioStreamer", "Published chunk with key %u, size %d", key, payloadSize);
-    return true;
+    return result == pdTRUE;
 }
 
 void recorderTask(void* param) {
@@ -65,7 +53,8 @@ void recorderTask(void* param) {
 	uint32_t lastKey = millis();
 	uint32_t key;
 
-	size_t maxSamples = 8 * 1024;
+	// 1s = 16kHz; 
+	size_t maxSamples = 1024;
 	size_t samplesRead;
 	esp_err_t err = ESP_OK;
 
@@ -82,14 +71,19 @@ void recorderTask(void* param) {
 		int signal = notification->signal(NOTIFICATION_RECORD, 0);
 		if (signal == 0) {
 			ESP_LOGW(TAG, "status: ON");
+			ESP_LOGW(TAG, "status: ON, last index: %d", lastIndex);
 			streaming = true;
-			lastIndex = 0;
+			if (lastIndex == -1) {lastIndex = 0;}
 		}
 		else if (signal == 1) {
-			ESP_LOGW(TAG, "status: OFF");
+			ESP_LOGW(TAG, "status: OFF, last index: %d", lastIndex);
 			streaming = false;
-			lastIndex = -1;
-			goto publish;
+			if(lastIndex != -1){
+				vTaskDelay(pdMS_TO_TICKS(5));
+				lastIndex = -1;
+				goto publish;
+			}
+			goto unlock;
 		}
 		
 		if (!streaming) goto end;
@@ -109,12 +103,12 @@ void recorderTask(void* param) {
 		publish:
     key = generateKey(lastKey, lastIndex);
 		if (lastIndex != 0 && lastIndex != -1) {
-			samplesRead = 0;
-			err = microphone->read(readBuffer, maxSamples, &samplesRead, portMAX_DELAY);
-			if (err != ESP_OK || samplesRead == 0) {
-				ESP_LOGE(TAG, "Failed to read microphone samples");
-				goto unlock;
-			}
+			auto cache = microphone->getCache();
+			if (cache.lastSampleLen == 0 
+				|| cache.lastSampleTime <= lastUpdate 
+				|| cache.lastSampleTime == 0) goto unlock;
+			memcpy(readBuffer, cache.lastSample, cache.lastSampleLen);
+			lastUpdate = cache.lastSampleTime;
 			chunk = (uint8_t*)readBuffer;
 		} else {
 			chunk = nullptr;
@@ -130,6 +124,6 @@ void recorderTask(void* param) {
 		memset(readBuffer, 0, maxSamples);
 		xSemaphoreGive(lock);
 		end:
-		vTaskDelayUntil(&lastWakeTime, updateFrequency);
+		vTaskDelayUntil(&lastWakeTime, updateFrequency);		
   }
 }
