@@ -21,11 +21,13 @@ afe_config_t* getAfeConfig() {
 
 	// Load WakeWord Detection
   // https://docs.espressif.com/projects/esp-sr/en/latest/esp32/audio_front_end/migration_guide.html
-  afe_config = afe_config_init("M", models, AFE_TYPE_SR, AFE_MODE_LOW_COST);
+  afe_config = afe_config_init("M", models, AFE_TYPE_SR, AFE_MODE_HIGH_PERF);
   afe_config->wakenet_model_name = esp_srmodel_filter(models, ESP_WN_PREFIX, WAKEWORD_COMMAND);
-  afe_config->aec_init = false;
+  afe_config->aec_init = true;
+  afe_config->aec_mode = AEC_MODE_SR_HIGH_PERF;
   afe_config->se_init = true;
-  afe_config->vad_mode = VAD_MODE_2;
+  afe_config->vad_mode = VAD_MODE_1;
+	afe_config->fixed_first_channel = true;
   afe_config->memory_alloc_mode = AFE_MEMORY_ALLOC_MORE_PSRAM;
   afe_config = afe_config_check(afe_config);
   afe_config_print(afe_config);

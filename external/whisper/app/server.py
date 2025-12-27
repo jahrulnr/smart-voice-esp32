@@ -18,7 +18,10 @@ compute_type = "float16" if torch.cuda.is_available() else "int8"
 
 # For TensorRT: Install nvidia-tensorrt and set backend="tensorrt" in WhisperModel
 # Available models: tiny, base, small, medium, large-v2, large-v3
-model = WhisperModel("base", device, compute_type=compute_type)  
+try:
+    model = WhisperModel("small", device, compute_type=compute_type)  
+except Exception as e:
+    raise  
 
 @app.post("/transcribe")
 async def transcribe_audio(
@@ -50,5 +53,7 @@ async def transcribe_audio(
             "language": info.language,
             "text": full_text.strip()
         })
+    except Exception as e:
+        raise HTTPException(500, f"Transcription failed: {str(e)}")
     finally:
         os.unlink(tmp_path)
