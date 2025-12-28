@@ -2,6 +2,8 @@ FROM python:3.13.11-slim-bookworm
 
 ENV pipInstall="pip install --no-cache-dir"
 ENV uvInstall="uv ${pipInstall}"
+ENV CUDA_VISIBLE_DEVICES=""
+ENV ORT_LOGGING_LEVEL=WARNING
 RUN apt update; apt install ffmpeg curl -y; \
 	${pipInstall} -U uv --root-user-action ignore; \
 	${uvInstall} torch --index-url https://download.pytorch.org/whl/cpu --system; \
