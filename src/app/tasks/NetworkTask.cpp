@@ -40,7 +40,6 @@ const char* wifiStatus() {
 void networkTask(void *param) {
 	const char* TAG = "networkTask";
 
-	TickType_t lastWakeTime = xTaskGetTickCount();
 	TickType_t updateFrequency = pdMS_TO_TICKS(1);
 	unsigned long monitorCheck = millis();
 	unsigned long timeCheck = 0;
@@ -75,7 +74,7 @@ void networkTask(void *param) {
 
 	ESP_LOGI(TAG, "Network task started");
 	while(1) {
-		vTaskDelayUntil(&lastWakeTime, updateFrequency);
+		vTaskDelay(updateFrequency);
 		notification->send(TAG, 1);
 
 		if (wifiManager.isConnected() && millis() - timeCheck > 30000){

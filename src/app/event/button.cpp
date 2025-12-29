@@ -2,6 +2,7 @@
 
 unsigned long lastPressed = 0;
 int triggerCount = 0;
+bool recording = false;
 
 void buttonEvent() {
 	button.update();
@@ -20,7 +21,10 @@ void buttonEvent() {
 
 	switch(triggerCount) {
 		case 1: 
-			aiStt.transcribeAudio("/audio.mp3", aiTranscriptionCallback);
+			// aiStt.transcribeAudio("/audio.mp3", aiTranscriptionCallback);
+			recording = !recording;
+			notification->send(NOTIFICATION_RECORD, recording ? 0 : 1);
+			ESP_LOGI("buttonEvent", "Recording: %s", recording ? "ON" : "OFF");
 		break;
 	}
 }

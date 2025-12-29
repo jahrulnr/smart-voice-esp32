@@ -5,5 +5,6 @@
 void timeEvent();
 void displayEvent();
 void buttonEvent();
-void recordEvent();
 void srEvent();
+
+void recordEvent(void *param);

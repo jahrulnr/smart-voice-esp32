@@ -21,7 +21,6 @@ void mainTask(void *param) {
 		timeEvent();
 		displayEvent();
 		buttonEvent();
-		recordEvent();
 		srEvent();
 	}
 

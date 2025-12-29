@@ -1,55 +1,77 @@
 #include <app/events.h>
 #include <app/tasks.h>
+#include <app/audio/wav.h>
 
+static size_t minFreeSpaceBytes = 1048576;
 AudioSamples audioSamples;
-typedef struct WAV_HEADER {
-  /* RIFF Chunk Descriptor */
-  uint8_t RIFF[4] = {'R', 'I', 'F', 'F'}; // RIFF Header Magic header
-  uint32_t ChunkSize;                     // RIFF Chunk Size
-  uint8_t WAVE[4] = {'W', 'A', 'V', 'E'}; // WAVE Header
-  /* "fmt" sub-chunk */
-  uint8_t fmt[4] = {'f', 'm', 't', ' '}; // FMT header
-  uint32_t Subchunk1Size = 16;           // Size of the fmt chunk
-  uint16_t AudioFormat = 1; // Audio format 1=PCM,6=mulaw,7=alaw,     257=IBM
-                            // Mu-Law, 258=IBM A-Law, 259=ADPCM
-  uint16_t NumOfChan = 1;   // Number of channels 1=Mono 2=Sterio
-  uint32_t SamplesPerSec = 16000;   // Sampling Frequency in Hz
-  uint32_t bytesPerSec = 16000 * 2; // bytes per second
-  uint16_t blockAlign = 2;          // 2=16-bit mono, 4=16-bit stereo
-  uint16_t bitsPerSample = 16;      // Number of bits per sample
-  /* "data" sub-chunk */
-  uint8_t Subchunk2ID[4] = {'d', 'a', 't', 'a'}; // "data"  string
-  uint32_t Subchunk2Size;                        // Sampled data length
-} wav_hdr;
+WavRecorder wavRecorder;
 
-void recordEvent() {
-	if (xQueueReceive(audioQueue, &audioSamples, 0) == pdTRUE) {
-		if (audioSamples.data != nullptr && audioSamples.length > 0){
-#if MQTT_ENABLE
-			mqttClient.publish(audioSamples.key, audioSamples.data, audioSamples.length);
-#else 
-			String audioName = String("/audio/rec_")+audioSamples.key+".wav";
-			if (!LittleFS.exists(audioName)) {
-				wav_hdr header;
-				header.ChunkSize = audioSamples.length + 36;
-				header.Subchunk2Size = audioSamples.length;
-				File audioFile = LittleFS.open(audioName, "w", true);
-				if (audioFile) {
-					audioFile.write((uint8_t*)&header, sizeof(header));
-					audioFile.write(audioSamples.data, audioSamples.length);
-					audioFile.close();
+void recordEvent(void *param) {
+	bool fileOpened = false;
+	// Check LittleFS free space
+	if (LittleFS.totalBytes() - LittleFS.usedBytes() < minFreeSpaceBytes) { // 1MB
+		File root = LittleFS.open("/audio/");
+		if (root && root.isDirectory()) {
+			File file = root.openNextFile();
+			while (file) {
+				String fileName = file.name();
+				if (fileName.endsWith(".wav")) {
+					LittleFS.remove("/audio/" + fileName);
 				}
+				file = root.openNextFile();
 			}
-			
-			File audioFile = LittleFS.open(audioName, "a", true);
-			if (audioFile) {
-				audioFile.seek(audioFile.size());
-				audioFile.write(audioSamples.data, audioSamples.length);
-				audioFile.close();
-			}
-#endif
-			delete[] audioSamples.data;
-			audioSamples.data = nullptr;
 		}
 	}
+
+	wavRecorder.init(LittleFS);
+	wavRecorder.setMinFreeSpace(minFreeSpaceBytes);
+	size_t initialFree = LittleFS.totalBytes() - LittleFS.usedBytes();
+	do {
+		if (xQueueReceive(audioQueue, &audioSamples, 100) == pdTRUE) {
+			if (!audioSamples.stream) {
+				if (fileOpened) {
+					wavRecorder.stop();
+					float duration = wavRecorder.info();
+					ESP_LOGI("WAV_HEADER", "Final Duration: %.2f seconds", duration);
+					fileOpened = false;
+				}
+				vTaskDelete(NULL);
+				break;
+			}
+
+			if (audioSamples.data != nullptr && audioSamples.length > 0){
+				// Check free space
+				if (wavRecorder.getRecordedBytes() + audioSamples.length > initialFree - minFreeSpaceBytes) { // Ensure at least 1MB free after this chunk
+					ESP_LOGW("LittleFS", "Free space low, skipping chunk to prevent overflow");
+					delete[] audioSamples.data;
+					audioSamples.data = nullptr;
+					// send notif to stop audio record
+					notification->send(NOTIFICATION_RECORD, 1);
+					continue;
+				}
+
+				if (audioSamples.stream) {
+#if MQTT_ENABLE
+					mqttClient.publish(audioSamples.key, audioSamples.data, audioSamples.length);
+#else 
+					String audioName = String("/audio/rec_")
+						+String(audioSamples.key)
+						+".wav";
+					if (!fileOpened) {
+						if (wavRecorder.start(audioName)) {
+							fileOpened = true;
+						}
+					}
+					
+					if (fileOpened) {
+						wavRecorder.processChunk(audioSamples.data, audioSamples.length);
+					}
+#endif
+				}
+				delete[] audioSamples.data;
+				audioSamples.data = nullptr;
+			}
+		}
+		vTaskDelay(1);
+	} while (true);
 }

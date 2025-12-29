@@ -7,6 +7,7 @@ uint32_t generateKey(uint32_t uniqueId, int index) {
 }
 
 bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
+#if MQTT_ENABLE
     // Prepare payload: key + data
     size_t payloadSize = sizeof(uint32_t) + dataSize;
     uint8_t* payload = (uint8_t*)heap_caps_malloc(payloadSize, MALLOC_CAP_SPIRAM);
@@ -17,6 +18,15 @@ bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
 
     memcpy(payload, &key, sizeof(uint32_t));
     if (data) memcpy(payload + sizeof(uint32_t), data, dataSize);
+#else 
+		if (!data) return pdTRUE;
+		uint8_t* payload = (uint8_t*)heap_caps_malloc(dataSize, MALLOC_CAP_SPIRAM);
+		if (!payload) {
+			ESP_LOGE("AudioStreamer", "Failed to allocate payload");
+			return false;
+		}
+		memcpy(payload, data, dataSize);
+#endif
 
     // Publish message for NetworkConsumer
 		BaseType_t result;
@@ -24,11 +34,14 @@ bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
 			AudioSamples audioSamples = {
 #if MQTT_ENABLE
 				.key = MQTT_TOPIC_AUDIO,
-#else 
-				.key = String(key).c_str(),
-#endif
 				.data = payload,
 				.length = payloadSize
+#else 
+				.key = String(key),
+				.data = payload,
+				.length = dataSize,
+				.stream = true
+#endif
 			};
 			result = xQueueSend(audioQueue, &audioSamples, 0);
 			if (result != pdTRUE) {
@@ -67,6 +80,7 @@ void recorderTask(void* param) {
 
 	bool streaming = false;
 	uint8_t* chunk = nullptr;
+	TaskHandle_t recordEventHandle = nullptr;
 
 	ESP_LOGI(TAG, "Recorder task started");
   while (true) {
@@ -74,21 +88,29 @@ void recorderTask(void* param) {
 		
 		int signal = notification->signal(NOTIFICATION_RECORD, 0);
 		if (signal == 0) {
-			ESP_LOGW(TAG, "status: ON, key: %d, last index: %d", lastKey, lastIndex);
 			streaming = true;
+			lastKey = millis();
 			lastIndex = 0;
+			ESP_LOGW(TAG, "status: ON, key: %d", lastKey);
+			xTaskCreatePinnedToCore(recordEvent, "recordEvent", 1024 * 4, nullptr, 0, &recordEventHandle, 1);
 		}
 		else if (signal == 1) {
 			ESP_LOGW(TAG, "status: OFF, key: %d, last index: %d", lastKey, lastIndex);
 			streaming = false;
 			vTaskDelay(pdMS_TO_TICKS(5));
 			lastIndex = -1;
-			goto publish;
+			AudioSamples audioSamples = {
+				.key = String(key),
+				.data = nullptr,
+				.length = 0,
+				.stream = false
+			};
+			xQueueSend(audioQueue, &audioSamples, portMAX_DELAY);
+			recordEventHandle = nullptr;
+			goto unlock;
 		}
 		
-		if (!streaming) goto end;
-
-    if (!microphone || !wifiManager.isConnected()) {
+		if (!streaming || !microphone || !wifiManager.isConnected()) {
       goto end;
     }
 
@@ -99,7 +121,11 @@ void recorderTask(void* param) {
 
     // Publish start
 		publish:
+#if MQTT_ENABLE
     key = generateKey(lastKey, lastIndex);
+#else
+		key = lastKey;
+#endif
 		if (lastIndex != 0 && lastIndex != -1) {
 			auto cache = microphone->getCache();
 			if (cache.lastSampleLen == 0 
