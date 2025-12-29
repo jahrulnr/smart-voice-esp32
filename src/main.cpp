@@ -24,7 +24,7 @@ void setup() {
   heap_caps_malloc_extmem_enable(0);
   #endif
 
-  updateActivity();
+  updateActivity(millis());
 }
 
 void loop() {

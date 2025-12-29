@@ -9,7 +9,7 @@ void buttonEvent() {
 
 	if (!button.isPressed()) return;
 
-	updateActivity();
+	updateActivity(millis());
 	if (millis() - lastPressed < 1000) {
 		++triggerCount;
 	} else {

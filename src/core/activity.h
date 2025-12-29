@@ -3,10 +3,10 @@
 
 static unsigned long lastActivity;
 
-inline void updateActivity() {
-  lastActivity = millis();
+inline void updateActivity(unsigned long time) {
+  lastActivity = time;
 }
 
-inline unsigned long getLastActivity() {
-	return lastActivity;
+inline unsigned long getLastActivity(unsigned long time) {
+	return time - lastActivity;
 }

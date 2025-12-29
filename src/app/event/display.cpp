@@ -28,11 +28,11 @@ void displayEvent() {
 			lastDisplayEvent = event;
 		}
 		if (event != EDISPLAY_SLEEP) {
-			updateActivity();
+			updateActivity(millis());
 		}
 	}
 
-	if (lastDisplayEvent == EDISPLAY_SLEEP && millis() - getLastActivity() <= 60000) {
+	if (lastDisplayEvent == EDISPLAY_SLEEP && getLastActivity(millis()) <= 60000) {
 		lastDisplayEvent = EDISPLAY_NONE;
 	}
 

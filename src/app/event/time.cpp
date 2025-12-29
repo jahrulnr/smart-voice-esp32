@@ -33,5 +33,5 @@ void timeEvent() {
 	} else {
 		ai.sendPrompt(String("Tell this time (max 100 char): ") +hour, aiCallback);
 	}
-	updateActivity();
+	updateActivity(millis());
 }
