@@ -19,6 +19,7 @@ struct BackgroundTask {
 	BaseType_t core;
 	UBaseType_t priority;
 	UBaseType_t caps;
+	bool suspendable;
 };
 
 extern TaskHandle_t taskMonitorerHandle;

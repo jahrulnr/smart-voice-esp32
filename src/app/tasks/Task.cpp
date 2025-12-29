@@ -1,7 +1,10 @@
 #include "app/tasks.h"
 #include <esp_log.h>
+#include <soc/rtc.h>
 
 void createTask(BackgroundTask* task);
+void resumeTasks();
+void pauseTasks();
 
 void taskMonitorer(void* param){
 	const char* TAG = "TaskMonitorer";
@@ -29,16 +32,23 @@ void taskMonitorer(void* param){
 
 		auto sysLastUpdate = sysActivity.lastUpdate(millis());
 		if (sysLastUpdate > 60000 && getCpuFrequencyMhz() != 80) {
+			pauseTasks();
 			// 240, 160, 120, 80
 			setCpuFrequencyMhz(80);
 			notification->send(NOTIFICATION_DISPLAY, (int) EDISPLAY_SLEEP);
 			ESP_LOGI(TAG, "Display sleep triggered, downclock cpu to %dMhz", getCpuFrequencyMhz());
 		} else if (sysLastUpdate <= 60000 && getCpuFrequencyMhz() != 240) {
 			setCpuFrequencyMhz(240);
+			resumeTasks();
 		}
 
 		if (millis() - monitorTimer > monitorDelay) {
 			monitorTimer = millis();
+
+			// skip when sleep mode
+			if (sysLastUpdate > 60000) {
+				continue;
+			}
 
 			for(auto task: tasks) {
 				if (notification->hasSignal(task->name) && notification->signal(task->name) == 1) {
@@ -76,4 +86,21 @@ void createTask(BackgroundTask* task){
 		task->core,
 		task->caps
 	);
+}
+
+
+void resumeTasks(){
+	for(auto task: tasks) {
+		if (task->suspendable && task->handle != nullptr) {
+			vTaskResume(task->handle);
+		}
+	}
+}
+
+void pauseTasks(){
+	for(auto task: tasks) {
+		if (task->suspendable && task->handle != nullptr) {
+			vTaskSuspend(task->handle);
+		}
+	}
 }

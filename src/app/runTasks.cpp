@@ -23,7 +23,8 @@ void runTasks(){
 		.stack = 1024 * 8,
 		.core = 1,
 		.priority = 1,
-		.caps = MALLOC_CAP_INTERNAL
+		.caps = MALLOC_CAP_INTERNAL,
+		.suspendable = true
 	});
 	tasks.push_back(new BackgroundTask{
 		.name = "recorderTask",
@@ -32,7 +33,8 @@ void runTasks(){
 		.stack = 1024 * 3,
 		.core = 1,
 		.priority = 5,
-		.caps = MALLOC_CAP_INTERNAL
+		.caps = MALLOC_CAP_INTERNAL,
+		.suspendable = true
 	});
 
 	vTaskDelay(100);
