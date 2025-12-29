@@ -15,6 +15,7 @@
 #include <tts.h>
 #include <stt.h>
 #include <core/activity.h>
+#include <core/time.h>
 #include <app/callbacks.h>
 #include <app/events.h>
 #include <app/audio/microphone.h>

@@ -3,10 +3,17 @@
 
 static unsigned long lastActivity;
 
-inline void updateActivity(unsigned long time) {
-  lastActivity = time;
-}
+class SystemActivity {
+public:
+	SystemActivity(): _timer(millis()) {}
+	inline void update(unsigned long time) {
+		_timer = time;
+	}
+	inline unsigned long lastUpdate(unsigned long time) {
+		return time - _timer;
+	}
+private:
+	unsigned long _timer;
+};
 
-inline unsigned long getLastActivity(unsigned long time) {
-	return time - lastActivity;
-}
+extern SystemActivity sysActivity;

@@ -1,11 +1,13 @@
 #include <Arduino.h>
 #include <core/wdt.h>
-#include <core/time.h>
 #include "core/nvs.h"
 #include "boot/init.h"
 #include "app/tasks.h"
 #include <LittleFS.h>
 #include <nvs_flash.h>
+
+SystemActivity sysActivity;
+TimeManager timeManager;
 
 void init(){
   esp_panic_handler_disable_timg_wdts();
@@ -24,7 +26,7 @@ void setup() {
   heap_caps_malloc_extmem_enable(0);
   #endif
 
-  updateActivity(millis());
+  sysActivity.update(millis());
 }
 
 void loop() {

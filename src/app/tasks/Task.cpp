@@ -30,7 +30,7 @@ void taskMonitorer(void* param){
 		if (millis() - monitorTimer > monitorDelay) {
 			monitorTimer = millis();
 
-			if (getLastActivity(millis()) > 60000) {
+			if (sysActivity.lastUpdate(millis()) > 60000) {
 				notification->send(NOTIFICATION_DISPLAY, (int) EDISPLAY_SLEEP);
 				ESP_LOGI(TAG, "Display sleep triggered");
 			}
