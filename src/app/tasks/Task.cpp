@@ -27,13 +27,19 @@ void taskMonitorer(void* param){
 		portYIELD_CORE(0);
 		portYIELD_CORE(1);
 
+		if (sysActivity.lastUpdate(millis()) > 60000) {
+			notification->send(NOTIFICATION_DISPLAY, (int) EDISPLAY_SLEEP);
+			ESP_LOGI(TAG, "Display sleep triggered");
+			// 240, 160, 120, 80
+			if (getCpuFrequencyMhz() != 80)
+				setCpuFrequencyMhz(80);
+		} else {
+			if (getCpuFrequencyMhz() != 240)
+				setCpuFrequencyMhz(240);
+		}
+
 		if (millis() - monitorTimer > monitorDelay) {
 			monitorTimer = millis();
-
-			if (sysActivity.lastUpdate(millis()) > 60000) {
-				notification->send(NOTIFICATION_DISPLAY, (int) EDISPLAY_SLEEP);
-				ESP_LOGI(TAG, "Display sleep triggered");
-			}
 
 			for(auto task: tasks) {
 				if (notification->hasSignal(task->name) && notification->signal(task->name) == 1) {
