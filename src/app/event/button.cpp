@@ -6,7 +6,8 @@ bool recording = false;
 void buttonEvent() {
 	button.update();
 
-	if (millis() - button.getLastTrigger() >= 1000) {
+	bool triggerTimeout = millis() - button.getLastTrigger() >= 1000;
+	if (triggerTimeout) {
 		switch(triggerCount) {
 			case 1:
 				break; 
@@ -25,6 +26,6 @@ void buttonEvent() {
 		}
 	}
 
-	if (!button.isPressed() || millis() - button.getLastTrigger() >= 1000) return;
+	if (!button.isPressed() || triggerTimeout) return;
 	++triggerCount;
 }
