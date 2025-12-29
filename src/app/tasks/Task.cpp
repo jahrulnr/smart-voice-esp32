@@ -32,7 +32,7 @@ void taskMonitorer(void* param){
 			// 240, 160, 120, 80
 			setCpuFrequencyMhz(80);
 			notification->send(NOTIFICATION_DISPLAY, (int) EDISPLAY_SLEEP);
-			ESP_LOGI(TAG, "Display sleep triggered, cpu clock: %d", getCpuFrequencyMhz());
+			ESP_LOGI(TAG, "Display sleep triggered, downclock cpu to %dMhz", getCpuFrequencyMhz());
 		} else if (sysLastUpdate <= 60000 && getCpuFrequencyMhz() != 240) {
 			setCpuFrequencyMhz(240);
 		}
