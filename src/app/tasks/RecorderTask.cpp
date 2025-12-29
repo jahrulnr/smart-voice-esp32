@@ -22,7 +22,11 @@ bool publishChunk(uint32_t key, const uint8_t* data, size_t dataSize) {
 		BaseType_t result;
 		try {
 			AudioSamples audioSamples = {
+#if MQTT_ENABLE
 				.key = MQTT_TOPIC_AUDIO,
+#else 
+				.key = String(key).c_str(),
+#endif
 				.data = payload,
 				.length = payloadSize
 			};
@@ -72,19 +76,14 @@ void recorderTask(void* param) {
 		if (signal == 0) {
 			ESP_LOGW(TAG, "status: ON, key: %d, last index: %d", lastKey, lastIndex);
 			streaming = true;
-			if (lastIndex == -1) {
-				lastIndex = 0;
-			}
+			lastIndex = 0;
 		}
 		else if (signal == 1) {
 			ESP_LOGW(TAG, "status: OFF, key: %d, last index: %d", lastKey, lastIndex);
 			streaming = false;
-			if(lastIndex != -1){
-				vTaskDelay(pdMS_TO_TICKS(5));
-				lastIndex = -1;
-				goto publish;
-			}
-			goto unlock;
+			vTaskDelay(pdMS_TO_TICKS(5));
+			lastIndex = -1;
+			goto publish;
 		}
 		
 		if (!streaming) goto end;
@@ -97,8 +96,6 @@ void recorderTask(void* param) {
 			ESP_LOGW("Recorder", "Failed to acquire lock, skipping recording");
 			goto end;
 		}
-
-		if (lastIndex == 0) lastKey = millis();
 
     // Publish start
 		publish:

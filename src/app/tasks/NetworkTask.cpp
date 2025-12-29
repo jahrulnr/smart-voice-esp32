@@ -67,7 +67,6 @@ void networkTask(void *param) {
 	mqttClient.setCallback(mqttCallback);
 #endif
 	bool hasSubsribe = false;
-	AudioSamples audioSamples;
 
 	weatherConfig_t weatherConfig;
 	weatherConfig.adm4Code = "31.73.05.1001"; // Default Jakarta Barat location
@@ -78,17 +77,6 @@ void networkTask(void *param) {
 	while(1) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
 		notification->send(TAG, 1);
-		
-		if (xQueueReceive(audioQueue, &audioSamples, 10) == pdTRUE) {
-			if (audioSamples.data != nullptr && audioSamples.length > 0){
-#if MQTT_ENABLE
-				mqttClient.publish(audioSamples.key, audioSamples.data, audioSamples.length);
-#endif
-				delete[] audioSamples.data;
-				audioSamples.data = nullptr;
-			}
-			continue;
-		}
 
 		if (wifiManager.isConnected() && millis() - timeCheck > 30000){
 			timeManager.syncTime();
