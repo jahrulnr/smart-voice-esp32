@@ -5,6 +5,8 @@
 esp_err_t srAudioCallback(void *arg, void *out, size_t len, size_t *bytes_read, uint32_t timeout_ms);
 void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id);
 void mqttCallback(char* topic, byte* payload, unsigned int length);
+bool audioBrokerPublisher(uint32_t key, uint32_t index, const uint8_t* data, size_t dataSize);
+bool audioToWav(uint32_t key, uint32_t index, const uint8_t* data, size_t dataSize);
 
 void aiCallback(const String& payload, const String& response);
 void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioSize);

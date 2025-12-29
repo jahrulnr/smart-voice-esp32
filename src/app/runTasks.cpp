@@ -2,10 +2,10 @@
 
 TaskHandle_t taskMonitorerHandle = nullptr;
 std::vector<BackgroundTask*> tasks;
-QueueHandle_t audioQueue = nullptr;
+QueueHandle_t audioChunkQueue = nullptr;
 
 void runTasks(){
-	audioQueue = xQueueCreateWithCaps(20, sizeof(AudioSamples), MALLOC_CAP_SPIRAM);
+	audioChunkQueue = xQueueCreateWithCaps(20, sizeof(AudioData), MALLOC_CAP_SPIRAM);
 
 	tasks.push_back(new BackgroundTask{
 		.name = "mainTask",

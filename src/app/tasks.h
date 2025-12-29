@@ -23,7 +23,6 @@ struct BackgroundTask {
 
 extern TaskHandle_t taskMonitorerHandle;
 extern std::vector<BackgroundTask*> tasks;
-extern QueueHandle_t audioQueue;
 
 void runTasks();
 
@@ -31,10 +30,3 @@ void taskMonitorer(void* param);
 void mainTask(void *param);
 void networkTask(void *param);
 void recorderTask(void* param);
-
-struct AudioSamples {
-	String key;
-	uint8_t* data;
-	size_t length;
-	bool stream;
-};

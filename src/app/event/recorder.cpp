@@ -3,7 +3,7 @@
 #include <app/audio/wav.h>
 
 static size_t minFreeSpaceBytes = 1048576;
-AudioSamples audioSamples;
+AudioData audioSamples;
 WavRecorder wavRecorder;
 
 void recordEvent(void *param) {
@@ -26,14 +26,18 @@ void recordEvent(void *param) {
 	wavRecorder.init(LittleFS);
 	wavRecorder.setMinFreeSpace(minFreeSpaceBytes);
 	size_t initialFree = LittleFS.totalBytes() - LittleFS.usedBytes();
+	String audioName;
 	do {
-		if (xQueueReceive(audioQueue, &audioSamples, 100) == pdTRUE) {
+		if (xQueueReceive(audioChunkQueue, &audioSamples, 100) == pdTRUE) {
 			if (!audioSamples.stream) {
 				if (fileOpened) {
 					wavRecorder.stop();
 					float duration = wavRecorder.info();
 					ESP_LOGI("WAV_HEADER", "Final Duration: %.2f seconds", duration);
 					fileOpened = false;
+					
+					if (!audioName.isEmpty())
+						aiStt.transcribeAudio(audioName, aiTranscriptionCallback);
 				}
 				vTaskDelete(NULL);
 				break;
@@ -54,7 +58,7 @@ void recordEvent(void *param) {
 #if MQTT_ENABLE
 					mqttClient.publish(audioSamples.key, audioSamples.data, audioSamples.length);
 #else 
-					String audioName = String("/audio/rec_")
+					audioName = String("/audio/rec_")
 						+String(audioSamples.key)
 						+".wav";
 					if (!fileOpened) {

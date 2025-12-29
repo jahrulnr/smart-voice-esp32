@@ -32,11 +32,20 @@ static const char* NOTIFICATION_COMMAND = "command";
 enum EVENT_DISPLAY {
     EDISPLAY_NONE = 0,
     EDISPLAY_SLEEP,
-    EDISPLAY_MIC,
     EDISPLAY_WAKEWORD,
     EDISPLAY_WIFI,
     EDISPLAY_FACE,
+    EDISPLAY_MIC,
+    EDISPLAY_LOADING,
     EDISPLAY_MAX
+};
+
+// Microphone Events
+enum EVENT_MIC {
+    EMIC_NONE = 0,
+    EMIC_START,
+    EMIC_STOP,
+    EMIC_MAX
 };
 
 #endif
