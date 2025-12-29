@@ -41,6 +41,7 @@ void displayEvent() {
 		case EDISPLAY_SLEEP:
 			screenSaverDisplay.draw();
 			break;
+		case EDISPLAY_MIC:
 		case EDISPLAY_WAKEWORD:
 			{
 				vad_state_t vadState = getAfeState();

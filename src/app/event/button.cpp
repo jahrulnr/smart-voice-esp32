@@ -1,30 +1,30 @@
 #include "app/events.h"
 
-unsigned long lastPressed = 0;
 int triggerCount = 0;
 bool recording = false;
 
 void buttonEvent() {
 	button.update();
 
-	if (!button.isPressed()) return;
+	if (millis() - button.getLastTrigger() >= 1000) {
+		switch(triggerCount) {
+			case 1:
+				break; 
+			case 2: 
+				recording = !recording;
+				notification->send(NOTIFICATION_RECORD, recording ? 0 : 1);
+				notification->send(NOTIFICATION_DISPLAY, recording ? EDISPLAY_MIC : EDISPLAY_NONE);
+				ESP_LOGI("buttonEvent", "Recording: %s", recording ? "ON" : "OFF");
+			break;
+		}
 
-	sysActivity.update(millis());
-	if (millis() - lastPressed < 1000) {
-		++triggerCount;
-	} else {
-		triggerCount = 1;
+		if (triggerCount > 0){
+			ESP_LOGI("buttonEvent", "Button pressed, count: %d", triggerCount);
+			sysActivity.update(millis());
+			triggerCount = 0;
+		}
 	}
 
-	lastPressed = button.getLastTrigger();
-	ESP_LOGI("buttonEvent", "Button pressed, count: %d", triggerCount);
-
-	switch(triggerCount) {
-		case 1: 
-			// aiStt.transcribeAudio("/audio.mp3", aiTranscriptionCallback);
-			recording = !recording;
-			notification->send(NOTIFICATION_RECORD, recording ? 0 : 1);
-			ESP_LOGI("buttonEvent", "Recording: %s", recording ? "ON" : "OFF");
-		break;
-	}
+	if (!button.isPressed() || millis() - button.getLastTrigger() >= 1000) return;
+	++triggerCount;
 }
