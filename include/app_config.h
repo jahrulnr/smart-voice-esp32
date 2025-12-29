@@ -4,7 +4,8 @@
 #define WIFI_PASS "tes12345"
 #define FTP_USER "pio"
 #define FTP_PASS "tes12345"
-#define MQTT_SERVER "192.168.18.81"
+#define MQTT_ENABLE 0
+#define MQTT_SERVER "192.168.18.250"
 #define MQTT_PORT 1883
 #define MQTT_USER ""
 #define MQTT_PASS ""

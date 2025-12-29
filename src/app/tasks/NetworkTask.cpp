@@ -52,18 +52,20 @@ void networkTask(void *param) {
 	wifiManager.addNetwork(WIFI_SSID, WIFI_PASS);
 	wifiManager.begin();
 	WiFiClient wifiClient;
-	
-	String mac = WiFi.macAddress();
-	mac.replace(":", "");
-	String mqttClientId = String(MQTT_CLIENT_ID) + "-" + mac.substring(6);
 
 	FTPServer ftpServer(LittleFS);
 	ftpServer.begin(FTP_USER, FTP_PASS);
+
+#if MQTT_ENABLE == 1
+	String mac = WiFi.macAddress();
+	mac.replace(":", "");
+	String mqttClientId = String(MQTT_CLIENT_ID) + "-" + mac.substring(6);
 
 	mqttClient.setClient(wifiClient);
 	mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
 	mqttClient.setBufferSize(8 * 1024 + 100); // 8k buffer + header
 	mqttClient.setCallback(mqttCallback);
+#endif
 	bool hasSubsribe = false;
 	AudioSamples audioSamples;
 
@@ -79,36 +81,13 @@ void networkTask(void *param) {
 		
 		if (xQueueReceive(audioQueue, &audioSamples, 10) == pdTRUE) {
 			if (audioSamples.data != nullptr && audioSamples.length > 0){
+#if MQTT_ENABLE
 				mqttClient.publish(audioSamples.key, audioSamples.data, audioSamples.length);
+#endif
 				delete[] audioSamples.data;
 				audioSamples.data = nullptr;
 			}
 			continue;
-		}
-
-		if(notification->hasSignal("WiFi check") && notification->signal("WiFi check") == 1){
-			ESP_LOGI(TAG, "Wifi Status: %s", wifiStatus());
-			ESP_LOGI(TAG, "MQTT Status: %s; clientId: %s", mqttClient.connected() ? "Connected" : "Disconnected", mqttClientId.c_str());
-			std::vector<NetworkInfo> networks;
-			int numNetworks = WiFi.scanNetworks();
-			for (int i = 0; i < numNetworks; i++) {
-				NetworkInfo network;
-				network.ssid = WiFi.SSID(i);
-				network.rssi = WiFi.RSSI(i);
-				network.encryptionType = WiFi.encryptionType(i);
-				network.bssid = WiFi.BSSIDstr(i);
-				network.channel = WiFi.channel(i);
-				networks.push_back(network);
-
-				if (network.ssid == WIFI_SSID && wifiStatus() == "WL_DISCONNECTED") {
-					WiFi.reconnect();
-				}
-			}
-
-			for (auto network : networks) {
-				ESP_LOGI(TAG, "Network: %s, RSSI: %d, Encryption: %d, BSSID: %s, Channel: %d",
-					network.ssid.c_str(), network.rssi, network.encryptionType, network.bssid.c_str(), network.channel);
-			}
 		}
 
 		if (wifiManager.isConnected() && millis() - timeCheck > 30000){
@@ -136,18 +115,21 @@ void networkTask(void *param) {
 			weatherCheck = millis();
 		}
 
+#if MQTT_ENABLE
 		bool connected = mqttClient.loop();
 		if (!connected && hasSubsribe) {
 			mqttClient.unsubscribe(MQTT_TOPIC_STT);
+			hasSubsribe = false;
 		} else if (connected && !hasSubsribe) {
 			mqttClient.subscribe(MQTT_TOPIC_STT);
 			hasSubsribe = true;
 		}
+#endif
 		
+		wifiManager.handle();
 		if (wifiManager.isConnected()) {
 			ftpServer.handleFTP();
-
-			// handle loop
+#if MQTT_ENABLE
 			try {
 				if (!connected && millis() - mqttCheck > 5000) {
 					if (strlen(MQTT_USER) > 0) {
@@ -166,6 +148,7 @@ void networkTask(void *param) {
 			catch(...) {
 				ESP_LOGW(TAG, "MQTT loop unknown error");
 			}
+#endif
 		}
 	}
 
