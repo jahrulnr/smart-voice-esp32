@@ -15,7 +15,7 @@ public:
 
 	void begin(int pin) {
 		_pin = pin;
-		pinMode(_pin, INPUT_PULLUP);
+		pinMode(_pin, INPUT);
 	}
 
 	void update() {

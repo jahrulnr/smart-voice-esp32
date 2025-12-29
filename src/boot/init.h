@@ -12,6 +12,8 @@
 #include <WiFiManager.h>
 #include <PubSubClient.h>
 #include <gpt.h>
+#include <tts.h>
+#include <stt.h>
 #include <core/activity.h>
 #include <app/callbacks.h>
 #include <app/events.h>

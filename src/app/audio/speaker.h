@@ -93,7 +93,7 @@ public:
 			return false;
 		}
 
-		esp_err_t err = speaker->writeAudioData(buffer, sampleCount, samplesWritten, 500);
+		esp_err_t err = speaker->writeAudioData(buffer, sampleCount, samplesWritten, portMAX_DELAY);
 		if (err != ESP_OK) {
 			ESP_LOGE("SPK", "Failed to write samples: %s", esp_err_to_name(err));
 			return false;

@@ -19,6 +19,8 @@ void setupApp(){
 	bootScreen.start();
 	button.begin(BUTTON_PIN);
 	ai.init(GPT_API_KEY);
+	aiTts.init(GPT_API_KEY);
+	aiStt.init(GPT_API_KEY, LittleFS);
 	delay(1000);
 
 	setupMicrophone();
