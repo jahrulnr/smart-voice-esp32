@@ -51,3 +51,4 @@
 #define SCREEN_HEIGHT 64
 
 #define ENABLE_POWERSAVE 1
+#define SAVE_AUDIO 0

@@ -40,6 +40,10 @@ bool audioToWavCallback(uint32_t key, uint32_t index, const uint8_t* data, size_
 void audioTalkCallback(const String& key) {
 	aiStt.transcribeAudio(key.c_str(), [](const String& filePath, const String& text, const String& usageJson){
 
+#if SAVE_AUDIO == 0
+	LittleFS.remove(filePath);
+#endif
+
 String systemCmd = R"===(
 Your tasks:
 - You are an AI that generates short Text-to-Speech friendly responses
