@@ -63,7 +63,7 @@ Available features:
 - Answer the questions
 
 System Information:
-- Timestamp: {--time--}
+- Timestamp: {--time--} (24-hour format)
 - Mic: active
 - Speaker: active
 - AI system: STT, TTS, LLM

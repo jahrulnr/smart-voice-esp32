@@ -15,6 +15,13 @@ An IoT voice assistant powered by ESP32-S3 firmware and external processing serv
 - **Web Monitoring**: Flask-SocketIO web UI for real-time MQTT message monitoring
 - **Dockerized Services**: External components run in containers for easy deployment
 - **ESP32 Optimization**: Leverages PSRAM, dual cores, and FreeRTOS tasks
+- **Weather Integration**: Real-time weather updates from BMKG API with animated icons and data display
+- **AI Integration**: GPT-powered conversational responses and intelligent interactions
+- **Dynamic Performance**: Automatic CPU frequency adjustment based on system activity
+- **Enhanced Audio**: SAVE_AUDIO configuration, WAV/MP3 support, improved noise reduction
+- **Advanced Task Management**: Suspendable tasks and background process monitoring
+- **Expanded Display**: WifiDrawer, FaceDrawer, RecordDrawer with enhanced animations
+- **Additional Services**: FTP server and time synchronization capabilities
 
 ## Architecture
 

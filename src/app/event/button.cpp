@@ -10,6 +10,7 @@ void buttonEvent() {
 
 	bool triggerTimeout = millis() - button.getLastTrigger() >= 1000;
 	if (button.isPressed() && !triggerTimeout) {
+		sysActivity.update(millis());
 		++triggerCount;
 		return;
 	}
