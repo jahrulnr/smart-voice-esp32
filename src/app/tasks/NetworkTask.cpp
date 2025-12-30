@@ -40,7 +40,7 @@ const char* wifiStatus() {
 void networkTask(void *param) {
 	const char* TAG = "networkTask";
 
-	TickType_t updateFrequency = pdMS_TO_TICKS(1);
+	TickType_t updateFrequency = pdMS_TO_TICKS(50);
 	unsigned long monitorCheck = millis();
 	unsigned long timeCheck = 0;
 	unsigned long weatherCheck = 0;
@@ -139,5 +139,8 @@ void networkTask(void *param) {
 		}
 	}
 
+	WiFi.disconnect();
+	wifiManager.stopHotspot();
 	ftpServer.stop();
+	vTaskDeleteWithCaps(NULL);
 }

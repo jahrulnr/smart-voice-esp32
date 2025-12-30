@@ -4,7 +4,6 @@ typedef void(*OnTriggerBackHandle) (void);
 
 void buttonEvent() {
 	static int triggerCount = 0;
-	static bool recording = false;
 	static bool needBackTrigger = false;
 	static OnTriggerBackHandle onTriggerBack = nullptr;
 	button.update();
@@ -27,20 +26,32 @@ void buttonEvent() {
 
 	switch(triggerCount) {
 		case 1:
-			break;
 		case 2: 
-			recording = !recording;
-			notification->send(NOTIFICATION_RECORD, recording ? 0 : 1);
-			notification->send(NOTIFICATION_DISPLAY, recording ? EDISPLAY_MIC : EDISPLAY_NONE);
-			if (recording) {
+			{
+				ESP_LOGI("buttonEvent", "Recording: ON");
+				auto event = getMicEvent();
+				if (event.state != AUDIO_STATE_IDLE){
+					ESP_LOGW("buttonEvent", "Mic event is not idle, state: %d", event.state);
+					break;
+				}
+				event.flag = EMIC_START;
+				event.callback = audioToWav;
+				setMicEvent(event);
+				notification->send(NOTIFICATION_DISPLAY, EDISPLAY_MIC);
 				needBackTrigger = true;
 				onTriggerBack = []() {
+					auto event = getMicEvent();
+					if (event.state != AUDIO_STATE_RUNNING){
+						ESP_LOGW("buttonEvent", "Mic event is not running, state: %d", event.state);
+						return;
+					}
 					notification->send(NOTIFICATION_DISPLAY, EDISPLAY_NONE);
-					notification->send(NOTIFICATION_RECORD, 1);
+					event.flag = EMIC_STOP;
+					event.callback = audioToWav;
+					setMicEvent(event);
 					ESP_LOGI("buttonEvent", "Recording: OFF");
 				};
 			}
-			ESP_LOGI("buttonEvent", "Recording: %s", recording ? "ON" : "OFF");
 			break;
 	}
 

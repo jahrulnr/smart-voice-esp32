@@ -31,6 +31,7 @@ void taskMonitorer(void* param){
 		portYIELD_CORE(1);
 
 		auto sysLastUpdate = sysActivity.lastUpdate(millis());
+#if ENABLE_POWERSAVE
 		if (sysLastUpdate > 60000 && getCpuFrequencyMhz() != 80) {
 			pauseTasks();
 			// 240, 160, 120, 80
@@ -41,6 +42,7 @@ void taskMonitorer(void* param){
 			setCpuFrequencyMhz(240);
 			resumeTasks();
 		}
+#endif
 
 		if (millis() - monitorTimer > monitorDelay) {
 			monitorTimer = millis();

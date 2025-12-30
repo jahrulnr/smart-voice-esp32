@@ -3,10 +3,20 @@
 #include <app/audio/wav.h>
 
 static size_t minFreeSpaceBytes = 1048576;
+AudioEvent audioEvent;
 AudioData audioSamples;
 WavRecorder wavRecorder;
 
-void recordEvent(void *param) {
+AudioEvent getMicEvent() {
+	return audioEvent;
+}
+
+void setMicEvent(AudioEvent event) {
+	audioEvent = event;
+	ESP_LOGI("EVENT", "Mic Event: %d, state: %d", event.flag, event.state);
+}
+
+void micEvent(void *param) {
 	bool fileOpened = false;
 	// Check LittleFS free space
 	if (LittleFS.totalBytes() - LittleFS.usedBytes() < minFreeSpaceBytes) { // 1MB
@@ -32,6 +42,9 @@ void recordEvent(void *param) {
 			if (!audioSamples.stream) {
 				if (fileOpened) {
 					wavRecorder.stop();
+					AudioEvent event = getMicEvent();
+					event.state = AUDIO_STATE_IDLE;
+					setMicEvent(event);
 					float duration = wavRecorder.info();
 					ESP_LOGI("WAV_HEADER", "Final Duration: %.2f seconds", duration);
 					fileOpened = false;
