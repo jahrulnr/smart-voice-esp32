@@ -47,7 +47,7 @@ void buttonEvent() {
 						ESP_LOGW("buttonEvent", "Mic event is not running, state: %d", event.state);
 						return;
 					}
-					notification->send(NOTIFICATION_DISPLAY, EDISPLAY_NONE);
+					notification->send(NOTIFICATION_DISPLAY, EDISPLAY_LOADING);
 					event.flag = EMIC_STOP;
 					event.collectorCallback = audioToWavCallback;
 					event.executorCallback = audioTalkCallback;

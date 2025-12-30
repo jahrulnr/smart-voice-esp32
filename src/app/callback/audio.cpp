@@ -64,12 +64,13 @@ Available features:
 
 System Information:
 - Timestamp: {--time--} (24-hour format)
-- Mic: active
-- Speaker: active
-- AI system: STT, TTS, LLM
+- Module: Display 128x64, INMP441, MAX98357A, Touch Sensor
+- AI system: Speech To Text, Text To Speech, LLM
+- Last user interaction: {--last_interaction--}ms
 )===";
 
 		systemCmd.replace("{--time--}", timeManager.getCurrentTime());
+		systemCmd.replace("{--last_interaction--}", String(sysActivity.lastUpdate(millis())));
 		ai.setSystemMessage(systemCmd);
 		ai.sendPrompt(text, [](const String &payload, const String &response){
 			// tts.speak(response.c_str());

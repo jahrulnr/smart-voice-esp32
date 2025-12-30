@@ -1,11 +1,10 @@
 #include "app/callbacks.h"
 #include "app/audio/mp3decoder.h"
 
-Mp3Decoder mp3decoder;
-
 void aiCallback(const String& payload, const String& response){
 	if (response.isEmpty()) return;
 	sysActivity.update(millis());
+	notification->send(NOTIFICATION_DISPLAY, EDISPLAY_LOADING);
 
 	ESP_LOGI("AICallback", "Payload: %s", payload.c_str());
 	ESP_LOGI("AICallback", "Response: %s", response.c_str());
@@ -26,6 +25,7 @@ void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioS
 	}
 
 	// Decode MP3 to PCM
+	Mp3Decoder mp3decoder;
 	int16_t* pcmBuffer = nullptr;
 	size_t pcmSize = 0;
 	int sampleRate = 0;
@@ -36,6 +36,7 @@ void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioS
 	}
 
 	ESP_LOGI("AIVoiceCallback", "Decoded to PCM: %d samples at %d Hz", pcmSize, sampleRate);
+	notification->send(NOTIFICATION_DISPLAY, EDISPLAY_FACE);
 
 	// Send to speaker
 	size_t samplesWritten = 0;
@@ -55,6 +56,7 @@ void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioS
 
 	// Clear speaker buffer
 	speaker->clear();
+	notification->send(NOTIFICATION_DISPLAY, EDISPLAY_NONE);
 }
 
 void aiTranscriptionCallback(const String& filePath, const String& text, const String& usageJson) {

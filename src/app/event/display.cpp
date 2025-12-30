@@ -4,6 +4,7 @@
 #include <app/display/ui/wifi.h>
 #include <app/display/ui/face.h>
 #include <app/display/ui/record.h>
+#include <app/display/ui/loading.h>
 
 void displayEvent() {
 	const char* TAG = "displayEvent";
@@ -13,6 +14,7 @@ void displayEvent() {
 	static WifiDrawer wifiDisplay = WifiDrawer(display);
 	static FaceDrawer faceDisplay = FaceDrawer(display);
 	static RecordDrawer recordDisplay = RecordDrawer(display);
+	static LoadingDrawer loadingDisplay = LoadingDrawer(display);
 
 	// Update weather data if available to display
 	if (notification->has(NOTIFICATION_WEATHER)) {
@@ -76,6 +78,9 @@ void displayEvent() {
 				wifiDisplay.draw();
 				lastState = state;
 			}
+			break;
+		case EDISPLAY_LOADING:
+			loadingDisplay.draw();
 			break;
 		case EDISPLAY_FACE:
 			faceDisplay.draw();
