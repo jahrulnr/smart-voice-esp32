@@ -27,9 +27,9 @@ void runTasks(){
 		.suspendable = true
 	});
 	tasks.push_back(new BackgroundTask{
-		.name = "recorderTask",
+		.name = "microphoneTask",
 		.handle = nullptr,
-		.task = recorderTask,
+		.task = microphoneTask,
 		.stack = 1024 * 3,
 		.core = 1,
 		.priority = 5,

@@ -5,6 +5,7 @@ Mp3Decoder mp3decoder;
 
 void aiCallback(const String& payload, const String& response){
 	if (response.isEmpty()) return;
+	sysActivity.update(millis());
 
 	ESP_LOGI("AICallback", "Payload: %s", payload.c_str());
 	ESP_LOGI("AICallback", "Response: %s", response.c_str());
@@ -17,6 +18,7 @@ void aiCallback(const String& payload, const String& response){
 void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioSize) {
 	ESP_LOGI("AIVoiceCallback", "Text: %s", text.c_str());
 	ESP_LOGI("AIVoiceCallback", "Audio size: %d", audioSize);
+	sysActivity.update(millis());
 
 	if (!audioData || audioSize == 0) {
 		ESP_LOGE("AIVoiceCallback", "No audio data received");
@@ -58,4 +60,5 @@ void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioS
 void aiTranscriptionCallback(const String& filePath, const String& text, const String& usageJson) {
 	ESP_LOGI("AITranscriptionCallback", "Transcription: %s", text.c_str());
 	aiTts.textToSpeech(text.c_str(), aiVoiceCallback);
+	sysActivity.update(millis());
 }

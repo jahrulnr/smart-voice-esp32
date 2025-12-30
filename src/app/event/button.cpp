@@ -35,7 +35,8 @@ void buttonEvent() {
 					break;
 				}
 				event.flag = EMIC_START;
-				event.callback = audioToWav;
+				event.collectorCallback = audioToWavCallback;
+				event.executorCallback = audioTalkCallback;
 				setMicEvent(event);
 				notification->send(NOTIFICATION_DISPLAY, EDISPLAY_MIC);
 				needBackTrigger = true;
@@ -47,7 +48,8 @@ void buttonEvent() {
 					}
 					notification->send(NOTIFICATION_DISPLAY, EDISPLAY_NONE);
 					event.flag = EMIC_STOP;
-					event.callback = audioToWav;
+					event.collectorCallback = audioToWavCallback;
+					event.executorCallback = audioTalkCallback;
 					setMicEvent(event);
 					ESP_LOGI("buttonEvent", "Recording: OFF");
 				};

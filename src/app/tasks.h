@@ -30,4 +30,5 @@ void runTasks();
 void taskMonitorer(void* param);
 void mainTask(void *param);
 void networkTask(void *param);
+void microphoneTask(void* param);
 void recorderTask(void* param);
