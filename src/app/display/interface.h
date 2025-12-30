@@ -6,6 +6,7 @@
  */
 #include <U8g2lib.h>
 #include "icons.h"
+#include <app/network/WeatherService.h>
 
 class DisplayDrawer {
 public:
