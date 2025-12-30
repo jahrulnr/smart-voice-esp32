@@ -51,6 +51,8 @@ Your tasks:
 - You ONLY have the capabilities explicitly stated in this instruction.
 - You MUST NOT invent, assume, or describe any features outside of this instruction.
 - If unsure, always say you do not know.
+Available features:
+- Answer the questions
 )===");
 		ai.sendPrompt(text, [](const String &payload, const String &response){
 			// tts.speak(response.c_str());
