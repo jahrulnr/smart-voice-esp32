@@ -7,24 +7,24 @@ typedef bool(*AudioCollectorCallback) (uint32_t key, uint32_t index, const uint8
 typedef void(*AudioExecutorCallback) (const String& key);
 
 enum AUDIO_STATE {
-	AUDIO_STATE_IDLE = 0,
-	AUDIO_STATE_RUNNING,
-	AUDIO_STATE_STOPPED,
-	AUDIO_STATE_ERROR
+  AUDIO_STATE_IDLE = 0,
+  AUDIO_STATE_RUNNING,
+  AUDIO_STATE_STOPPED,
+  AUDIO_STATE_ERROR
 };
 
 struct AudioEvent {
-	EVENT_MIC flag;
-	AudioCollectorCallback collectorCallback;
-	AudioExecutorCallback executorCallback;
-	AUDIO_STATE state = AUDIO_STATE_IDLE;
+  EVENT_MIC flag;
+  AudioCollectorCallback collectorCallback;
+  AudioExecutorCallback executorCallback;
+  AUDIO_STATE state = AUDIO_STATE_IDLE;
 };
 
 struct AudioData {
-	String key;
-	uint8_t* data;
-	size_t length;
-	bool stream;
+  String key;
+  uint8_t* data;
+  size_t length;
+  bool stream;
 };
 
 void timeEvent();

@@ -10,26 +10,26 @@ SystemActivity sysActivity;
 TimeManager timeManager;
 
 void init(){
-  esp_panic_handler_disable_timg_wdts();
-  nvs_init();
+	esp_panic_handler_disable_timg_wdts();
+	nvs_init();
 }
 
 void setup() {
-  LittleFS.begin(true);
+	LittleFS.begin(true);
 	Wire.begin(SDA_PIN, SCL_PIN);
-  timeManager.init();
+	timeManager.init();
 
-  setupApp();
-  runTasks();
+	setupApp();
+	runTasks();
 
-  #if BOARD_HAS_PSRAM
-  heap_caps_malloc_extmem_enable(0);
-  #endif
+	#if BOARD_HAS_PSRAM
+	heap_caps_malloc_extmem_enable(0);
+	#endif
 
-  sysActivity.update(millis());
+	sysActivity.update(millis());
 }
 
 void loop() {
-  vTaskDelete(NULL);
-  log_e("Loop task deleted");
+	vTaskDelete(NULL);
+	log_e("Loop task deleted");
 }

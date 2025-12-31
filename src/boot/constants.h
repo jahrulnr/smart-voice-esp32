@@ -8,19 +8,19 @@
 
 // Voice command IDs
 enum CommandId {
-    CMD_WAKEUP = 0,
-    CMD_TIME,
-    CMD_WEATHER,
-    CMD_RECORD_AUDIO,
-    CMD_MAX
+  CMD_WAKEUP = 0,
+  CMD_TIME,
+  CMD_WEATHER,
+  CMD_RECORD_AUDIO,
+  CMD_MAX
 };
 
 // Define voice commands (phonetic representations)
 static const SR::csr_cmd_t voice_commands[] = {
-	{CMD_WAKEUP, "Hi Cozmo",    "hi KbZMb"},
-	{CMD_TIME, "time",    "TiM"},
-	{CMD_WEATHER, "weather", "Wfjk"},
-	{CMD_RECORD_AUDIO, "record audio", "RfKkD nDmb"}
+  {CMD_WAKEUP, "Hi Cozmo",    "hi KbZMb"},
+  {CMD_TIME, "time",    "TiM"},
+  {CMD_WEATHER, "weather", "Wfjk"},
+  {CMD_RECORD_AUDIO, "record audio", "RfKkD nDmb"}
 };
 
 static const char* NOTIFICATION_DISPLAY = "display";
@@ -30,22 +30,22 @@ static const char* NOTIFICATION_COMMAND = "command";
 
 // Display Events
 enum EVENT_DISPLAY {
-    EDISPLAY_NONE = 0,
-    EDISPLAY_SLEEP,
-    EDISPLAY_WAKEWORD,
-    EDISPLAY_WIFI,
-    EDISPLAY_FACE,
-    EDISPLAY_MIC,
-    EDISPLAY_LOADING,
-    EDISPLAY_MAX
+  EDISPLAY_NONE = 0,
+  EDISPLAY_SLEEP,
+  EDISPLAY_WAKEWORD,
+  EDISPLAY_WIFI,
+  EDISPLAY_FACE,
+  EDISPLAY_MIC,
+  EDISPLAY_LOADING,
+  EDISPLAY_MAX
 };
 
 // Microphone Events
 enum EVENT_MIC {
-    EMIC_NONE = 0,
-    EMIC_START,
-    EMIC_STOP,
-    EMIC_MAX
+  EMIC_NONE = 0,
+  EMIC_START,
+  EMIC_STOP,
+  EMIC_MAX
 };
 
 #endif
