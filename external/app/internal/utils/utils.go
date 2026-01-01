@@ -9,3 +9,11 @@ func GetEnvBool(key string, defaultValue bool) bool {
 	}
 	return defaultValue
 }
+
+// GetEnvString gets a string environment variable
+func GetEnvString(key string, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
