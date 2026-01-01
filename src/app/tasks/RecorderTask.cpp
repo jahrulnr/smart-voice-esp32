@@ -68,7 +68,7 @@ void recorderTask(void *param) {
 						+String(audioSamples.key)
 						+".wav";
 					if (!fileOpened) {
-						if (wavRecorder.start(audioName)) {
+						if (wavRecorder.start(audioName, 16, 24)) {
 							fileOpened = true;
 						}
 					}
