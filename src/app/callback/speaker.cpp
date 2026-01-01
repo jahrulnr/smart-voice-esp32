@@ -33,12 +33,8 @@ void speakerAudioCallback(const uint8_t* audioData, size_t audioSize, bool isLas
 
     // Write converted audio to speaker
     size_t samplesWritten = 0;
-    esp_err_t err = speaker->writeSamples(pcmOutput, convertedSamples * sizeof(int16_t), &samplesWritten);
-    if (err != ESP_OK) {
-        ESP_LOGE("SpeakerCallback", "Failed to write samples to speaker: %s", esp_err_to_name(err));
-        speaker->clear();
-    }
-
+		speaker->writeSamples(pcmOutput, convertedSamples * sizeof(int16_t), &samplesWritten);
+		
     // Free the buffer
     heap_caps_free(pcmOutput);
 
