@@ -1,5 +1,5 @@
 #include "WeatherService.h"
-#include <HTTPClient.h>
+#include "CustomHttpClient.h"
 #include <WiFi.h>
 
 namespace Services {
@@ -75,7 +75,7 @@ bool WeatherService::isCacheValid() const {
 }
 
 void WeatherService::fetchFromAPI(WeatherCallback callback) {
-    HTTPClient http;
+    CustomHttpClient http;
     String url = buildAPIUrl();
 
     http.begin(url);

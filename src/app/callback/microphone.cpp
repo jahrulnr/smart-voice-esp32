@@ -81,6 +81,9 @@ size_t micAudioCallback(uint8_t* buffer, size_t maxSize) {
         ESP_LOGD("MicCallback", "Returning %d bytes (with temp buffer)", copySamples * sizeof(int16_t));
         return copySamples * sizeof(int16_t);
     }
+    
+    // Use this everywhere
+    AudioBufferConverter::setVolume((int16_t*)buffer, convertedSamples, 15.f);
 
     ESP_LOGD("MicCallback", "Returning %d bytes", convertedSamples * sizeof(int16_t));
     return convertedSamples * sizeof(int16_t);
