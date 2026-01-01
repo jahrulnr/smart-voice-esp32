@@ -63,6 +63,16 @@ cd smart-voice-esp32
 3. **Processing**: Audio processed by external services
 4. **Response**: Transcribed text received via MQTT, displayed on OLED
 
+## Demo
+
+Demo videos showcasing the ESP32 PioAssistant in action:
+
+**Booting Sequence**: Device startup and initialization  
+[![Watch the video](./docs/homescreen.png)](https://raw.githubusercontent.com/jahrulnr/smart-voice-esp32/master/docs/booting.mp4)
+
+**Voice Interaction**: Speech and response  
+[![Watch the video](./docs/talk.png)](https://raw.githubusercontent.com/jahrulnr/smart-voice-esp32/master/docs/talk.mp4)
+
 ## Development
 
 ### Building ESP32 Firmware
