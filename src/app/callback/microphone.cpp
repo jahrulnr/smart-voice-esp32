@@ -35,10 +35,11 @@ size_t micAudioCallback(uint8_t* buffer, size_t maxSize) {
     ESP_LOGD("MicCallback", "Processing %d bytes of audio data", cache.lastSampleLen);
 
     // Input is 16kHz PCM16
-    lastSampleTime = cache.lastSampleTime;
-    const int16_t* inputBuffer = cache.lastSample;
+    int16_t* inputBuffer = (int16_t*) heap_caps_malloc(cache.lastSampleLen, MALLOC_CAP_SPIRAM | MALLOC_CAP_DEFAULT);
+    memcpy(inputBuffer, cache.lastSample, cache.lastSampleLen);
     size_t inputSamples = cache.lastSampleLen / sizeof(int16_t);
     size_t maxOutputSamples = maxSize / sizeof(int16_t);
+    lastSampleTime = cache.lastSampleTime;
 
     // For 16kHz to 24kHz conversion (ratio = 1.5), calculate how many input samples we can convert
     // to fit in the output buffer: inputSamples * 1.5 <= maxOutputSamples
