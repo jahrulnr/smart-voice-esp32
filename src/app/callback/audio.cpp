@@ -74,7 +74,7 @@ System Information:
 		ai.setSystemMessage(systemCmd);
 		ai.sendPrompt(text, [](const String &payload, const String &response){
 			// tts.speak(response.c_str());
-			aiCallback(payload, response);
+			aiCallback(payload, response, true);
 		});
 	});
 }

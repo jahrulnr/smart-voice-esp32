@@ -9,6 +9,7 @@ bool audioBrokerPublisher(uint32_t key, uint32_t index, const uint8_t* data, siz
 bool audioToWavCallback(uint32_t key, uint32_t index, const uint8_t* data, size_t dataSize);
 void audioTalkCallback(const String& key);
 
-void aiCallback(const String& payload, const String& response);
+void aiCallback(const String& payload, const String& response, bool streaming = false);
 void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioSize);
+void aiVoiceStreamCallback(const String& text, const uint8_t* audioChunk, size_t chunkSize, bool isLastChunk);
 void aiTranscriptionCallback(const String& filePath, const String& text, const String& usageJson);
