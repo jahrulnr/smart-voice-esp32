@@ -80,6 +80,11 @@ Demo videos showcasing the ESP32 PioAssistant in action:
 - Custom partitions defined in `hiesp.csv`
 - Build flags optimized for ESP32-S3 (PSRAM, ESP-SR, etc.)
 
+## Troubleshooting
+
+### WebSocket Issues
+For WebSocket-related issues with the ESP32-GPT library (such as payload size limits or connection problems), see the ESP32-GPT documentation at [ESP32-GPT](https://github.com/jahrulnr/esp32-gpt)
+
 ## Contributing
 
 1. Fork the repository
