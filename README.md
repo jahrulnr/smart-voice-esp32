@@ -68,10 +68,10 @@ cd smart-voice-esp32
 Demo videos showcasing the ESP32 PioAssistant in action:
 
 **Booting Sequence**: Device startup and initialization  
-[![Watch the video](./docs/homescreen.png)](https://raw.githubusercontent.com/jahrulnr/smart-voice-esp32/master/docs/booting.mp4)
+[![Watch the video](./docs/homescreen.png)](https://youtu.be/i8OGq0rFzss)
 
 **Voice Interaction**: Speech and response  
-[![Watch the video](./docs/talk.png)](https://raw.githubusercontent.com/jahrulnr/smart-voice-esp32/master/docs/talk.mp4)
+[![Watch the video](./docs/talk.png)](https://youtu.be/-L65cWOtkxM)
 
 ## Development
 
