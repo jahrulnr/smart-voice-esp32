@@ -38,6 +38,8 @@ void timeEvent() {
 	ai.setSystemMessage(extraCmd);
 	ai.sendPrompt(
 		timeManager.getCurrentTime(),
-		aiCallback);
+		[](const String& payload, const String& response) {
+			aiCallback(payload, response, true);
+		});
 	sysActivity.update(millis());
 }

@@ -79,7 +79,7 @@ void WeatherService::fetchFromAPI(WeatherCallback callback) {
     String url = buildAPIUrl();
 
     http.begin(url);
-    http.setReuse(true);
+    http.setReuse(false);
     http.setFollowRedirects(HTTPC_FORCE_FOLLOW_REDIRECTS);
     http.setTimeout(10000); // 10 second timeout
 

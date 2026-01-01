@@ -4,13 +4,305 @@
 #include <Arduino.h>
 #include <MP3Decoder.h>
 
+// Include the ESP32 Helix MP3 decoder library
+extern "C" {
+    #include "mp3dec.h"
+}
+
 class Mp3Decoder {
+private:
+	// Helix MP3 decoder instance
+	HMP3Decoder helixDecoder;
+	int16_t* outputBuffer;
+	size_t outputBufferSize;
+	
+	static const size_t MAX_OUTPUT_BUFFER_SIZE = 1152 * 10; // Max PCM samples per MP3 frame
+	
 public:
-	Mp3Decoder(){}
-	~Mp3Decoder(){}
+	Mp3Decoder() : helixDecoder(nullptr), outputBuffer(nullptr), outputBufferSize(0) {}
+	~Mp3Decoder() {
+		if (helixDecoder) {
+			MP3FreeDecoder(helixDecoder);
+		}
+		if (outputBuffer) {
+			heap_caps_free(outputBuffer);
+		}
+	}
 
 	/**
-	 * Decode MP3 audio data to PCM
+	 * Initialize streaming decoder
+	 * @return true if initialization successful
+	 */
+	inline bool init() {
+		if (streamingInitialized) {
+			// Already initialized, just return true
+			return true;
+		}
+		
+		if (!ensureDecoderAndBuffer()) {
+			return false;
+		}
+		
+		if (!ensureStreamBuffer()) {
+			ESP_LOGE("MP3Decoder", "Failed to allocate stream buffer");
+			return false;
+		}
+		
+		streamingInitialized = true;
+		streamBufferUsed = 0;
+		return true;
+	}
+
+	/**
+	 * Check if streaming decoder is initialized
+	 * @return true if ready for streaming
+	 */
+	bool isInitialized() const { return streamingInitialized; }
+
+	/**
+	 * Feed MP3 data for streaming decoding
+	 * @param audioData MP3 chunk data
+	 * @param audioSize Size of MP3 chunk in bytes
+	 * @return true if data fed successfully
+	 */
+	inline bool feedData(const uint8_t* audioData, size_t audioSize) {
+		if (!streamingInitialized) {
+			ESP_LOGE("MP3Decoder", "Streaming decoder not initialized");
+			return false;
+		}
+		
+		if (!audioData || audioSize == 0) {
+			ESP_LOGW("MP3Decoder", "No audio data to feed");
+			return true; // Not an error, just no data
+		}
+		
+		// Check if we need more space in the buffer
+		if (streamBufferUsed + audioSize > streamBufferSize) {
+			ESP_LOGW("MP3Decoder", "Stream buffer full, dropping old data");
+			// For simplicity, we'll drop old data. In a more sophisticated implementation,
+			// you might want to resize the buffer or handle this differently
+			size_t keepSize = streamBufferSize / 2; // Keep half the buffer
+			memmove(streamBuffer, streamBuffer + streamBufferUsed - keepSize, keepSize);
+			streamBufferUsed = keepSize;
+		}
+		
+		// Copy new data to buffer
+		size_t copySize = min(audioSize, streamBufferSize - streamBufferUsed);
+		memcpy(streamBuffer + streamBufferUsed, audioData, copySize);
+		streamBufferUsed += copySize;
+		
+		ESP_LOGD("MP3Decoder", "Fed %d bytes to stream buffer (total: %d/%d)", 
+				copySize, streamBufferUsed, streamBufferSize);
+		
+		return true;
+	}
+
+	/**
+	 * Get available decoded PCM data from streaming decoder
+	 * @param pcmBuffer Output buffer for PCM data (allocated by this function)
+	 * @param pcmSize Output number of PCM samples
+	 * @param sampleRate Output sample rate of decoded audio
+	 * @return true if PCM data is available
+	 */
+	inline bool getDecodedPCM(int16_t** pcmBuffer, size_t* pcmSize, int* sampleRate) {
+		if (!streamingInitialized || streamBufferUsed == 0) {
+			return false; // No data available
+		}
+		
+		ESP_LOGD("MP3Decoder", "Attempting to decode %d bytes from stream buffer", streamBufferUsed);
+		
+		if (!ensureDecoderAndBuffer()) {
+			return false;
+		}
+		
+		// Debug: Log first few bytes of buffer to check for valid MP3 data
+		if (streamBufferUsed >= 4) {
+			ESP_LOGD("MP3Decoder", "Buffer start: %02X %02X %02X %02X", 
+					streamBuffer[0], streamBuffer[1], streamBuffer[2], streamBuffer[3]);
+		}
+		
+		// Use low-level streaming decode similar to ESP32-speaker
+		std::vector<int16_t> accumulatedPCM;
+		size_t totalSamples = 0;
+		int detectedSampleRate = 0;
+		
+		uint8_t* readPtr = streamBuffer;
+		int bytesLeft = streamBufferUsed;
+		bool firstFrame = true;
+		
+		// Process all available frames in the buffer
+		while (bytesLeft > 0) {
+			// Find the next MP3 frame sync word
+			int offset = MP3FindSyncWord(readPtr, bytesLeft);
+			if (offset < 0) {
+				ESP_LOGD("MP3Decoder", "No more sync words found, %d bytes left", bytesLeft);
+				break; // No more sync words
+			}
+			
+			// Move to the sync word position
+			readPtr += offset;
+			bytesLeft -= offset;
+			
+			if (bytesLeft < 4) {
+				ESP_LOGD("MP3Decoder", "Not enough bytes for frame header");
+				break; // Not enough data for frame
+			}
+			
+			// Get frame info
+			MP3FrameInfo frameInfo;
+			int result = MP3GetNextFrameInfo(helixDecoder, &frameInfo, readPtr);
+			if (result != 0) {
+				ESP_LOGD("MP3Decoder", "Invalid frame header, skipping byte");
+				// Invalid frame, skip one byte and try again
+				readPtr++;
+				bytesLeft--;
+				continue;
+			}
+			
+			// Additional validation: check if we have enough data for the frame
+			// Estimate frame size (rough calculation)
+			int estimatedFrameSize = (frameInfo.bitrate * 144000) / (frameInfo.samprate * 8) + 4;
+			if (bytesLeft < estimatedFrameSize) {
+				ESP_LOGD("MP3Decoder", "Not enough data for frame (%d < %d), need more data", bytesLeft, estimatedFrameSize);
+				break; // Need more data
+			}
+			
+			// Update sample rate from first valid frame
+			if (firstFrame) {
+				detectedSampleRate = frameInfo.samprate;
+				firstFrame = false;
+				ESP_LOGD("MP3Decoder", "Detected MP3: %d Hz, %d channels, %d kbps", 
+						frameInfo.samprate, frameInfo.nChans, frameInfo.bitrate);
+			}
+			
+			// Try to decode the frame - MP3Decode will handle incomplete frames
+			int decodeResult = MP3Decode(helixDecoder, &readPtr, &bytesLeft, 
+										outputBuffer, 0);
+			
+			if (decodeResult != 0) {
+				if (decodeResult == ERR_MP3_INDATA_UNDERFLOW) {
+					ESP_LOGD("MP3Decoder", "Need more data for frame");
+					break; // Need more data
+				} else if (decodeResult == ERR_MP3_INVALID_HUFFCODES || 
+						   decodeResult == ERR_MP3_INVALID_FRAMEHEADER ||
+						   decodeResult == ERR_MP3_INVALID_SIDEINFO) {
+					// Frame data is corrupted, skip to next sync word
+					ESP_LOGW("MP3Decoder", "Corrupted frame data (error %d), skipping to next sync", decodeResult);
+					
+					// Skip to next potential sync word (look for 0xFF)
+					bool foundSync = false;
+					while (bytesLeft >= 2 && !foundSync) {
+						if (readPtr[0] == 0xFF && (readPtr[1] & 0xE0) == 0xE0) {
+							foundSync = true;
+							break;
+						}
+						readPtr++;
+						bytesLeft--;
+						if (bytesLeft < 2) break; // Prevent underflow
+					}
+					
+					if (!foundSync) {
+						ESP_LOGW("MP3Decoder", "No more sync words found, ending decode");
+						break;
+					}
+					
+					continue;
+				} else {
+					ESP_LOGW("MP3Decoder", "Frame decode error %d, skipping byte", decodeResult);
+					// For other errors, just skip one byte
+					readPtr++;
+					bytesLeft--;
+					continue;
+				}
+			}
+			
+			// Successfully decoded a frame
+			size_t samplesDecoded = frameInfo.outputSamps;
+			ESP_LOGD("MP3Decoder", "Decoded frame: %d samples", samplesDecoded);
+			
+			// Convert stereo to mono if needed
+			if (frameInfo.nChans == 2) {
+				// Convert stereo to mono by averaging channels
+				for (size_t i = 0; i < samplesDecoded; i += 2) {
+					int16_t left = outputBuffer[i];
+					int16_t right = outputBuffer[i + 1];
+					outputBuffer[i/2] = (left + right) / 2;
+				}
+				samplesDecoded /= 2;
+			}
+			
+			// Add to accumulated PCM
+			accumulatedPCM.insert(accumulatedPCM.end(), 
+								outputBuffer, 
+								outputBuffer + samplesDecoded);
+			totalSamples += samplesDecoded;
+		}
+		
+		// Remove consumed bytes from buffer
+		size_t bytesConsumed = readPtr - streamBuffer;
+		if (bytesConsumed > 0) {
+			size_t remainingBytes = streamBufferUsed - bytesConsumed;
+			if (remainingBytes > 0) {
+				memmove(streamBuffer, readPtr, remainingBytes);
+			}
+			streamBufferUsed = remainingBytes;
+			ESP_LOGD("MP3Decoder", "Consumed %d bytes, %d bytes remaining in buffer", 
+					bytesConsumed, streamBufferUsed);
+		}
+		
+		if (totalSamples == 0) {
+			ESP_LOGD("MP3Decoder", "No PCM data decoded from %d bytes", streamBufferUsed);
+			return false; // No data decoded
+		}
+		
+		// Allocate output buffer
+		int16_t* outputBuffer = (int16_t*)heap_caps_malloc(totalSamples * sizeof(int16_t), 
+														  MALLOC_CAP_SPIRAM | MALLOC_CAP_DEFAULT);
+		if (!outputBuffer) {
+			ESP_LOGE("MP3Decoder", "Failed to allocate output buffer for %d samples", totalSamples);
+			return false;
+		}
+		
+		// Copy accumulated data
+		memcpy(outputBuffer, accumulatedPCM.data(), totalSamples * sizeof(int16_t));
+		
+		// Resample if needed
+		int finalSampleRate = detectedSampleRate;
+		int16_t* finalBuffer = outputBuffer;
+		size_t finalSize = totalSamples;
+		
+		if (detectedSampleRate != 16000) {
+			// Resample to 16kHz for speaker
+			if (!resampleTo16kHz(outputBuffer, totalSamples, detectedSampleRate, &finalBuffer, &finalSize)) {
+				ESP_LOGW("MP3Decoder", "Resampling failed, using original %d Hz", detectedSampleRate);
+				finalSampleRate = detectedSampleRate;
+			} else {
+				finalSampleRate = 16000;
+				if (finalBuffer != outputBuffer) {
+					heap_caps_free(outputBuffer);
+				}
+			}
+		}
+		
+		*pcmBuffer = finalBuffer;
+		*pcmSize = finalSize;
+		*sampleRate = finalSampleRate;
+		
+		return true;
+	}
+
+	/**
+	 * Free PCM buffer allocated by decode functions
+	 * @param pcmBuffer Buffer to free
+	 */
+	inline void freePCMBuffer(int16_t* pcmBuffer) {
+		if (pcmBuffer) {
+			heap_caps_free(pcmBuffer);
+		}
+	}
+
+	/**
+	 * Decode MP3 audio data to PCM (non-streaming)
 	 * @param audioData Raw MP3 data
 	 * @param audioSize Size of MP3 data in bytes
 	 * @param pcmBuffer Output buffer for PCM data (allocated by this function)
@@ -24,8 +316,6 @@ public:
 			ESP_LOGE("MP3Processor", "Invalid parameters");
 			return false;
 		}
-
-		ESP_LOGI("MP3Processor", "Decoding MP3: %d bytes", audioSize);
 
 		// Initialize MP3 decoder if needed
 		if (!mp3Decoder.init()) {
@@ -42,9 +332,6 @@ public:
 			ESP_LOGE("MP3Processor", "Failed to decode MP3 data");
 			return false;
 		}
-
-		ESP_LOGI("MP3Processor", "Decoded MP3: %d samples, %d Hz, %d channels",
-				decodedSize, mp3Info.sampleRate, mp3Info.channels);
 
 		// Convert to mono if needed
 		if (mp3Info.channels != 1) {
@@ -76,23 +363,70 @@ public:
 		*pcmBuffer = finalBuffer;
 		*pcmSize = finalSize;
 		*sampleRate = finalSampleRate;
-
-		ESP_LOGI("MP3Processor", "Final output: %d samples at %d Hz", finalSize, finalSampleRate);
 		return true;
 	}
 
 	/**
-	 * Free PCM buffer allocated by decodeMP3ToPCM
-	 * @param buffer Buffer to free
+	 * Reset streaming decoder for new stream
 	 */
-	inline void freePCMBuffer(int16_t* buffer) {
-		if (buffer) {
-			mp3Decoder.freePCMBuffer(buffer);
+	inline void reset() {
+		streamBufferUsed = 0;
+		if (streamBuffer) {
+			memset(streamBuffer, 0, streamBufferSize);
 		}
 	}
 
 private:
 	MP3Decoder mp3Decoder;
+	bool streamingInitialized = false;
+	
+	// Streaming state
+	uint8_t* streamBuffer = nullptr;
+	size_t streamBufferSize = 0;
+	size_t streamBufferUsed = 0;
+	const size_t STREAM_BUFFER_SIZE = 1024 * 500;
+
+	/**
+	 * Ensure decoder and output buffer are initialized
+	 * @return true if ready
+	 */
+	inline bool ensureDecoderAndBuffer() {
+		if (!helixDecoder) {
+			helixDecoder = MP3InitDecoder();
+			if (!helixDecoder) {
+				ESP_LOGE("MP3Decoder", "Failed to initialize Helix MP3 decoder");
+				return false;
+			}
+		}
+		
+		if (!outputBuffer) {
+			outputBufferSize = MAX_OUTPUT_BUFFER_SIZE;
+			outputBuffer = (int16_t*)heap_caps_malloc(outputBufferSize * sizeof(int16_t), 
+													MALLOC_CAP_SPIRAM | MALLOC_CAP_DEFAULT);
+			if (!outputBuffer) {
+				ESP_LOGE("MP3Decoder", "Failed to allocate output buffer");
+				MP3FreeDecoder(helixDecoder);
+				helixDecoder = nullptr;
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Ensure stream buffer is allocated
+	 * @return true if buffer is ready
+	 */
+	inline bool ensureStreamBuffer() {
+		if (!streamBuffer) {
+			streamBuffer = (uint8_t*)heap_caps_malloc(STREAM_BUFFER_SIZE, MALLOC_CAP_SPIRAM | MALLOC_CAP_DEFAULT);
+			if (!streamBuffer) {
+				return false;
+			}
+			streamBufferSize = STREAM_BUFFER_SIZE;
+		}
+		return true;
+	}
 
 	/**
 	 * Resample audio from current sample rate to 16kHz
@@ -107,8 +441,6 @@ private:
 									   int16_t** resampledBuffer, size_t* resampledSize) {
 		// Calculate target samples
 		size_t targetSamples = (pcmSize * 16000LL) / currentSampleRate;  // Use 64-bit to avoid overflow
-		ESP_LOGI("MP3Processor", "Resampling from %d Hz to 16000 Hz: %d -> %d samples",
-				currentSampleRate, pcmSize, targetSamples);
 
 		// Allocate resampled buffer
 		int16_t* buffer = (int16_t*)heap_caps_malloc(targetSamples * sizeof(int16_t), MALLOC_CAP_SPIRAM);
@@ -139,8 +471,6 @@ private:
 
 		*resampledBuffer = buffer;
 		*resampledSize = targetSamples;
-
-		ESP_LOGI("MP3Processor", "Resampling complete: %d samples at 16000 Hz", targetSamples);
 		return true;
 	}
 
@@ -157,7 +487,6 @@ private:
 			buffer[i] = (buffer[i * 2] + buffer[i * 2 + 1]) / 2;
 		}
 		*size = *size / 2;
-		ESP_LOGI("MP3Processor", "Converted stereo to mono: %d samples", *size);
 	}
 };
 

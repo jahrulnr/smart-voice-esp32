@@ -14,6 +14,7 @@
 #include <gpt.h>
 #include <tts.h>
 #include <stt.h>
+#include <sts.h>
 #include <core/activity.h>
 #include <core/time.h>
 #include <app/callbacks.h>

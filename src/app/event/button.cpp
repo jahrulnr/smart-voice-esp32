@@ -29,31 +29,40 @@ void buttonEvent() {
 		case 1:
 		case 2: 
 			{
-				ESP_LOGI("buttonEvent", "Recording: ON");
-				auto event = getMicEvent();
-				if (event.state != AUDIO_STATE_IDLE){
-					ESP_LOGW("buttonEvent", "Mic event is not idle, state: %d", event.state);
-					break;
-				}
-				event.flag = EMIC_START;
-				event.collectorCallback = audioToWavCallback;
-				event.executorCallback = audioTalkCallback;
-				setMicEvent(event);
+				// ESP_LOGI("buttonEvent", "Recording: ON");
+				// auto event = getMicEvent();
+				// if (event.state != AUDIO_STATE_IDLE){
+				// 	ESP_LOGW("buttonEvent", "Mic event is not idle, state: %d", event.state);
+				// 	break;
+				// }
+				// event.flag = EMIC_START;
+				// event.collectorCallback = audioToWavCallback;
+				// event.executorCallback = audioTalkCallback;
+				// setMicEvent(event);
+				// notification->send(NOTIFICATION_DISPLAY, EDISPLAY_MIC);
+				// needBackTrigger = true;
+				// onTriggerBack = []() {
+				// 	auto event = getMicEvent();
+				// 	if (event.state != AUDIO_STATE_RUNNING){
+				// 		ESP_LOGW("buttonEvent", "Mic event is not running, state: %d", event.state);
+				// 		return;
+				// 	}
+				// 	notification->send(NOTIFICATION_DISPLAY, EDISPLAY_LOADING);
+				// 	event.flag = EMIC_STOP;
+				// 	event.collectorCallback = audioToWavCallback;
+				// 	event.executorCallback = audioTalkCallback;
+				// 	setMicEvent(event);
+				// 	ESP_LOGI("buttonEvent", "Recording: OFF");
+				// };
+				aiSts.start(micAudioCallback, speakerAudioCallback);
 				notification->send(NOTIFICATION_DISPLAY, EDISPLAY_MIC);
 				needBackTrigger = true;
 				onTriggerBack = []() {
-					auto event = getMicEvent();
-					if (event.state != AUDIO_STATE_RUNNING){
-						ESP_LOGW("buttonEvent", "Mic event is not running, state: %d", event.state);
-						return;
-					}
-					notification->send(NOTIFICATION_DISPLAY, EDISPLAY_LOADING);
-					event.flag = EMIC_STOP;
-					event.collectorCallback = audioToWavCallback;
-					event.executorCallback = audioTalkCallback;
-					setMicEvent(event);
-					ESP_LOGI("buttonEvent", "Recording: OFF");
+					notification->send(NOTIFICATION_DISPLAY, EDISPLAY_NONE);
+					aiSts.stop();
 				};
+
+				ESP_LOGI("buttonEvent", "Started microphone for streaming");
 			}
 			break;
 	}

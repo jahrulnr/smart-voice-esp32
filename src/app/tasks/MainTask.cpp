@@ -12,19 +12,19 @@ void mainTask(void *param) {
 		vTaskDelayUntil(&lastWakeTime, updateFrequency);
 		notification->send(TAG, 1);
 
-		if(getAfeState() == VAD_SPEECH) {
-			int16_t* lastSample = microphone->getCache().lastSample;
-			ESP_LOGI(TAG, "Speech level: %d, Last detected: %dms", 
-				microphone->level(), millis() - getLastSpeech());
-		}
+		// if(getAfeState() == VAD_SPEECH) {
+		// 	int16_t* lastSample = microphone->getCache().lastSample;
+		// 	ESP_LOGI(TAG, "Speech level: %d, Last detected: %dms", 
+		// 		microphone->level(), millis() - getLastSpeech());
+		// }
 
-		if (millis() - activityCheck > 1000) {
-			activityCheck = millis();
-			unsigned long lastActivity = sysActivity.lastUpdate(activityCheck);
-			ESP_LOGI(TAG, "Last activity: %d%s", 
-				lastActivity > 1000 ? lastActivity / 1000 : lastActivity, 
-				lastActivity > 1000 ? "s" : "ms");
-		}
+		// if (millis() - activityCheck > 1000) {
+		// 	activityCheck = millis();
+		// 	unsigned long lastActivity = sysActivity.lastUpdate(activityCheck);
+		// 	ESP_LOGI(TAG, "Last activity: %d%s", 
+		// 		lastActivity > 1000 ? lastActivity / 1000 : lastActivity, 
+		// 		lastActivity > 1000 ? "s" : "ms");
+		// }
 
 		// watch event
 		timeEvent();

@@ -33,7 +33,8 @@ void microphoneTask(void* param) {
 			ESP_LOGW(TAG, "status: ON, key: %d", key);
 			
 			// need add support for mqtt
-			xTaskCreatePinnedToCore(recorderTask, "recorderTask", 1024 * 4, nullptr, 0, &recordEventHandle, 1);
+			if (event.collectorCallback && event.executorCallback)
+				xTaskCreatePinnedToCore(recorderTask, "recorderTask", 1024 * 4, nullptr, 0, &recordEventHandle, 1);
 		} 
 		else if (event.state == AUDIO_STATE_RUNNING && event.flag == EMIC_STOP) {
 			ESP_LOGW(TAG, "status: OFF, key: %d, last index: %d", key, index);
