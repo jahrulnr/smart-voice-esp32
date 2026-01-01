@@ -13,3 +13,6 @@ void aiCallback(const String& payload, const String& response, bool streaming = 
 void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioSize);
 void aiVoiceStreamCallback(const String& text, const uint8_t* audioChunk, size_t chunkSize, bool isLastChunk);
 void aiTranscriptionCallback(const String& filePath, const String& text, const String& usageJson);
+
+size_t micAudioCallback(uint8_t* buffer, size_t maxSize);
+void speakerAudioCallback(const uint8_t* audioData, size_t audioSize, bool isLastChunk);
