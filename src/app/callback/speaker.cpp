@@ -3,21 +3,24 @@
 #include <app/audio/converter.h>
 #include <esp_heap_caps.h>
 
+int size16t = sizeof(int16_t);
+
 // AudioResponseCallback
 void speakerAudioCallback(const uint8_t* audioData, size_t audioSize, bool isLastChunk) {
+    sysActivity.update();
     if (!speaker || !audioData || audioSize == 0) {
         return;
     }
 
     // Audio data is PCM16 at 24kHz, convert to 16kHz for speaker
-    const int16_t* pcmInput = reinterpret_cast<const int16_t*>(audioData);
-    size_t inputSamples = audioSize / sizeof(int16_t);
+    int16_t* pcmInput = (int16_t*)audioData;
+    size_t inputSamples = audioSize / size16t;
 
     // Calculate output buffer size
     size_t outputSamples = AudioBufferConverter::calculateOutputSize(24, 16, inputSamples);
     
     // Allocate output buffer in SPIRAM
-    int16_t* pcmOutput = static_cast<int16_t*>(heap_caps_malloc(outputSamples * sizeof(int16_t), MALLOC_CAP_SPIRAM));
+    int16_t* pcmOutput = (int16_t*)heap_caps_malloc(outputSamples * size16t, MALLOC_CAP_SPIRAM);
     if (!pcmOutput) {
         ESP_LOGE("SpeakerCallback", "Failed to allocate output buffer");
         return;
@@ -33,8 +36,8 @@ void speakerAudioCallback(const uint8_t* audioData, size_t audioSize, bool isLas
 
     // Write converted audio to speaker
     size_t samplesWritten = 0;
-		speaker->writeSamples(pcmOutput, convertedSamples * sizeof(int16_t), &samplesWritten);
-		
+    speaker->writeSamples(pcmOutput, convertedSamples * size16t, &samplesWritten);
+        
     // Free the buffer
     heap_caps_free(pcmOutput);
 

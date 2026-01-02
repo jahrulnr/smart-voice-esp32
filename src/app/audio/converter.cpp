@@ -5,7 +5,7 @@
 
 int AudioBufferConverter::convert(uint32_t inputKhz, uint32_t outputKhz,
                                  const int16_t* bufferIn, size_t lenIn,
-                                 int16_t* bufferOut, size_t lenOut) {
+                                 int16_t* bufferOut, size_t lenOut, float volume) {
     if (inputKhz == 0 || outputKhz == 0 || bufferIn == nullptr || bufferOut == nullptr) {
         return -1; // Invalid parameters
     }
@@ -46,6 +46,9 @@ int AudioBufferConverter::convert(uint32_t inputKhz, uint32_t outputKhz,
         // Linear interpolation
         float fraction = inputIndex - static_cast<float>(indexLow);
         bufferOut[i] = interpolate(bufferIn[indexLow], bufferIn[indexHigh], fraction);
+        if (volume != 1.0f) {
+            bufferOut[i] = std::max(-32768.0f, std::min(32767.0f, bufferOut[i] * volume));
+        }
     }
 
     return expectedOutputSize;
@@ -72,20 +75,4 @@ int16_t AudioBufferConverter::interpolate(int16_t sample1, int16_t sample2, floa
     result = std::max(-32768.0f, std::min(32767.0f, result));
 
     return static_cast<int16_t>(result);
-}
-
-void AudioBufferConverter::setVolume(int16_t* buffer, size_t len, float volume) {
-    if (buffer == nullptr || len == 0) {
-        return;
-    }
-
-    // Clamp volume to reasonable range
-    volume = std::max(0.0f, std::min(20.0f, volume));
-
-    for (size_t i = 0; i < len; ++i) {
-        float scaled = static_cast<float>(buffer[i]) * volume;
-        // Clamp to int16_t range to prevent overflow
-        scaled = std::max(-32768.0f, std::min(32767.0f, scaled));
-        buffer[i] = static_cast<int16_t>(scaled);
-    }
 }

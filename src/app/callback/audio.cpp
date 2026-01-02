@@ -70,7 +70,7 @@ System Information:
 )===";
 
 		systemCmd.replace("{--time--}", timeManager.getCurrentTime());
-		systemCmd.replace("{--last_interaction--}", String(sysActivity.lastUpdate(millis())));
+		systemCmd.replace("{--last_interaction--}", String(sysActivity.lastUpdate()));
 		ai.setSystemMessage(systemCmd);
 		ai.sendPrompt(text, [](const String &payload, const String &response){
 			// tts.speak(response.c_str());

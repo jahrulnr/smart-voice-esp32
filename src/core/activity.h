@@ -3,15 +3,18 @@
 
 class SystemActivity {
 public:
-  SystemActivity(): _timer(millis()) {}
-  inline void update(unsigned long time) {
+  SystemActivity(): _timer(0) {}
+  inline void update(unsigned long time = 0) {
+    if (time == 0) time = millis();
     _timer = time;
   }
-  inline unsigned long lastUpdate(unsigned long time) {
-    return time - _timer;
+  inline unsigned long lastUpdate(unsigned long time = 0) {
+    if (time == 0) time = millis();
+    unsigned long res = time - _timer;
+    return res;
   }
 private:
   unsigned long _timer;
 };
 
-extern SystemActivity sysActivity;
+static SystemActivity sysActivity;

@@ -10,7 +10,7 @@ void buttonEvent() {
 
 	bool triggerTimeout = millis() - button.getLastTrigger() >= 1000;
 	if (button.isPressed() && !triggerTimeout) {
-		sysActivity.update(millis());
+		sysActivity.update();
 		++triggerCount;
 		return;
 	}
@@ -68,6 +68,6 @@ void buttonEvent() {
 	}
 
 	ESP_LOGI("buttonEvent", "Button pressed, count: %d", triggerCount);
-	sysActivity.update(millis());
+	sysActivity.update();
 	triggerCount = 0;
 }

@@ -26,16 +26,16 @@ void runTasks(){
     .caps = MALLOC_CAP_INTERNAL,
     .suspendable = true
   });
-  tasks.push_back(new BackgroundTask{
-    .name = "microphoneTask",
-    .handle = nullptr,
-    .task = microphoneTask,
-    .stack = 1024 * 3,
-    .core = 1,
-    .priority = 5,
-    .caps = MALLOC_CAP_INTERNAL,
-    .suspendable = true
-  });
+  // tasks.push_back(new BackgroundTask{
+  //   .name = "microphoneTask",
+  //   .handle = nullptr,
+  //   .task = microphoneTask,
+  //   .stack = 1024 * 3,
+  //   .core = 1,
+  //   .priority = 5,
+  //   .caps = MALLOC_CAP_INTERNAL,
+  //   .suspendable = true
+  // });
 
   vTaskDelay(100);
   xTaskCreatePinnedToCoreWithCaps(

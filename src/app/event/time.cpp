@@ -41,5 +41,5 @@ void timeEvent() {
 		[](const String& payload, const String& response) {
 			aiCallback(payload, response, true);
 		});
-	sysActivity.update(millis());
+	sysActivity.update();
 }

@@ -13,7 +13,7 @@ esp_err_t srAudioCallback(void *arg, void *out, size_t len, size_t *bytes_read, 
 
 // AudioFillCallback 
 size_t micAudioCallback(uint8_t* buffer, size_t maxSize) {
-    sysActivity.update(millis());
+    sysActivity.update();
     if (!microphone || !buffer || maxSize == 0) {
         return 0;
     }
@@ -36,6 +36,7 @@ size_t micAudioCallback(uint8_t* buffer, size_t maxSize) {
 
     // Input is 16kHz PCM16
     int16_t* inputBuffer = (int16_t*) heap_caps_malloc(cache.lastSampleLen, MALLOC_CAP_SPIRAM | MALLOC_CAP_DEFAULT);
+    if (!inputBuffer) return 0;
     memcpy(inputBuffer, cache.lastSample, cache.lastSampleLen);
     size_t inputSamples = cache.lastSampleLen / sizeof(int16_t);
     size_t maxOutputSamples = maxSize / sizeof(int16_t);
@@ -66,13 +67,16 @@ size_t micAudioCallback(uint8_t* buffer, size_t maxSize) {
     }
 
     // Convert from 16kHz to 24kHz
-    int convertedSamples = AudioBufferConverter::convert(16, 24, inputBuffer, inputSamples, outputBuffer, requiredOutputSamples);
+    int convertedSamples = AudioBufferConverter::convert(16, 24, inputBuffer, inputSamples, outputBuffer, requiredOutputSamples, 15.0f);
     if (convertedSamples <= 0) {
         ESP_LOGE("MicCallback", "Audio conversion failed: inputSamples=%d, requiredOutputSamples=%d, maxOutputSamples=%d", 
                  inputSamples, requiredOutputSamples, maxOutputSamples);
         if (tempBuffer) heap_caps_free(tempBuffer);
+        if (inputBuffer) heap_caps_free(inputBuffer);
         return 0;
     }
+
+    if (inputBuffer) heap_caps_free(inputBuffer);
 
     // If we used a temp buffer, copy to output buffer
     if (tempBuffer) {
@@ -82,9 +86,6 @@ size_t micAudioCallback(uint8_t* buffer, size_t maxSize) {
         ESP_LOGD("MicCallback", "Returning %d bytes (with temp buffer)", copySamples * sizeof(int16_t));
         return copySamples * sizeof(int16_t);
     }
-    
-    // Use this everywhere
-    AudioBufferConverter::setVolume((int16_t*)buffer, convertedSamples, 15.f);
 
     ESP_LOGD("MicCallback", "Returning %d bytes", convertedSamples * sizeof(int16_t));
     return convertedSamples * sizeof(int16_t);

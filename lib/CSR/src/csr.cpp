@@ -380,7 +380,7 @@ esp_err_t setup(
 
 esp_err_t start(BaseType_t feedCore, BaseType_t detectCore) {
   //Start tasks
-  esp_err_t ret_val = xTaskCreatePinnedToCore(&SR::audio_feed_task, "SR Feed Task", 4 * 1024, NULL, 6, &SR::g_sr_data->feed_task, feedCore);
+  esp_err_t ret_val = xTaskCreatePinnedToCore(&SR::audio_feed_task, "SR Feed Task", 4 * 1024, NULL, 10, &SR::g_sr_data->feed_task, feedCore);
   if(pdPASS != ret_val) {
     ESP_LOGE(SR::TAG, "Failed create audio feed task");
     SR::stop();
@@ -388,7 +388,7 @@ esp_err_t start(BaseType_t feedCore, BaseType_t detectCore) {
   }
 
   vTaskDelay(10);
-  ret_val = xTaskCreatePinnedToCore(&SR::audio_detect_task, "SR Detect Task", 8 * 1024, NULL, 6, &SR::g_sr_data->detect_task, detectCore);
+  ret_val = xTaskCreatePinnedToCore(&SR::audio_detect_task, "SR Detect Task", 8 * 1024, NULL, 10, &SR::g_sr_data->detect_task, detectCore);
   if(pdPASS != ret_val) {
     ESP_LOGE(SR::TAG, "Failed create audio detect task");
     SR::stop();

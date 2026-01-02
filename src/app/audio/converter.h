@@ -15,11 +15,12 @@ public:
      * @param lenIn Length of input buffer in samples
      * @param bufferOut Output buffer (16-bit PCM samples)
      * @param lenOut Length of output buffer in samples (must be large enough)
+     * @param volume Volume multiplier (0.0 = silent, 1.0 = original, >1.0 = amplified but clipped)
      * @return Number of samples written to output buffer, or -1 on error
      */
     static int convert(uint32_t inputKhz, uint32_t outputKhz,
                       const int16_t* bufferIn, size_t lenIn,
-                      int16_t* bufferOut, size_t lenOut);
+                      int16_t* bufferOut, size_t lenOut, float volume = 1.0f);
 
     /**
      * Calculate the required output buffer size for sample rate conversion
@@ -30,15 +31,6 @@ public:
      * @return Required output buffer size in samples
      */
     static size_t calculateOutputSize(uint32_t inputKhz, uint32_t outputKhz, size_t inputSamples);
-
-    /**
-     * Apply volume scaling to audio buffer with clipping prevention
-     *
-     * @param buffer Audio buffer (16-bit PCM samples)
-     * @param len Length of buffer in samples
-     * @param volume Volume multiplier (0.0 = silent, 1.0 = original, >1.0 = amplified but clipped)
-     */
-    static void setVolume(int16_t* buffer, size_t len, float volume);
 
 private:
     // Linear interpolation between two samples

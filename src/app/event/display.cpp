@@ -30,11 +30,11 @@ void displayEvent() {
 			lastDisplayEvent = event;
 		}
 		if (event != EDISPLAY_SLEEP) {
-			sysActivity.update(millis());
+			sysActivity.update();
 		}
 	}
 
-	if (lastDisplayEvent == EDISPLAY_SLEEP && sysActivity.lastUpdate(millis()) <= 60000) {
+	if (lastDisplayEvent == EDISPLAY_SLEEP && sysActivity.lastUpdate() <= 60000) {
 		lastDisplayEvent = EDISPLAY_NONE;
 	}
 

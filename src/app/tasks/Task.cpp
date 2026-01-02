@@ -30,14 +30,14 @@ void taskMonitorer(void* param){
 		portYIELD_CORE(0);
 		portYIELD_CORE(1);
 
-		auto sysLastUpdate = sysActivity.lastUpdate(millis());
+		auto sysLastUpdate = sysActivity.lastUpdate();
 #if ENABLE_POWERSAVE
 		if (sysLastUpdate > 60000 && getCpuFrequencyMhz() != 80) {
 			pauseTasks();
 			// 240, 160, 120, 80
 			setCpuFrequencyMhz(80);
 			notification->send(NOTIFICATION_DISPLAY, (int) EDISPLAY_SLEEP);
-			ESP_LOGI(TAG, "Display sleep triggered, downclock cpu to %dMhz", getCpuFrequencyMhz());
+			ESP_LOGI(TAG, "Display sleep triggered, downclock cpu to %dMhz, last activity: %ds", getCpuFrequencyMhz(), sysLastUpdate / 1000);
 		} else if (sysLastUpdate <= 60000 && getCpuFrequencyMhz() != 240) {
 			setCpuFrequencyMhz(240);
 			resumeTasks();
