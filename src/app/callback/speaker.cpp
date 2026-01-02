@@ -8,7 +8,11 @@ int size16t = sizeof(int16_t);
 // AudioResponseCallback
 void speakerAudioCallback(const uint8_t* audioData, size_t audioSize, bool isLastChunk) {
     sysActivity.update();
-    if (!speaker || !audioData || audioSize == 0) {
+    if (!speaker) return;
+    else if ((!audioData || audioSize == 0) && !isLastChunk) {
+        return;
+    } else if ((!audioData || audioSize == 0) && isLastChunk) {
+        speaker->clear();
         return;
     }
 
