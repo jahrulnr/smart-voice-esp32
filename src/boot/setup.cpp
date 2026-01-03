@@ -21,7 +21,7 @@ void setupApp(){
   ai.init(GPT_API_KEY);
   aiTts.init(GPT_API_KEY);
   aiStt.init(GPT_API_KEY, LittleFS);
-  aiSts.init(GPT_API_KEY, LittleFS);
+  aiSts.init(GPT_API_KEY);
   delay(1000);
 
   setupMicrophone();
