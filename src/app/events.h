@@ -31,6 +31,8 @@ void timeEvent();
 void displayEvent();
 void buttonEvent();
 void srEvent();
+void stsTools();
+void stsEvent(const GPTStsService::GPTToolCall& toolcall);
 
 AudioEvent getMicEvent();
 void setMicEvent(AudioEvent event);

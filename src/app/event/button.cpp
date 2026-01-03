@@ -32,34 +32,9 @@ void buttonEvent() {
 				aiSts.start(
 					micAudioCallback, 
 					speakerAudioCallback,
-					[](){
-						aiSts.sendTool(GPTStsService::GPTTool{
-							.description = "Send weather notification to system",
-							.name = "notification_weather"
-						});
-					},
+					stsTools,
 					nullptr,
-					[](const GPTStsService::GPTToolCall& data) {
-						ESP_LOGI("AIFunctionCall", "name: %s, call_id: %s", data.name, data.callId);
-						// need move to command processor
-						if (0 == strcmp(data.name, "notification_weather"))
-							weatherService.getCurrentWeather([&data](weatherData_t wdata, bool success){
-								String resp = 
-									"Temperature: " + String(wdata.temperature)
-									+". Humidity: " + String(wdata.humidity)
-									+". Wind Speed: " + String(wdata.windSpeed)
-									+". Wind Direction: " + String(wdata.windDirection)
-									+". Deskripsi: " + String(wdata.description)
-									+". Last Update: " + String(wdata.lastUpdated);
-								
-								aiSts.sendToolCallback(GPTStsService::GPTToolCallback{
-									.callId = data.callId,
-									.name = data.name,
-									.output = resp.c_str(),
-									.status = "complete"
-								});
-							});
-					}
+					stsEvent
 				);
 				notification->send(NOTIFICATION_DISPLAY, EDISPLAY_MIC);
 				needBackTrigger = true;
