@@ -20,7 +20,7 @@ void mainTask(void *param) {
 
 		// if (millis() - activityCheck > 1000) {
 		// 	activityCheck = millis();
-		// 	unsigned long lastActivity = sysActivity.lastUpdate();
+		// 	unsigned long lastActivity = sysActivity->lastUpdate();
 		// 	ESP_LOGI(TAG, "Last activity: %d%s", 
 		// 		lastActivity > 1000 ? lastActivity / 1000 : lastActivity, 
 		// 		lastActivity > 1000 ? "s" : "ms");

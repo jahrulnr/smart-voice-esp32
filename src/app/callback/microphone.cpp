@@ -13,7 +13,7 @@ esp_err_t srAudioCallback(void *arg, void *out, size_t len, size_t *bytes_read, 
 
 // AudioFillCallback 
 size_t micAudioCallback(uint8_t* buffer, size_t maxSize) {
-    sysActivity.update();
+    sysActivity->update();
     if (!microphone || !buffer || maxSize == 0) {
         return 0;
     }

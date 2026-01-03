@@ -3,7 +3,7 @@
 
 void aiCallback(const String& payload, const String& response, bool streaming){
 	if (response.isEmpty()) return;
-	sysActivity.update();
+	sysActivity->update();
 	notification->send(NOTIFICATION_DISPLAY, EDISPLAY_LOADING);
 
 	ESP_LOGI("AICallback", "Payload: %s", payload.c_str());
@@ -24,7 +24,7 @@ void aiCallback(const String& payload, const String& response, bool streaming){
 void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioSize) {
 	ESP_LOGI("AIVoiceCallback", "Text: %s", text.c_str());
 	ESP_LOGI("AIVoiceCallback", "Audio size: %d", audioSize);
-	sysActivity.update();
+	sysActivity->update();
 
 	if (!audioData || audioSize == 0) {
 		ESP_LOGE("AIVoiceCallback", "No audio data received");
@@ -104,7 +104,7 @@ void aiVoiceStreamCallback(const String& text, const uint8_t* audioChunk, size_t
 		initialized = false;
 		speaker->clear();
 		notification->send(NOTIFICATION_DISPLAY, EDISPLAY_NONE);
-		sysActivity.update();
+		sysActivity->update();
 		return;
 	}
 
@@ -143,5 +143,5 @@ void aiVoiceStreamCallback(const String& text, const uint8_t* audioChunk, size_t
 void aiTranscriptionCallback(const String& filePath, const String& text, const String& usageJson) {
 	ESP_LOGI("AITranscriptionCallback", "Transcription: %s", text.c_str());
 	aiTts.textToSpeech(text.c_str(), aiVoiceCallback);
-	sysActivity.update();
+	sysActivity->update();
 }

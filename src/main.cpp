@@ -6,6 +6,7 @@
 #include <LittleFS.h>
 #include <nvs_flash.h>
 
+SystemActivity* sysActivity;
 TimeManager timeManager;
 
 void init(){
@@ -17,6 +18,7 @@ void setup() {
 	LittleFS.begin(true);
 	Wire.begin(SDA_PIN, SCL_PIN);
 	timeManager.init();
+	sysActivity = new SystemActivity;
 
 	setupApp();
 	runTasks();
@@ -25,7 +27,7 @@ void setup() {
 	heap_caps_malloc_extmem_enable(0);
 	#endif
 
-	sysActivity.update();
+	sysActivity->update();
 }
 
 void loop() {

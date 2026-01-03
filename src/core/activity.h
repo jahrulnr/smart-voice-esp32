@@ -17,4 +17,4 @@ private:
   unsigned long _timer;
 };
 
-static SystemActivity sysActivity;
+extern SystemActivity* sysActivity;

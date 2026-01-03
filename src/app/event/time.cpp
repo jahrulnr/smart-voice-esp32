@@ -35,11 +35,11 @@ void timeEvent() {
 	lastHour = hour;
 
 	// tts.speak(timeManager.getCurrentTime());
-	// ai.setSystemMessage(extraCmd);
-	// ai.sendPrompt(
-	// 	timeManager.getCurrentTime(),
-	// 	[](const String& payload, const String& response) {
-	// 		aiCallback(payload, response, true);
-	// 	});
-	sysActivity.update();
+	ai.setSystemMessage(extraCmd);
+	ai.sendPrompt(
+		timeManager.getCurrentTime(),
+		[](const String& payload, const String& response) {
+			aiCallback(payload, response, true);
+		});
+	sysActivity->update();
 }

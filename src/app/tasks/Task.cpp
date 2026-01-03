@@ -30,7 +30,7 @@ void taskMonitorer(void* param){
 		portYIELD_CORE(0);
 		portYIELD_CORE(1);
 
-		auto sysLastUpdate = sysActivity.lastUpdate();
+		auto sysLastUpdate = sysActivity->lastUpdate();
 #if ENABLE_POWERSAVE
 		if (sysLastUpdate > 60000 && getCpuFrequencyMhz() != 80) {
 			pauseTasks();
