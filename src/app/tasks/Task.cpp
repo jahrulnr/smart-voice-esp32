@@ -41,6 +41,7 @@ void taskMonitorer(void* param){
 		} else if (sysLastUpdate <= 60000 && getCpuFrequencyMhz() != 240) {
 			setCpuFrequencyMhz(240);
 			resumeTasks();
+			ESP_LOGI(TAG, "Activity detected, set cpu clock to %dMhz, last activity: %ds", getCpuFrequencyMhz(), sysLastUpdate / 1000);
 		}
 #endif
 
