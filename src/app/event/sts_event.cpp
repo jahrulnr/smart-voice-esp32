@@ -19,6 +19,7 @@ void stsTools(){
 	});
 
 	aiSts.sendTools();
+	notification->send(NOTIFICATION_DISPLAY, EDISPLAY_FACE);
 }
 
 void stsEvent(const GPTStsService::GPTToolCall& data) {
