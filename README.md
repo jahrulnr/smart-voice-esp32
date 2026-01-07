@@ -38,7 +38,7 @@ The ESP32 firmware handles hardware control using FreeRTOS tasks:
 - **Microphone**:
   - I2S: INMP441 (tested), ICS-43434, SPH0645
   - Analog (not tested): MAX9814 or similar with gain control
-  - PDM (not tested)
+  - PDM (tested on seeed_xiao_esp32s3)
 - **Speaker**: I2S for TTS output
 
 ## Software Requirements
