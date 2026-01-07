@@ -68,6 +68,8 @@ public:
 					(gpio_num_t)MIC_SCK,    // Clock pin
 					I2S_NUM_0               // Port number
 			);
+			pmic->init(16000, I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
+			pmic->start();
 			break;
 		}
 	}
@@ -117,7 +119,10 @@ public:
 					bytes_read,
 					timeout_ms
 				);
+				break;
 			}
+
+			ret = ESP_FAIL;
 			break;
 		}
 

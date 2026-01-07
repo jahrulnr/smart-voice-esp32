@@ -2,6 +2,7 @@
 #include <core/time.h>
 
 void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id){
+	ESP_LOGI("srEvent", "SR event detected, id=%d, command=%d, phrase_id=%d", event, command_id, phrase_id);
 	switch (event) {
 		case SR_EVENT_WAKEWORD:
 			aiSts.start(
