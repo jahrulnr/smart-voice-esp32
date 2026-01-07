@@ -33,6 +33,7 @@ void buttonEvent();
 void srEvent();
 void stsTools();
 void stsEvent(const GPTStsService::GPTToolCall& toolcall);
+void srDisconnectCallback();
 
 AudioEvent getMicEvent();
 void setMicEvent(AudioEvent event);

@@ -5,9 +5,17 @@ void stsTools(){
 		.description = "System weather information, cannot be changed",
 		.name = "weather"
 	});
+
+	GPTSpiJsonDocument timeParam;
+	timeParam["type"] = "object";
+	// https://platform.openai.com/docs/api-reference/realtime-client-events/session/update
+	timeParam["properties"]["type"]["type"] = "string";
+	timeParam["properties"]["type"]["description"] = "a time type. value is 'date', 'time', 'datetime'";
+	timeParam.shrinkToFit();
 	aiSts.addTool(GPTStsService::GPTTool{
 		.description = "System time",
-		.name = "time"
+		.name = "time",
+		.params = timeParam
 	});
 	aiSts.addTool(GPTStsService::GPTTool{
 		.description = "Close conversation talk",
@@ -20,10 +28,11 @@ void stsTools(){
 
 	aiSts.sendTools();
 	notification->send(NOTIFICATION_DISPLAY, EDISPLAY_FACE);
+	aiSts.Speak();
 }
 
 void stsEvent(const GPTStsService::GPTToolCall& data) {
-	ESP_LOGI("AIFunctionCall", "name: %s, call_id: %s", data.name, data.callId);
+	ESP_LOGI("AIFunctionCall", "name: %s, call_id: %s, params: %s", data.name, data.callId, data.params.as<String>().c_str());
 	// need move to command processor
 	if (0 == strcmp(data.name, "weather"))
 		weatherService.getCurrentWeather([&data](weatherData_t wdata, bool success){
@@ -58,4 +67,9 @@ void stsEvent(const GPTStsService::GPTToolCall& data) {
 	else if (0 == strcmp(data.name, "restart"))
 		ESP.restart();
 
+	if (!data.params.isNull()) data.params;
+}
+
+void srDisconnectCallback() {
+	notification->send(NOTIFICATION_DISPLAY, EDISPLAY_NONE);
 }

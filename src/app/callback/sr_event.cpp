@@ -9,7 +9,8 @@ void srEventCallback(void *arg, sr_event_t event, int command_id, int phrase_id)
 				speakerAudioCallback,
 				stsTools,
 				nullptr,
-				stsEvent
+				stsEvent,
+				srDisconnectCallback
 			);
 			notification->send(NOTIFICATION_DISPLAY, EDISPLAY_LOADING);
 			SR::set_mode(SR_MODE_WAKEWORD);

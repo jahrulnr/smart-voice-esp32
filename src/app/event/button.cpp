@@ -34,7 +34,8 @@ void buttonEvent() {
 					speakerAudioCallback,
 					stsTools,
 					nullptr,
-					stsEvent
+					stsEvent,
+					srDisconnectCallback
 				);
 				notification->send(NOTIFICATION_DISPLAY, EDISPLAY_MIC);
 				needBackTrigger = true;
