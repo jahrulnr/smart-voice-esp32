@@ -9,6 +9,7 @@ public:
 	~BootSplashDrawer() override {}
 
 	inline void start() {
+		if (!display) return;
 		xTaskCreate([](void* arg) {
 			BootSplashDrawer* drawer = static_cast<BootSplashDrawer*>(arg);
 			while(!drawer->_interrupt){
@@ -20,11 +21,13 @@ public:
 	}
 
 	inline void stop() {
+		if (!display) return;
 		_interrupt = true;
 		ESP_LOGI("bootSplash", "stop");
 	}
 	
 	inline void draw() override {
+		if (!display) return;
 		// Clear display with black background
 		_display->clearBuffer();
 		

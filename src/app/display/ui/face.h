@@ -6,6 +6,7 @@
 class FaceDrawer : public DisplayDrawer {
 public:
 	FaceDrawer(U8G2* display = nullptr): _display(display), _width(128), _height(64) {
+		if (!display) return;
 		_face = new Face(display, _width, _height, 40);
 		_face->Expression.GoTo_Normal();
 		_face->LookFront();
@@ -47,35 +48,43 @@ public:
 	}
 
 	~FaceDrawer() {
+		if (!display) return;
 		delete _face;
 	}
 
 	inline void setExpression(eEmotions emotion) {
+		if (!display) return;
 		_face->Behavior.GoToEmotion(emotion);
 	}
 
 	inline void lookFront() {
+		if (!display) return;
 		_face->LookFront();
 	}
 
 	inline void lookRight() {
+		if (!display) return;
 		_face->LookRight();
 	}
 
 	inline void lookLeft() {
+		if (!display) return;
 		_face->LookLeft();
 	}
 
 	inline void lookTop() {
+		if (!display) return;
 		_face->LookTop();
 	}
 
 	inline void lookBottom() {
+		if (!display) return;
 		_face->LookBottom();
 	}
 
 
 	inline void draw() override {
+		if (!display) return;
 		_display->clearBuffer();
 		_face->Update();
 	}

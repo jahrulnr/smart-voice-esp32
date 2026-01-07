@@ -19,6 +19,7 @@ public:
 	}
 
 	inline void draw() override {
+		if (!display) return;
 		_display->clearBuffer();
 		vTaskDelay(pdMS_TO_TICKS(400));
 		if (_mode > RIGHT_TOP) _mode = LEFT_BOTTOM;

@@ -6,6 +6,7 @@
 class LoadingDrawer : public DisplayDrawer {
 public:
 	LoadingDrawer(U8G2* display = nullptr): _display(display) {
+		if (!display) return;
 		_icons.push_back(icon24::hourglass0);
 		_icons.push_back(icon24::hourglass1);
 		_icons.push_back(icon24::hourglass2);
@@ -20,10 +21,12 @@ public:
 		_centerY = (_display->getHeight() / 2) - 12;
 	}
 	~LoadingDrawer() override {
+		if (!display) return;
 		_icons.clear();
 	}
 
 	inline void draw() override {
+		if (!display) return;
 		_display->clearBuffer();
 		if (_frame >= _maxFrame) _frame = 0;
 		_display->drawXBM(_centerX, _centerY, 24, 24, _icons[_frame++]);

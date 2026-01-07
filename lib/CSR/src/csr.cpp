@@ -190,8 +190,11 @@ static void audio_feed_task(void *arg) {
 
 static void audio_detect_task(void *arg) {
   int afe_chunksize = SR::g_sr_data->afe_handle->get_fetch_chunksize(SR::g_sr_data->afe_data);
-  int mu_chunksize = SR::g_sr_data->multinet->get_samp_chunksize(SR::g_sr_data->model_data);
-  assert(mu_chunksize == afe_chunksize);
+  int mu_chunksize;
+  if (SR::g_sr_data->model_data){
+    int mu_chunksize = SR::g_sr_data->multinet->get_samp_chunksize(SR::g_sr_data->model_data);
+    assert(mu_chunksize == afe_chunksize);
+  }
   ESP_LOGI(SR::TAG, "------------detect start------------");
 
   while (true) {
@@ -236,6 +239,10 @@ static void audio_detect_task(void *arg) {
     }
 
     if (SR::g_sr_data->mode == SR_MODE_COMMAND) {
+      if (!SR::g_sr_data->model_data) {
+        SR::g_sr_data->mode = SR_MODE_WAKEWORD;
+        continue;
+      }
 
       esp_mn_state_t mn_state = ESP_MN_STATE_DETECTING;
       mn_state = SR::g_sr_data->multinet->detect(SR::g_sr_data->model_data, res->data);
@@ -352,26 +359,28 @@ esp_err_t setup(
 
   // Load Custom Command Detection
   char *mn_name = esp_srmodel_filter(getModels(), ESP_MN_PREFIX, ESP_MN_ENGLISH);
-  ESP_LOGD(SR::TAG, "load multinet '%s'", mn_name);
-  SR::g_sr_data->multinet = esp_mn_handle_from_name(mn_name);
-  ESP_LOGD(SR::TAG, "load model_data '%s'", mn_name);
-  SR::g_sr_data->model_data = SR::g_sr_data->multinet->create(mn_name, 5760);
+  if (mn_name){
+    ESP_LOGD(SR::TAG, "load multinet '%s'", mn_name);
+    SR::g_sr_data->multinet = esp_mn_handle_from_name(mn_name);
+    ESP_LOGD(SR::TAG, "load model_data '%s'", mn_name);
+    SR::g_sr_data->model_data = SR::g_sr_data->multinet->create(mn_name, 5760);
 
-  // Add commands
-  esp_mn_commands_alloc((esp_mn_iface_t *)SR::g_sr_data->multinet, (model_iface_data_t *)SR::g_sr_data->model_data);
-  ESP_LOGI(SR::TAG, "add %d commands", cmd_number);
-  for (size_t i = 0; i < cmd_number; i++) {
-    esp_mn_commands_add(sr_commands[i].command_id, (char *)(sr_commands[i].phoneme));
-    ESP_LOGI(SR::TAG, "  cmd[%d] phrase[%d]:'%s'", sr_commands[i].command_id, i, sr_commands[i].str);
-    if (i % 5 == 0) taskYIELD();
-  }
-
-  // Load commands
-  esp_mn_error_t *err_id = esp_mn_commands_update();
-  if (err_id) {
-    for (int i = 0; i < err_id->num; i++) {
-      ESP_LOGE(SR::TAG, "err cmd id:%d", err_id->phrases[i]->command_id);
+    // Add commands
+    esp_mn_commands_alloc((esp_mn_iface_t *)SR::g_sr_data->multinet, (model_iface_data_t *)SR::g_sr_data->model_data);
+    ESP_LOGI(SR::TAG, "add %d commands", cmd_number);
+    for (size_t i = 0; i < cmd_number; i++) {
+      esp_mn_commands_add(sr_commands[i].command_id, (char *)(sr_commands[i].phoneme));
+      ESP_LOGI(SR::TAG, "  cmd[%d] phrase[%d]:'%s'", sr_commands[i].command_id, i, sr_commands[i].str);
       if (i % 5 == 0) taskYIELD();
+    }
+
+    // Load commands
+    esp_mn_error_t *err_id = esp_mn_commands_update();
+    if (err_id) {
+      for (int i = 0; i < err_id->num; i++) {
+        ESP_LOGE(SR::TAG, "err cmd id:%d", err_id->phrases[i]->command_id);
+        if (i % 5 == 0) taskYIELD();
+      }
     }
   }
   

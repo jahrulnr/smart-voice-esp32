@@ -21,6 +21,7 @@ public:
 		_display(display), 
 		_frame(0),
 		_maxFrame(3) {
+		if (!display) return;
 		_icons = new Icons[_maxFrame] {
 			{
 				.data = icon32::microphone_muted,
@@ -39,15 +40,18 @@ public:
 	}
 
 	~RecordDrawer() override {
+		if (!display) return;
 		delete[] _icons;
 	}
 
 	inline void setState(State state) {
+		if (!display) return;
 		if (state >= _maxFrame) return;
 		_frame = state;
 	}
 
 	inline void draw() override {
+		if (!display) return;
 		_centerX = (_display->getWidth() / 2) - (_icons[_frame].width / 2);
 		_centerY = (_display->getHeight() / 2) - (_icons[_frame].width / 2);
 

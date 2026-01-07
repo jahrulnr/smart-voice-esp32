@@ -66,8 +66,6 @@ void stsEvent(const GPTStsService::GPTToolCall& data) {
 	}
 	else if (0 == strcmp(data.name, "restart"))
 		ESP.restart();
-
-	if (!data.params.isNull()) data.params;
 }
 
 void srDisconnectCallback() {

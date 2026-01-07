@@ -8,4 +8,4 @@ model,     data, spiffs,     0x47D000,  0x500000,
 spiffs,    data, spiffs,     0x97D000,  0x673000,
 coredump,  data, coredump,   0xFF0000,   0x10000,
 
-#esptool.py --baud 2000000 --before default_reset --after hard_reset  write_flash 0x47D000 srmodels.bin
+#esptool.py --baud 2000000 --before default_reset --after hard_reset  write_flash 0x47D000 model/vad-wn-mn.bin

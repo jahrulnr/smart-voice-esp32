@@ -2,10 +2,12 @@
 #include <app_config.h>
 #include <I2SMicrophone.h>
 #include <AnalogMicrophone.h>
+#include <PDMMicrophone.h>
 
 enum MIC_HW {
 	MIC_ANALOG = 0,
 	MIC_I2S,
+	MIC_PDM,
 	MIC_MAX
 };
 
@@ -27,6 +29,10 @@ public:
 			if (imic) {
 				delete imic;
 			}
+			break;
+		case MIC_PDM:
+			if (pmic)
+				delete pmic;
 			break;
 		}
 	}
@@ -55,6 +61,13 @@ public:
 			);
 			imic->init(16000, I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO);
 			imic->start();
+			break;
+		case MIC_PDM:
+			pmic = new PDMMicrophone(
+					(gpio_num_t)MIC_DIN,    // Data pin
+					(gpio_num_t)MIC_SCK,    // Clock pin
+					I2S_NUM_0               // Port number
+			);
 			break;
 		}
 	}
@@ -96,6 +109,16 @@ public:
 
 			ret = ESP_FAIL;
 			break;
+		case MIC_PDM:
+			if (pmic && pmic->isActive()) {
+				ret = pmic->readAudioData(
+					out,
+					len,
+					bytes_read,
+					timeout_ms
+				);
+			}
+			break;
 		}
 
 		if (lastSampleLen > 0 && lastSampleLen <= 16000) {
@@ -128,6 +151,11 @@ public:
 				return imic->readLevel();
 			}
 			break;
+		case MIC_PDM:
+			if (pmic) {
+				return pmic->readLevel();
+			}
+			break;
 		}
 
 		return 0;
@@ -141,6 +169,7 @@ private:
 	MIC_HW micType;
 	I2SMicrophone* imic;
 	AnalogMicrophone* amic;
+	PDMMicrophone* pmic;
 	int16_t* lastSample;
 	size_t lastSampleLen;
 	unsigned long lastSampleTime;

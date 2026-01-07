@@ -14,6 +14,7 @@ public:
 	~MainStatusDrawer() override {}
 
 	void draw() override {
+		if (!display) return;
 		_display->clearBuffer();
 		_display->setFontMode(1);
 		_display->setContrast(180);  // Higher contrast for better visibility
