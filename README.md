@@ -77,8 +77,13 @@ Demo videos showcasing the ESP32 PioAssistant in action:
 
 ### Building ESP32 Firmware
 - Use PlatformIO IDE or CLI
-- Custom partitions defined in `hiesp.csv`
+- Custom partitions defined in `boards/*.csv`
 - Build flags optimized for ESP32-S3 (PSRAM, ESP-SR, etc.)
+
+### Board-Specific Configurations
+Different ESP32-S3 boards have varying flash sizes, which affects model selection and speech recognition modes:
+- **ESP32-S3-DevKitC-1-N16R8 (16MB Flash)**: Uses `vad-wn-mn.bin` model with multinet enabled, supporting both wakeword and command mode speech recognition
+- **Seeed Xiao ESP32-S3 (8MB Flash)**: Uses `vad-wn.bin` model with multinet disabled (only wakeword mode enabled) due to insufficient flash space for sharing with LittleFS/SPIFFS partitions
 
 ## Troubleshooting
 
