@@ -87,13 +87,18 @@ public:
 	 * @param samplesWritten Pointer to store actual samples written
 	 * @return true if successful, false otherwise
 	 */
-	inline bool writeSamples(const int16_t* buffer, size_t sampleCount, size_t* samplesWritten){
+	inline bool writeSamples(const int16_t* buffer, size_t sampleCount, size_t* samplesWritten, float volume = 1.0f){
 		if (!speaker) {
 			ESP_LOGE("SPK", "Speaker not initialized");
 			return false;
 		}
 
-		esp_err_t err = speaker->writeAudioData(buffer, sampleCount, samplesWritten, portMAX_DELAY);
+		int16_t *buff = (int16_t*)buffer;
+		if (volume != 1.0f)
+			for (size_t i = 0; i < sampleCount / sizeof(uint16_t); i++)
+				buff[i] = (int16_t)constrain(buff[i]*volume, -32768, 32767);
+
+		esp_err_t err = speaker->writeAudioData(buff, sampleCount, samplesWritten, portMAX_DELAY);
 		if (err != ESP_OK) {
 			ESP_LOGE("SPK", "Failed to write samples: %s", esp_err_to_name(err));
 			return false;
