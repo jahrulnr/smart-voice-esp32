@@ -7,6 +7,10 @@
 #include "note.h"
 #include "music/music.h"
 
+#ifndef SPEAKER_VOLUME
+#define SPEAKER_VOLUME 1.0f
+#endif
+
 /**
  * Speaker class for handling I2S audio output
  */
@@ -87,7 +91,7 @@ public:
 	 * @param samplesWritten Pointer to store actual samples written
 	 * @return true if successful, false otherwise
 	 */
-	inline bool writeSamples(const int16_t* buffer, size_t sampleCount, size_t* samplesWritten, float volume = 1.0f){
+	inline bool writeSamples(const int16_t* buffer, size_t sampleCount, size_t* samplesWritten, float volume = SPEAKER_VOLUME){
 		if (!speaker) {
 			ESP_LOGE("SPK", "Speaker not initialized");
 			return false;
