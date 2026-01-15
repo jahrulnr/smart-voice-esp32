@@ -99,7 +99,7 @@ public:
 
 		int16_t *buff = (int16_t*)buffer;
 		if (volume != 1.0f)
-			for (size_t i = 0; i < sampleCount / sizeof(uint16_t); i++)
+			for (size_t i = 0; i < sampleCount / sizeof(int16_t); i++)
 				buff[i] = (int16_t)constrain(buff[i]*volume, -32768, 32767);
 
 		esp_err_t err = speaker->writeAudioData(buff, sampleCount, samplesWritten, portMAX_DELAY);

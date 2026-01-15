@@ -32,23 +32,23 @@ void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioS
 	size_t samplesWritten = 0;
 
 	// Calculate actual output size for the limited input
-	size_t requiredOutputSamples = AudioBufferConverter::calculateOutputSize(24, 16, audioSize);
+	size_t requiredOutputSamples = AudioBufferConverter::calculateOutputSize(24, 16, audioSize / sizeof(int16_t));
 	
 	// Allocate output buffer in SPIRAM
-	int16_t* pcmOutput = (int16_t*)heap_caps_malloc(audioSize * sizeof(int16_t), MALLOC_CAP_SPIRAM);
+	int16_t* pcmOutput = (int16_t*)heap_caps_malloc(requiredOutputSamples * sizeof(int16_t), MALLOC_CAP_SPIRAM);
 	if (!pcmOutput) {
 		ESP_LOGE("SpeakerCallback", "Failed to allocate output buffer");
 		return;
 	}
 
 	// Convert sample rate from 24kHz to 16kHz
-	size_t convertedSamples = AudioBufferConverter::convert(24, 16, (int16_t*)audioData, audioSize, pcmOutput, requiredOutputSamples);
+	size_t convertedSamples = AudioBufferConverter::convert(24, 16, (int16_t*)audioData, audioSize / sizeof(int16_t), pcmOutput, requiredOutputSamples);
 	if (convertedSamples <= 0) {
 		ESP_LOGE("SpeakerCallback", "Audio conversion failed");
 		heap_caps_free(pcmOutput);
 		return;
 	}
-	speaker->writeSamples(pcmOutput, convertedSamples, &samplesWritten);
+	speaker->writeSamples(pcmOutput, convertedSamples * sizeof(int16_t), &samplesWritten);
 
 	// Calculate expected playback duration
 	ESP_LOGI("AIVoiceCallback", "Sent %d samples (%d samples written) to speaker",

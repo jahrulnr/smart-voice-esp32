@@ -48,7 +48,7 @@ const esp_afe_sr_iface_t* getAfeHandle() {
 		return afe_handle;
 
 	auto models = getModels();
-  afe_handle = esp_afe_handle_from_config(getAfeConfig());
+  afe_handle = (esp_afe_sr_iface_t*)esp_afe_handle_from_config(getAfeConfig());
 	return afe_handle;
 }
 
