@@ -44,9 +44,4 @@ void speakerAudioCallback(const uint8_t* audioData, size_t audioSize, bool isLas
         
     // Free the buffer
     heap_caps_free(pcmOutput);
-
-    // If this is the last chunk, clear speaker buffer
-    if (isLastChunk) {
-        speaker->clear();
-    }
 }

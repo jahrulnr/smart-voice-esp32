@@ -5,7 +5,8 @@ Notification *notification = nullptr;
 Microphone* microphone = nullptr;
 Speaker* speaker = nullptr;
 Button button;
-
+Mp3Decoder mp3decoder;
+ 
 WifiManager wifiManager;
 PubSubClient mqttClient;
 TTS tts;
@@ -20,6 +21,7 @@ void setupApp(){
   button.begin(BUTTON_PIN);
   ai.init(GPT_API_KEY);
   aiTts.init(GPT_API_KEY);
+  aiTts.setFormat(GPTAudioFormat::GPT_MP3);
   aiStt.init(GPT_API_KEY, LittleFS);
   aiSts.init(GPT_API_KEY);
   delay(1000);

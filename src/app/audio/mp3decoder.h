@@ -344,22 +344,6 @@ public:
 		size_t finalSize = decodedSize;
 		int finalSampleRate = mp3Info.sampleRate;
 
-		if (mp3Info.sampleRate != 16000) {
-			// Resample to 16kHz
-			if (!resampleTo16kHz(decodedBuffer, decodedSize, mp3Info.sampleRate, &finalBuffer, &finalSize)) {
-				ESP_LOGW("MP3Processor", "Resampling failed, using original buffer");
-				finalBuffer = decodedBuffer;
-				finalSize = decodedSize;
-				finalSampleRate = mp3Info.sampleRate;
-			} else {
-				finalSampleRate = 16000;
-				// Free original buffer if resampling created a new one
-				if (finalBuffer != decodedBuffer) {
-					mp3Decoder.freePCMBuffer(decodedBuffer);
-				}
-			}
-		}
-
 		*pcmBuffer = finalBuffer;
 		*pcmSize = finalSize;
 		*sampleRate = finalSampleRate;

@@ -28,32 +28,37 @@ void aiVoiceCallback(const String& text, const uint8_t* audioData, size_t audioS
 
 	notification->send(NOTIFICATION_DISPLAY, EDISPLAY_FACE);
 
-	// Send to speaker
-	size_t samplesWritten = 0;
+	// Check TTS format and decode if necessary
+	if (aiTts.getFormat() == GPTAudioFormat::GPT_MP3) {
+		// Initialize MP3 decoder if needed
+		if (!mp3decoder.isInitialized()) {
+			if (!mp3decoder.init()) {
+				ESP_LOGE("AIVoiceCallback", "Failed to initialize MP3 decoder");
+				// Fallback: try to play as raw data
+				speakerAudioCallback(audioData, audioSize, false);
+				return;
+			}
+		}
 
-	// Calculate actual output size for the limited input
-	size_t requiredOutputSamples = AudioBufferConverter::calculateOutputSize(24, 16, audioSize / sizeof(int16_t));
-	
-	// Allocate output buffer in SPIRAM
-	int16_t* pcmOutput = (int16_t*)heap_caps_malloc(requiredOutputSamples * sizeof(int16_t), MALLOC_CAP_SPIRAM);
-	if (!pcmOutput) {
-		ESP_LOGE("SpeakerCallback", "Failed to allocate output buffer");
-		return;
+		// Decode MP3 to PCM
+		int16_t* pcmBuffer = nullptr;
+		size_t pcmSize = 0;
+		int sampleRate = 0;
+
+		if (mp3decoder.decodeMP3ToPCM(audioData, audioSize, &pcmBuffer, &pcmSize, &sampleRate)) {
+			ESP_LOGI("AIVoiceCallback", "Decoded MP3 to PCM: %d samples at %d Hz", pcmSize, sampleRate);
+			// Send PCM data to speaker
+			speakerAudioCallback((uint8_t*)pcmBuffer, pcmSize * sizeof(int16_t), false);
+			mp3decoder.freePCMBuffer(pcmBuffer);
+		} else {
+			ESP_LOGE("AIVoiceCallback", "Failed to decode MP3 data");
+			// Fallback: try to play as raw data
+			speakerAudioCallback(audioData, audioSize, false);
+		}
+	} else {
+		// For WAV or PCM, send directly to speaker
+		speakerAudioCallback(audioData, audioSize, false);
 	}
-
-	// Convert sample rate from 24kHz to 16kHz
-	size_t convertedSamples = AudioBufferConverter::convert(24, 16, (int16_t*)audioData, audioSize / sizeof(int16_t), pcmOutput, requiredOutputSamples);
-	if (convertedSamples <= 0) {
-		ESP_LOGE("SpeakerCallback", "Audio conversion failed");
-		heap_caps_free(pcmOutput);
-		return;
-	}
-	speaker->writeSamples(pcmOutput, convertedSamples * sizeof(int16_t), &samplesWritten);
-
-	// Calculate expected playback duration
-	ESP_LOGI("AIVoiceCallback", "Sent %d samples (%d samples written) to speaker",
-		convertedSamples, samplesWritten);
-	heap_caps_free(pcmOutput);
 
 	// Clear speaker buffer
 	speaker->clear();

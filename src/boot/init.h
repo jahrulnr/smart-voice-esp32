@@ -22,6 +22,7 @@
 #include <app/audio/microphone.h>
 #include <app/audio/speaker.h>
 #include <app/audio/tts.h>
+#include <app/audio/mp3decoder.h>
 #include <app/network/WeatherService.h>
 #include <app/button/button.h>
 

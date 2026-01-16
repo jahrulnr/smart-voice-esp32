@@ -4,14 +4,13 @@
 ![Platform](https://img.shields.io/badge/platform-ESP32--S3-green.svg)
 ![Framework](https://img.shields.io/badge/framework-Arduino-blue.svg)
 
-An IoT voice assistant powered by ESP32-S3 firmware and AI from OpenAI. Features real-time speech recognition, text-to-speech, OLED display with face animations, and MQTT-based communication for seamless integration with external processing services.
+An IoT voice assistant powered by ESP32-S3 firmware and AI from OpenAI. Features real-time speech recognition, text-to-speech, OLED display with face animations.
 
 ## Features
 
-- **Voice Interaction**: Speech-to-text via external Whisper API, text-to-speech output
+- **Voice Interaction**: Speech-to-text via GPT API, text-to-speech output
 - **Real-time Audio Processing**: I2S microphone input with noise suppression and VAD
 - **Visual Feedback**: OLED display with animated faces and UI updates
-- **MQTT Integration**: Communicates via MQTT for scalability (todo for future feature)
 - **ESP32 Optimization**: Leverages PSRAM, dual cores, and FreeRTOS tasks
 - **Weather Integration**: Real-time weather updates from BMKG API with animated icons and data display
 - **AI Integration**: GPT-powered conversational responses and intelligent interactions
@@ -26,10 +25,10 @@ An IoT voice assistant powered by ESP32-S3 firmware and AI from OpenAI. Features
 The ESP32 firmware handles hardware control using FreeRTOS tasks:
 
 - **MainTask**: Display/UI management with FaceDisplay animations
-- **NetworkTask**: MQTT/WiFi connectivity
+- **NetworkTask**: WiFi connectivity
 - **RecorderTask**: Audio capture and streaming
 
-**Data Flow**: RecorderTask captures audio → saves to WAV file on LittleFS → ESP-SR transcribes locally → sends to GPT API for response → OpenAI TTS (if WiFi) or local TTS outputs speech
+**Data Flow**: RecorderTask captures audio → streams directly to GPT API for transcription and response → TTS outputs speech
 
 ## Hardware Requirements
 
@@ -48,20 +47,22 @@ The ESP32 firmware handles hardware control using FreeRTOS tasks:
 ## Installation & Setup
 
 ### 1. Clone Repository
+
 ```bash
 git clone https://github.com/jahrulnr/smart-voice-esp32.git
 cd smart-voice-esp32
 ```
 
 ### 2. Configuration
-- Configure WiFi and MQTT in `include/secret.h` (copy from `secret.h.example`)
+
+- Configure WiFi in `include/secret.h` (copy from `secret.h.example`)
 
 ## Usage
 
-1. **Power on ESP32**: Device connects to WiFi and MQTT broker
-2. **Speak**: Audio captured via microphone, streamed to MQTT
-3. **Processing**: Audio processed by external services
-4. **Response**: Transcribed text received via MQTT, displayed on OLED
+1. **Power on ESP32**: Device connects to WiFi
+2. **Speak**: Audio captured via microphone and processed locally
+3. **Processing**: Audio sent directly to GPT API for transcription and response
+4. **Response**: AI-generated text displayed on OLED, with speech output via TTS
 
 ## Demo
 
@@ -76,18 +77,22 @@ Demo videos showcasing the ESP32 PioAssistant in action:
 ## Development
 
 ### Building ESP32 Firmware
+
 - Use PlatformIO IDE or CLI
 - Custom partitions defined in `boards/*.csv`
 - Build flags optimized for ESP32-S3 (PSRAM, ESP-SR, etc.)
 
 ### Board-Specific Configurations
+
 Different ESP32-S3 boards have varying flash sizes, which affects model selection and speech recognition modes:
+
 - **ESP32-S3-DevKitC-1-N16R8 (16MB Flash)**: Uses `vad-wn-mn.bin` model with multinet enabled, supporting both wakeword and command mode speech recognition
 - **Seeed Xiao ESP32-S3 (8MB Flash)**: Uses `vad-wn.bin` model with multinet disabled (only wakeword mode enabled) due to insufficient flash space for sharing with LittleFS/SPIFFS partitions
 
 ## Troubleshooting
 
 ### WebSocket Issues
+
 For WebSocket-related issues with the ESP32-GPT library (such as payload size limits or connection problems), see the ESP32-GPT documentation at [ESP32-GPT](https://github.com/jahrulnr/esp32-gpt)
 
 ## Contributing
