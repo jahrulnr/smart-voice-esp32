@@ -19,8 +19,8 @@
 #define I2S_SPEAKER_PORT I2S_NUM_1
 
 #elif SEED_XIAO_ESP32S3
-#define SCL_PIN 5
-#define SDA_PIN 6
+#define SDA_PIN 5
+#define SCL_PIN 6
 // #define BUTTON_PIN 0
 #define BUTTON_PIN 1
 
