@@ -30,7 +30,7 @@ Example Output: Hey hey, it is already 11 PM
 
 void timeEvent() {
 	int hour = timeManager.getHour();
-	if (lastHour == hour || hour == -1) return;
+	if (lastHour == hour || hour == -1 || !WiFi.isConnected()) return;
 	
 	lastHour = hour;
 
